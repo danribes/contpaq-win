@@ -3,8 +3,9 @@
 .env.local
 .env.*.local
 
-# Claude Code credentials (as recommended by spec-kit)
-.claude/
+# Claude Code - include commands but exclude credentials
+.claude/*
+!.claude/commands/
 
 # Dependencies
 node_modules/
