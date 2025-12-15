@@ -1,0 +1,564 @@
+openapi: 3.0.3
+info:
+  title: ContPAQ-Win Windows Bridge API
+  description: |
+    C#/.NET service that integrates with ContPAQi SDK via COM interop.
+    Runs on localhost:5000 and provides REST API for ContPAQi operations.
+  version: 1.0.0
+  contact:
+    name: ContPAQ-Win Development
+
+servers:
+  - url: http://127.0.0.1:5000
+    description: Local Windows Bridge Service
+
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check endpoint
+      description: Returns service health and ContPAQi SDK connection status
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is unhealthy or SDK unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /sdk/status:
+    get:
+      operationId: getSdkStatus
+      summary: Get ContPAQi SDK connection status
+      description: Returns detailed SDK connection and license information
+      tags:
+        - System
+      responses:
+        '200':
+          description: SDK status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SdkStatusResponse'
+
+  /companies:
+    get:
+      operationId: listCompanies
+      summary: List available ContPAQi companies
+      description: Returns list of companies available in the connected ContPAQi installation
+      tags:
+        - Companies
+      responses:
+        '200':
+          description: Companies list retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompaniesListResponse'
+        '503':
+          description: SDK not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /companies/{companyId}/connect:
+    post:
+      operationId: connectCompany
+      summary: Connect to a ContPAQi company
+      description: Establishes connection to specified company database
+      tags:
+        - Companies
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Connected successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionResponse'
+        '400':
+          description: Invalid company ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Connection failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /vendors:
+    get:
+      operationId: listVendors
+      summary: List vendors in ContPAQi
+      description: Returns paginated list of vendors from connected company
+      tags:
+        - Vendors
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by RFC or business name
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 200
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Vendors list retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorsListResponse'
+
+  /vendors/{rfc}:
+    get:
+      operationId: getVendorByRfc
+      summary: Get vendor by RFC
+      description: Retrieves vendor details by RFC from ContPAQi
+      tags:
+        - Vendors
+      parameters:
+        - name: rfc
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vendor found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorResponse'
+        '404':
+          description: Vendor not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /vendors:
+    post:
+      operationId: createVendor
+      summary: Create new vendor in ContPAQi
+      description: Creates a new vendor record in the connected company
+      tags:
+        - Vendors
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVendorRequest'
+      responses:
+        '201':
+          description: Vendor created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorResponse'
+        '400':
+          description: Invalid vendor data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Vendor with RFC already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /entries:
+    post:
+      operationId: createEntry
+      summary: Create accounting entry in ContPAQi
+      description: Posts invoice data as an accounting entry to ContPAQi
+      tags:
+        - Entries
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEntryRequest'
+      responses:
+        '201':
+          description: Entry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntryResponse'
+        '400':
+          description: Invalid entry data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Duplicate entry detected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuplicateEntryResponse'
+        '503':
+          description: SDK error or connection lost
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /entries/{folio}:
+    get:
+      operationId: getEntry
+      summary: Get entry by folio number
+      description: Retrieves entry details from ContPAQi
+      tags:
+        - Entries
+      parameters:
+        - name: folio
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Entry found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntryResponse'
+        '404':
+          description: Entry not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /entries/check-duplicate:
+    post:
+      operationId: checkDuplicate
+      summary: Check for duplicate entry
+      description: Checks if an entry with same vendor RFC and invoice number exists
+      tags:
+        - Entries
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DuplicateCheckRequest'
+      responses:
+        '200':
+          description: Duplicate check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuplicateCheckResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        sdk_connected:
+          type: boolean
+        company_connected:
+          type: boolean
+        current_company:
+          type: string
+
+    SdkStatusResponse:
+      type: object
+      properties:
+        sdk_available:
+          type: boolean
+        sdk_version:
+          type: string
+        contpaqi_product:
+          type: string
+          enum: [comercial, contabilidad]
+        contpaqi_version:
+          type: string
+        license_valid:
+          type: boolean
+        license_type:
+          type: string
+        machine_id:
+          type: string
+
+    CompaniesListResponse:
+      type: object
+      required:
+        - companies
+      properties:
+        companies:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              path:
+                type: string
+              is_connected:
+                type: boolean
+
+    ConnectionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        company_id:
+          type: string
+        company_name:
+          type: string
+        message:
+          type: string
+
+    VendorsListResponse:
+      type: object
+      required:
+        - vendors
+        - total
+      properties:
+        vendors:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorResponse'
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    VendorResponse:
+      type: object
+      required:
+        - rfc
+        - business_name
+      properties:
+        id:
+          type: string
+        rfc:
+          type: string
+        business_name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postal_code:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+
+    CreateVendorRequest:
+      type: object
+      required:
+        - rfc
+        - business_name
+      properties:
+        rfc:
+          type: string
+          minLength: 12
+          maxLength: 13
+        business_name:
+          type: string
+          maxLength: 200
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postal_code:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+
+    CreateEntryRequest:
+      type: object
+      required:
+        - vendor_rfc
+        - invoice_number
+        - invoice_date
+        - subtotal
+        - iva_amount
+        - total
+        - line_items
+      properties:
+        vendor_rfc:
+          type: string
+        invoice_number:
+          type: string
+        invoice_date:
+          type: string
+          format: date
+        subtotal:
+          type: number
+          format: float
+        iva_amount:
+          type: number
+          format: float
+        total:
+          type: number
+          format: float
+        line_items:
+          type: array
+          items:
+            type: object
+            required:
+              - description
+              - quantity
+              - unit_price
+              - amount
+            properties:
+              description:
+                type: string
+              quantity:
+                type: number
+              unit_price:
+                type: number
+              amount:
+                type: number
+        notes:
+          type: string
+        force_duplicate:
+          type: boolean
+          default: false
+          description: Allow posting even if duplicate detected
+
+    EntryResponse:
+      type: object
+      required:
+        - success
+        - folio_number
+      properties:
+        success:
+          type: boolean
+        folio_number:
+          type: string
+        entry_date:
+          type: string
+          format: date
+        vendor_rfc:
+          type: string
+        vendor_name:
+          type: string
+        total:
+          type: number
+        message:
+          type: string
+
+    DuplicateCheckRequest:
+      type: object
+      required:
+        - vendor_rfc
+        - invoice_number
+      properties:
+        vendor_rfc:
+          type: string
+        invoice_number:
+          type: string
+        invoice_date:
+          type: string
+          format: date
+
+    DuplicateCheckResponse:
+      type: object
+      required:
+        - is_duplicate
+      properties:
+        is_duplicate:
+          type: boolean
+        existing_entry:
+          $ref: '#/components/schemas/EntryResponse'
+
+    DuplicateEntryResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          enum: [duplicate_entry]
+        message:
+          type: string
+        existing_folio:
+          type: string
+        existing_date:
+          type: string
+          format: date
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+          description: Human-readable error message (in Spanish)
+        code:
+          type: integer
+          description: ContPAQi SDK error code if applicable
+        details:
+          type: object
+
+tags:
+  - name: System
+    description: System health and SDK status endpoints
+  - name: Companies
+    description: ContPAQi company management
+  - name: Vendors
+    description: Vendor (proveedor) operations
+  - name: Entries
+    description: Accounting entry operations

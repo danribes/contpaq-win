@@ -1,0 +1,417 @@
+openapi: 3.0.3
+info:
+  title: ContPAQ-Win AI Service API
+  description: |
+    AI-powered invoice extraction service running on localhost:8000.
+    Extracts invoice data from PDF documents using OCR and ML models.
+  version: 1.0.0
+  contact:
+    name: ContPAQ-Win Development
+
+servers:
+  - url: http://127.0.0.1:8000
+    description: Local AI Service
+
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check endpoint
+      description: Returns service health status for process monitoring
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /extract:
+    post:
+      operationId: extractInvoice
+      summary: Extract invoice data from PDF
+      description: |
+        Processes a PDF file and extracts invoice fields using AI models.
+        Automatically detects if PDF is text-based or scanned and applies
+        appropriate extraction method.
+      tags:
+        - Extraction
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF file to process
+                force_ocr:
+                  type: boolean
+                  default: false
+                  description: Force OCR even for text-based PDFs
+      responses:
+        '200':
+          description: Extraction successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractionResponse'
+        '400':
+          description: Invalid request (not a PDF, corrupted file, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: PDF could not be processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /extract/batch:
+    post:
+      operationId: extractBatch
+      summary: Extract multiple invoices
+      description: |
+        Processes multiple PDF files in sequence. Returns results for each file,
+        including failures for individual files that couldn't be processed.
+      tags:
+        - Extraction
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - files
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Array of PDF files to process
+                  maxItems: 10
+      responses:
+        '200':
+          description: Batch processing complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchExtractionResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /validate/rfc:
+    post:
+      operationId: validateRfc
+      summary: Validate Mexican RFC format
+      description: Validates RFC format for individuals (13 chars) or companies (12 chars)
+      tags:
+        - Validation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RfcValidationRequest'
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RfcValidationResponse'
+
+  /validate/cfdi:
+    post:
+      operationId: validateCfdi
+      summary: Validate CFDI compliance
+      description: Validates invoice data meets CFDI requirements
+      tags:
+        - Validation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CfdiValidationRequest'
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CfdiValidationResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+          example: "1.0.0"
+        models_loaded:
+          type: boolean
+        ocr_available:
+          type: boolean
+
+    BoundingBox:
+      type: object
+      properties:
+        x:
+          type: integer
+          description: X coordinate in pixels
+        y:
+          type: integer
+          description: Y coordinate in pixels
+        width:
+          type: integer
+          description: Width in pixels
+        height:
+          type: integer
+          description: Height in pixels
+
+    ExtractionField:
+      type: object
+      required:
+        - field_name
+        - value
+        - confidence
+      properties:
+        field_name:
+          type: string
+          description: Name of the extracted field
+        value:
+          type: string
+          description: Extracted value
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Confidence score (0-100)
+        bbox:
+          $ref: '#/components/schemas/BoundingBox'
+
+    LineItemExtraction:
+      type: object
+      required:
+        - description
+        - quantity
+        - unit_price
+        - amount
+        - confidence
+      properties:
+        description:
+          type: string
+        quantity:
+          type: number
+          format: float
+        unit_price:
+          type: number
+          format: float
+        amount:
+          type: number
+          format: float
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+
+    ExtractionResponse:
+      type: object
+      required:
+        - success
+        - source_type
+        - processing_time_ms
+        - fields
+      properties:
+        success:
+          type: boolean
+        source_type:
+          type: string
+          enum: [text_based, scanned]
+        processing_time_ms:
+          type: integer
+          description: Processing time in milliseconds
+        fields:
+          type: object
+          properties:
+            vendor_rfc:
+              $ref: '#/components/schemas/ExtractionField'
+            vendor_name:
+              $ref: '#/components/schemas/ExtractionField'
+            invoice_number:
+              $ref: '#/components/schemas/ExtractionField'
+            invoice_date:
+              $ref: '#/components/schemas/ExtractionField'
+            subtotal:
+              $ref: '#/components/schemas/ExtractionField'
+            iva_amount:
+              $ref: '#/components/schemas/ExtractionField'
+            total:
+              $ref: '#/components/schemas/ExtractionField'
+        line_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineItemExtraction'
+        warnings:
+          type: array
+          items:
+            type: string
+          description: Non-fatal warnings during processing
+
+    BatchExtractionResponse:
+      type: object
+      required:
+        - total
+        - successful
+        - failed
+        - results
+      properties:
+        total:
+          type: integer
+        successful:
+          type: integer
+        failed:
+          type: integer
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              filename:
+                type: string
+              success:
+                type: boolean
+              extraction:
+                $ref: '#/components/schemas/ExtractionResponse'
+              error:
+                type: string
+
+    RfcValidationRequest:
+      type: object
+      required:
+        - rfc
+      properties:
+        rfc:
+          type: string
+          description: RFC to validate
+
+    RfcValidationResponse:
+      type: object
+      required:
+        - valid
+        - rfc
+      properties:
+        valid:
+          type: boolean
+        rfc:
+          type: string
+        rfc_type:
+          type: string
+          enum: [persona_fisica, persona_moral]
+          description: Type of RFC (individual or company)
+        errors:
+          type: array
+          items:
+            type: string
+
+    CfdiValidationRequest:
+      type: object
+      required:
+        - vendor_rfc
+        - invoice_number
+        - subtotal
+        - iva_amount
+        - total
+      properties:
+        vendor_rfc:
+          type: string
+        invoice_number:
+          type: string
+        invoice_date:
+          type: string
+          format: date
+        subtotal:
+          type: number
+        iva_amount:
+          type: number
+        total:
+          type: number
+
+    CfdiValidationResponse:
+      type: object
+      required:
+        - valid
+      properties:
+        valid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message (in Spanish)
+        details:
+          type: object
+          description: Additional error details
+
+tags:
+  - name: System
+    description: System health and status endpoints
+  - name: Extraction
+    description: Invoice data extraction endpoints
+  - name: Validation
+    description: Data validation endpoints
