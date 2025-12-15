@@ -42,7 +42,10 @@
     - Logs: `log_files/T001.1.5_*`, `log_tests/T001.1.5_*`, `log_learn/T001.1.5_*`
 
 - [ ] **T001.2** [P] Initialize version control configuration
-  - [ ] T001.2.1 Update `.gitignore` with Python, Node, .NET patterns
+  - [x] T001.2.1 Update `.gitignore` with Python, Node, .NET patterns ✅ *Completed 2025-12-15*
+    - Updated: `.gitignore` with comprehensive patterns for all tech stacks
+    - Test: `tests/structure/test_T001_2_1_gitignore.py` (6 tests passed)
+    - Logs: `log_files/T001.2.1_*`, `log_tests/T001.2.1_*`, `log_learn/T001.2.1_*`
   - [ ] T001.2.2 Create `.editorconfig` for consistent formatting
   - [ ] T001.2.3 Create root `README.md` with project overview
 
