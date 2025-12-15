@@ -5,6 +5,16 @@
 **Status**: Draft
 **Input**: User description: "Windows-native ContPAQi clone with AI invoice processing running natively without Docker"
 
+## Clarifications
+
+### Session 2025-12-15
+
+- Q: Which ContPAQi versions should be supported? → A: ContPAQi 2022 and later versions
+- Q: Should the system support scanned/image-based PDFs or only text-based? → A: Both text-based and scanned/image PDFs via OCR
+- Q: How should the system handle duplicate invoice processing? → A: Warn on potential duplicates, allow user override
+- Q: What language should the user interface be in? → A: Spanish only
+- Q: What states does an invoice go through during processing? → A: 4-state lifecycle: Uploaded → Extracted → Validated → Posted
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Process Invoice Without Docker (Priority: P1)
@@ -23,6 +33,8 @@ As an accountant, I want to process PDF invoices using AI extraction on my Windo
 
 3. **Given** the AI service crashes unexpectedly, **When** the application detects the failure, **Then** it automatically restarts the service and notifies me with a non-blocking alert.
 
+4. **Given** a scanned/image-based PDF invoice, **When** I process it, **Then** the system applies OCR before AI extraction and displays results with appropriate confidence scores.
+
 ---
 
 ### User Story 2 - Review and Validate Extracted Data (Priority: P2)
@@ -35,11 +47,11 @@ As an accountant, I want to review AI-extracted invoice data with visual confide
 
 **Acceptance Scenarios**:
 
-1. **Given** an invoice has been processed with AI extraction, **When** I view the results, **Then** each field displays a confidence indicator (green ≥90%, orange 70-89%, red <70%).
+1. **Given** an invoice has been processed with AI extraction, **When** I view the results, **Then** each field displays a confidence indicator (green ≥90%, orange 70-89%, red <70%) and the invoice status shows "Extracted."
 
 2. **Given** a field shows low confidence (red), **When** I click on the field, **Then** I can manually edit the value and the system marks it as "User Verified."
 
-3. **Given** I have edited multiple fields, **When** I click "Save," **Then** all my corrections persist and the invoice is ready for posting.
+3. **Given** I have edited multiple fields, **When** I click "Validate," **Then** all my corrections persist and the invoice status changes to "Validated."
 
 ---
 
@@ -53,11 +65,13 @@ As an accountant, I want to post validated invoice data directly to ContPAQi Com
 
 **Acceptance Scenarios**:
 
-1. **Given** I have a validated invoice with all required fields, **When** I click "Post to ContPAQi," **Then** the system creates the corresponding entry in ContPAQi and displays a success confirmation with the folio number.
+1. **Given** I have a validated invoice with all required fields, **When** I click "Post to ContPAQi," **Then** the system creates the corresponding entry in ContPAQi, displays a success confirmation with the folio number, and updates the invoice status to "Posted."
 
-2. **Given** the ContPAQi SDK is not accessible (license issue or not installed), **When** I attempt to post, **Then** the system displays a clear error message explaining the issue and suggests resolution steps.
+2. **Given** the ContPAQi SDK is not accessible (license issue or not installed), **When** I attempt to post, **Then** the system displays a clear error message in Spanish explaining the issue and suggests resolution steps.
 
 3. **Given** the RFC doesn't exist in ContPAQi's vendor catalog, **When** I attempt to post, **Then** the system offers to create a new vendor record or lets me select an existing vendor.
+
+4. **Given** an invoice with matching invoice number and RFC already exists in ContPAQi, **When** I attempt to post, **Then** the system displays a duplicate warning and allows me to proceed or cancel.
 
 ---
 
@@ -82,16 +96,22 @@ As an IT administrator, I want to install ContPAQ-Win using a standard Windows i
 ### Edge Cases
 
 - What happens when the PDF is corrupted or password-protected?
-  - System displays an error message and skips the file, allowing the user to provide an unlocked version.
+  - System displays an error message in Spanish and skips the file, allowing the user to provide an unlocked version.
 
 - What happens when the AI extraction returns all low-confidence results?
   - System flags the invoice for manual review and highlights all fields in red, but still allows the user to proceed with manual entry.
 
 - What happens when ContPAQi is running during installation?
-  - Installer detects the running process and prompts user to close it before proceeding.
+  - Installer detects the running process and prompts user in Spanish to close it before proceeding.
 
 - What happens when the machine has no internet connection?
   - All AI processing runs locally; the application works fully offline after installation.
+
+- What happens when a scanned PDF has poor image quality?
+  - System attempts OCR but displays low confidence scores; user can manually enter data or provide a better quality scan.
+
+- What happens when the user tries to process the same invoice twice?
+  - System detects potential duplicate by invoice number + RFC, warns the user, and allows them to proceed or cancel.
 
 ## Requirements *(mandatory)*
 
@@ -104,22 +124,26 @@ As an IT administrator, I want to install ContPAQ-Win using a standard Windows i
 - **FR-005**: System MUST allow users to manually edit any AI-extracted field.
 - **FR-006**: System MUST validate Mexican RFC format (13 characters for individuals, 12 for companies).
 - **FR-007**: System MUST perform CFDI compliance validation before posting to ContPAQi.
-- **FR-008**: System MUST integrate with ContPAQi SDK to create accounting entries.
+- **FR-008**: System MUST integrate with ContPAQi SDK (versions 2022 and later) to create accounting entries.
 - **FR-009**: System MUST work offline after initial installation (no internet required for operation).
 - **FR-010**: System MUST provide a health check endpoint for the AI service at `/health`.
 - **FR-011**: System MUST bind all network services to localhost only (127.0.0.1).
 - **FR-012**: Installer MUST support silent installation for enterprise deployment.
 - **FR-013**: System MUST support Windows 10 (21H2+) and Windows 11 on x64 architecture.
+- **FR-014**: System MUST support both text-based PDFs and scanned/image-based PDFs via OCR.
+- **FR-015**: System MUST detect potential duplicate invoices (by invoice number + RFC) and warn users before posting.
+- **FR-016**: System MUST display all user interface elements in Spanish.
+- **FR-017**: System MUST track invoice processing state through 4 stages: Uploaded, Extracted, Validated, Posted.
 
 ### Key Entities
 
-- **Invoice**: A PDF document containing vendor information, line items, totals, and tax details. Key attributes: vendor RFC, vendor name, invoice date, invoice number, line items, subtotal, IVA amount, total amount, extraction confidence scores.
+- **Invoice**: A PDF document containing vendor information, line items, totals, and tax details. Key attributes: vendor RFC, vendor name, invoice date, invoice number, line items, subtotal, IVA amount, total amount, extraction confidence scores, processing state (Uploaded/Extracted/Validated/Posted), source type (text-based/scanned).
 
 - **Vendor**: A business entity that issues invoices. Key attributes: RFC (tax ID), business name, address, contact information. Relationship: One vendor can have many invoices.
 
 - **Line Item**: A single product or service entry on an invoice. Key attributes: description, quantity, unit price, amount. Relationship: One invoice has many line items.
 
-- **Extraction Result**: The AI-processed output for an invoice. Key attributes: field name, extracted value, confidence score (0-100), bounding box coordinates for PDF highlighting.
+- **Extraction Result**: The AI-processed output for an invoice. Key attributes: field name, extracted value, confidence score (0-100), bounding box coordinates for PDF highlighting, user-verified flag.
 
 - **ContPAQi Entry**: The accounting record created in ContPAQi. Key attributes: folio number, entry date, vendor reference, amounts, posting status.
 
@@ -131,7 +155,7 @@ As an IT administrator, I want to install ContPAQ-Win using a standard Windows i
 
 - **SC-002**: Application installs successfully on 95% of Windows 10/11 machines without manual intervention.
 
-- **SC-003**: AI extraction achieves ≥85% accuracy on standard Mexican CFDI invoices (measured by fields not requiring user correction).
+- **SC-003**: AI extraction achieves ≥85% accuracy on standard Mexican CFDI text-based invoices (measured by fields not requiring user correction).
 
 - **SC-004**: Application starts and is ready to process invoices within 45 seconds of launch.
 
@@ -141,10 +165,13 @@ As an IT administrator, I want to install ContPAQ-Win using a standard Windows i
 
 - **SC-007**: 90% of users successfully complete their first invoice processing without consulting documentation.
 
+- **SC-008**: OCR extraction on scanned invoices achieves ≥70% accuracy on clear, well-lit scans.
+
 ## Assumptions
 
-- Users have ContPAQi Comercial or Contabilidad already installed and licensed on their machine.
+- Users have ContPAQi Comercial or Contabilidad (version 2022 or later) already installed and licensed on their machine.
 - Users have basic Windows computer skills (can run installers, navigate file system).
-- PDF invoices follow standard Mexican CFDI format with machine-readable text (not scanned images).
+- Users are Spanish-speaking Mexican accountants familiar with CFDI terminology.
 - Target machines have at least 8GB RAM and 2GB free disk space.
 - Python 3.11+ runtime can be embedded or installed silently as part of the installer.
+- Scanned PDFs should be at least 150 DPI for reliable OCR processing.
