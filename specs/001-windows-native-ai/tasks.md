@@ -32,7 +32,10 @@
     - Created: `windows-bridge/src/`
     - Test: `tests/structure/test_T001_1_3_windows_bridge_directory.py` (3 tests passed)
     - Logs: `log_files/T001.1.3_*`, `log_tests/T001.1.3_*`, `log_learn/T001.1.3_*`
-  - [ ] T001.1.4 Create `installer/` directory with `scripts/`, `assets/` subdirectories
+  - [x] T001.1.4 Create `installer/` directory with `scripts/`, `assets/` subdirectories ✅ *Completed 2025-12-15*
+    - Created: `installer/scripts/`, `installer/assets/`
+    - Test: `tests/structure/test_T001_1_4_installer_directory.py` (4 tests passed)
+    - Logs: `log_files/T001.1.4_*`, `log_tests/T001.1.4_*`, `log_learn/T001.1.4_*`
   - [ ] T001.1.5 Create `database/` directory with `migrations/`, `seed/` subdirectories
 
 - [ ] **T001.2** [P] Initialize version control configuration
