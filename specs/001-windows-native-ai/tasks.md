@@ -590,11 +590,21 @@
 
 ### T007 - Windows Bridge Health & SDK Connection
 
-- [ ] **T007.1** Implement health controller
-  - [ ] T007.1.1 [P] Write test `HealthControllerTests.cs`
-  - [ ] T007.1.2 Create `HealthController.cs` with GET /health
-  - [ ] T007.1.3 Return SDK connection status
-  - [ ] T007.1.4 Return current company if connected
+- [x] **T007.1** Implement health controller ✅ *Completed 2025-12-16*
+  - [x] T007.1.1 [P] Write test `HealthControllerTests.cs`
+    - Created 15 tests covering controller, endpoint, SDK status, connection
+    - Uses xUnit, FluentAssertions, Moq
+  - [x] T007.1.2 Create `HealthController.cs` with GET /health
+    - Routes: /health, /api/health
+    - Returns HealthResponse with status, timestamp, version, components
+  - [x] T007.1.3 Return SDK connection status
+    - ComponentStatus with IsAvailable, Version, Status, Details
+    - Healthy/Degraded/Unhealthy based on SDK state
+  - [x] T007.1.4 Return current company if connected
+    - Shows connected status in SDK component
+    - Details field includes connection information
+  - Test: `Controllers/HealthControllerTests.cs` (15 tests)
+  - Logs: `log_files/T007.1_*`, `log_tests/T007.1_*`, `log_learn/T007.1_*`
 
 - [ ] **T007.2** Create SDK service interface
   - [ ] T007.2.1 Create `ISdkService.cs` interface
