@@ -127,7 +127,12 @@
     - Logs: `log_files/T002.3.4_*`, `log_tests/T002.3.4_*`, `log_learn/T002.3.4_*`
 
 - [ ] **T002.4** [P] Create test infrastructure
-  - [ ] T002.4.1 Create `ai-service/tests/conftest.py` with pytest fixtures
+  - [x] T002.4.1 Create `ai-service/tests/conftest.py` with pytest fixtures ✅ *Completed 2025-12-16*
+    - Created: `ai-service/tests/conftest.py` with shared pytest fixtures
+    - Includes: test_settings, temp_env_file, sample_pdf_path, reset_settings_cache fixtures
+    - Defines: FIXTURES_DIR constant for test fixture files
+    - Test: `tests/ai_service/test_T002_4_1_conftest.py` (8 tests passed)
+    - Logs: `log_files/T002.4.1_*`, `log_tests/T002.4.1_*`, `log_learn/T002.4.1_*`
   - [ ] T002.4.2 Create `ai-service/tests/fixtures/` directory
   - [ ] T002.4.3 Add sample text-based PDF to fixtures
   - [ ] T002.4.4 Add sample scanned PDF to fixtures
