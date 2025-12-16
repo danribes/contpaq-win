@@ -388,7 +388,12 @@
     - Error handling: try-catch-finally with Log.Fatal and Log.CloseAndFlush()
     - Test: `tests/windows_bridge/test_T004_2_1_program_cs.py` (17 tests passed)
     - Logs: `log_files/T004.2.1_*`, `log_tests/T004.2.1_*`, `log_learn/T004.2.1_*`
-  - [ ] T004.2.2 Configure Kestrel to bind only to 127.0.0.1:5000
+  - [x] T004.2.2 Configure Kestrel to bind only to 127.0.0.1:5000 ✅ *Completed 2025-12-16*
+    - Added: builder.WebHost.ConfigureKestrel() with ListenLocalhost(5000)
+    - Security: Binds exclusively to localhost - not accessible from network
+    - Protocol: HTTP only (no HTTPS needed for localhost-only service)
+    - Test: `tests/windows_bridge/test_T004_2_2_kestrel_binding.py` (9 tests passed)
+    - Logs: `log_files/T004.2.2_*`, `log_tests/T004.2.2_*`, `log_learn/T004.2.2_*`
   - [ ] T004.2.3 Create `windows-bridge/src/ContPAQWinBridge/appsettings.json`
   - [ ] T004.2.4 Configure dependency injection container
 
