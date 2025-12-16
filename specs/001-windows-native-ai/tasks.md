@@ -379,7 +379,7 @@
     - Test: `tests/windows_bridge/test_T004_1_4_directory_build_props.py` (17 tests passed)
     - Logs: `log_files/T004.1.4_*`, `log_tests/T004.1.4_*`, `log_learn/T004.1.4_*`
 
-- [ ] **T004.2** Create ASP.NET Core application
+- [x] **T004.2** Create ASP.NET Core application ✅ *Completed 2025-12-16*
   - [x] T004.2.1 Create `windows-bridge/src/ContPAQWinBridge/Program.cs` ✅ *Completed 2025-12-16*
     - Created: `windows-bridge/src/ContPAQWinBridge/Program.cs` with top-level statements
     - Serilog: Bootstrap logger, file sink (daily rolling), console sink, request logging
@@ -402,7 +402,14 @@
     - AllowedHosts: "*" for localhost-only service
     - Test: `tests/windows_bridge/test_T004_2_3_appsettings.py` (15 tests passed)
     - Logs: `log_files/T004.2.3_*`, `log_tests/T004.2.3_*`, `log_learn/T004.2.3_*`
-  - [ ] T004.2.4 Configure dependency injection container
+  - [x] T004.2.4 Configure dependency injection container ✅ *Completed 2025-12-16*
+    - Options pattern: BridgeOptions bound from "Bridge" section in appsettings.json
+    - Infrastructure: AddMemoryCache(), AddHttpClient(), AddHealthChecks()
+    - Application services: AddScoped<ISdkService, SdkService>() with interface pattern
+    - Health endpoint: MapHealthChecks("/health")
+    - Created: Configuration/BridgeOptions.cs, Services/ISdkService.cs, Services/SdkService.cs
+    - Test: `tests/windows_bridge/test_T004_2_4_dependency_injection.py` (11 tests passed)
+    - Logs: `log_files/T004.2.4_*`, `log_tests/T004.2.4_*`, `log_learn/T004.2.4_*`
 
 - [ ] **T004.3** [P] Create project structure directories
   - [ ] T004.3.1 Create `Controllers/` directory

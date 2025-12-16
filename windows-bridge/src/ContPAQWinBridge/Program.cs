@@ -1,4 +1,6 @@
 using Serilog;
+using ContPAQWinBridge.Configuration;
+using ContPAQWinBridge.Services;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -27,6 +29,22 @@ try
             path: "logs/bridge-.log",
             rollingInterval: RollingInterval.Day,
             retainedFileCountLimit: 30));
+
+    // ===========================================
+    // Dependency Injection Container Configuration
+    // ===========================================
+
+    // Options pattern - bind configuration sections
+    builder.Services.Configure<BridgeOptions>(
+        builder.Configuration.GetSection(BridgeOptions.SectionName));
+
+    // Infrastructure services
+    builder.Services.AddMemoryCache();
+    builder.Services.AddHttpClient();
+    builder.Services.AddHealthChecks();
+
+    // Application/Business services - ContPAQi SDK integration
+    builder.Services.AddScoped<ISdkService, SdkService>();
 
     // Add services to the container
     builder.Services.AddControllers();
@@ -59,6 +77,7 @@ try
     // No authorization - localhost only service
 
     app.MapControllers();
+    app.MapHealthChecks("/health");
 
     Log.Information("ContPAQ Win Bridge service started successfully");
     app.Run();
