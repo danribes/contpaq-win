@@ -412,7 +412,13 @@
     - Logs: `log_files/T004.2.4_*`, `log_tests/T004.2.4_*`, `log_learn/T004.2.4_*`
 
 - [ ] **T004.3** [P] Create project structure directories
-  - [ ] T004.3.1 Create `Controllers/` directory
+  - [x] T004.3.1 Create `Controllers/` directory ✅ *Completed 2025-12-16*
+    - Created: `windows-bridge/src/ContPAQWinBridge/Controllers/` directory
+    - Created: `Controllers/BaseController.cs` abstract base class
+    - Features: [ApiController], [Route("api/[controller]")], [Produces("application/json")]
+    - Helper methods: GetCorrelationId(), ErrorResponse(), SuccessResponse<T>()
+    - Test: `tests/windows_bridge/test_T004_3_1_controllers_directory.py` (8 tests passed)
+    - Logs: `log_files/T004.3.1_*`, `log_tests/T004.3.1_*`, `log_learn/T004.3.1_*`
   - [ ] T004.3.2 Create `Services/` directory with interfaces
   - [ ] T004.3.3 Create `Models/` directory
   - [ ] T004.3.4 Create `Interop/` directory for COM wrappers
