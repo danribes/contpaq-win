@@ -358,7 +358,13 @@
     - References: `src\ContPAQWinBridge\ContPAQWinBridge.csproj` (to be created in T004.1.2)
     - Test: `tests/windows_bridge/test_T004_1_1_solution_file.py` (19 tests passed)
     - Logs: `log_files/T004.1.1_*`, `log_tests/T004.1.1_*`, `log_learn/T004.1.1_*`
-  - [ ] T004.1.2 Create `windows-bridge/src/ContPAQWinBridge/ContPAQWinBridge.csproj`
+  - [x] T004.1.2 Create `windows-bridge/src/ContPAQWinBridge/ContPAQWinBridge.csproj` ✅ *Completed 2025-12-16*
+    - Created: `windows-bridge/src/ContPAQWinBridge/ContPAQWinBridge.csproj` SDK-style project
+    - SDK: Microsoft.NET.Sdk.Web for ASP.NET Core Web API
+    - Target: .NET 8.0 (net8.0), Nullable enabled, ImplicitUsings enabled
+    - Metadata: RootNamespace, AssemblyName, Version, Documentation generation
+    - Test: `tests/windows_bridge/test_T004_1_2_csproj.py` (21 tests passed)
+    - Logs: `log_files/T004.1.2_*`, `log_tests/T004.1.2_*`, `log_learn/T004.1.2_*`
   - [ ] T004.1.3 Add NuGet packages: ASP.NET Core, Serilog, Swashbuckle
   - [ ] T004.1.4 Create `windows-bridge/Directory.Build.props` with common settings
 

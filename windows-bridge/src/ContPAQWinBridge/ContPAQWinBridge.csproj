@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>ContPAQWinBridge</RootNamespace>
+    <AssemblyName>ContPAQWinBridge</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Version>1.0.0</Version>
+    <Authors>ContPAQ Win Team</Authors>
+    <Description>Windows Bridge service for ContPAQi SDK integration</Description>
+    <Product>ContPAQ Win</Product>
+    <Copyright>Copyright © 2025</Copyright>
+  </PropertyGroup>
+
+</Project>
