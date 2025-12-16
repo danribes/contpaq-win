@@ -59,7 +59,7 @@
 
 ---
 
-### T002 - Initialize AI Service (Python)
+### T002 - Initialize AI Service (Python) ✅ *Completed 2025-12-16*
 
 - [x] **T002.1** Create Python project configuration ✅ *Completed 2025-12-16*
   - [x] T002.1.1 Create `ai-service/pyproject.toml` with project metadata ✅ *Completed 2025-12-16*
@@ -104,7 +104,7 @@
     - Test: `tests/ai_service/test_T002_2_5_utils_init.py` (6 tests passed)
     - Logs: `log_files/T002.2.5_*`, `log_tests/T002.2.5_*`, `log_learn/T002.2.5_*`
 
-- [ ] **T002.3** Create configuration module
+- [x] **T002.3** Create configuration module ✅ *Completed 2025-12-16*
   - [x] T002.3.1 Create `ai-service/src/config.py` with Pydantic Settings ✅ *Completed 2025-12-16*
     - Created: `ai-service/src/config.py` with BaseSettings class and model_config
     - Includes: lru_cache for singleton pattern, SettingsConfigDict for .env support
@@ -120,15 +120,46 @@
     - Includes: Type annotations, docstrings, platform-appropriate defaults
     - Test: `tests/ai_service/test_T002_3_3_service_paths.py` (7 tests passed)
     - Logs: `log_files/T002.3.3_*`, `log_tests/T002.3.3_*`, `log_learn/T002.3.3_*`
-  - [ ] T002.3.4 Create `.env.example` with sample configuration
+  - [x] T002.3.4 Create `.env.example` with sample configuration ✅ *Completed 2025-12-16*
+    - Created: `ai-service/.env.example` with all settings documented
+    - Includes: Section headers, explanatory comments, platform-specific notes
+    - Test: `tests/ai_service/test_T002_3_4_env_example.py` (8 tests passed)
+    - Logs: `log_files/T002.3.4_*`, `log_tests/T002.3.4_*`, `log_learn/T002.3.4_*`
 
-- [ ] **T002.4** [P] Create test infrastructure
-  - [ ] T002.4.1 Create `ai-service/tests/conftest.py` with pytest fixtures
-  - [ ] T002.4.2 Create `ai-service/tests/fixtures/` directory
-  - [ ] T002.4.3 Add sample text-based PDF to fixtures
-  - [ ] T002.4.4 Add sample scanned PDF to fixtures
-  - [ ] T002.4.5 Create `ai-service/tests/unit/__init__.py`
-  - [ ] T002.4.6 Create `ai-service/tests/integration/__init__.py`
+- [x] **T002.4** [P] Create test infrastructure ✅ *Completed 2025-12-16*
+  - [x] T002.4.1 Create `ai-service/tests/conftest.py` with pytest fixtures ✅ *Completed 2025-12-16*
+    - Created: `ai-service/tests/conftest.py` with shared pytest fixtures
+    - Includes: test_settings, temp_env_file, sample_pdf_path, reset_settings_cache fixtures
+    - Defines: FIXTURES_DIR constant for test fixture files
+    - Test: `tests/ai_service/test_T002_4_1_conftest.py` (8 tests passed)
+    - Logs: `log_files/T002.4.1_*`, `log_tests/T002.4.1_*`, `log_learn/T002.4.1_*`
+  - [x] T002.4.2 Create `ai-service/tests/fixtures/` directory ✅ *Completed 2025-12-16*
+    - Created: `ai-service/tests/fixtures/` directory with __init__.py
+    - Includes: Package docstring documenting fixtures structure
+    - Test: `tests/ai_service/test_T002_4_2_fixtures_dir.py` (5 tests passed)
+    - Logs: `log_files/T002.4.2_*`, `log_tests/T002.4.2_*`, `log_learn/T002.4.2_*`
+  - [x] T002.4.3 Add sample text-based PDF to fixtures ✅ *Completed 2025-12-16*
+    - Created: `ai-service/tests/fixtures/sample_invoice.pdf` (1,112 bytes)
+    - Includes: Mexican invoice (CFDI) with RFC, invoice number, date, subtotal, IVA, total
+    - Format: PDF 1.4 with text streams (BT/ET operators), Helvetica font
+    - Test: `tests/ai_service/test_T002_4_3_sample_pdf.py` (5 tests passed)
+    - Logs: `log_files/T002.4.3_*`, `log_tests/T002.4.3_*`, `log_learn/T002.4.3_*`
+  - [x] T002.4.4 Add sample scanned PDF to fixtures ✅ *Completed 2025-12-16*
+    - Created: `ai-service/tests/fixtures/sample_scanned_invoice.pdf` (812 bytes)
+    - Includes: Image XObject (100x150 grayscale) simulating scanned document
+    - Format: PDF 1.4 with /Subtype /Image, FlateDecode compression
+    - Test: `tests/ai_service/test_T002_4_4_scanned_pdf.py` (5 tests passed)
+    - Logs: `log_files/T002.4.4_*`, `log_tests/T002.4.4_*`, `log_learn/T002.4.4_*`
+  - [x] T002.4.5 Create `ai-service/tests/unit/__init__.py` ✅ *Completed 2025-12-16*
+    - Created: `ai-service/tests/unit/` directory with __init__.py
+    - Includes: Package docstring documenting unit test organization
+    - Test: `tests/ai_service/test_T002_4_5_unit_init.py` (5 tests passed)
+    - Logs: `log_files/T002.4.5_*`, `log_tests/T002.4.5_*`, `log_learn/T002.4.5_*`
+  - [x] T002.4.6 Create `ai-service/tests/integration/__init__.py` ✅ *Completed 2025-12-16*
+    - Created: `ai-service/tests/integration/` directory with __init__.py
+    - Includes: Package docstring documenting integration test organization and markers
+    - Test: `tests/ai_service/test_T002_4_6_integration_init.py` (5 tests passed)
+    - Logs: `log_files/T002.4.6_*`, `log_tests/T002.4.6_*`, `log_learn/T002.4.6_*`
 
 **Checkpoint**: `pip install -r requirements.txt` succeeds
 
