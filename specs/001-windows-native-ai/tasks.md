@@ -380,7 +380,14 @@
     - Logs: `log_files/T004.1.4_*`, `log_tests/T004.1.4_*`, `log_learn/T004.1.4_*`
 
 - [ ] **T004.2** Create ASP.NET Core application
-  - [ ] T004.2.1 Create `windows-bridge/src/ContPAQWinBridge/Program.cs`
+  - [x] T004.2.1 Create `windows-bridge/src/ContPAQWinBridge/Program.cs` ✅ *Completed 2025-12-16*
+    - Created: `windows-bridge/src/ContPAQWinBridge/Program.cs` with top-level statements
+    - Serilog: Bootstrap logger, file sink (daily rolling), console sink, request logging
+    - Swagger: SwaggerGen with API info, SwaggerUI at /swagger endpoint
+    - Controllers: AddControllers(), MapControllers() for MVC pattern
+    - Error handling: try-catch-finally with Log.Fatal and Log.CloseAndFlush()
+    - Test: `tests/windows_bridge/test_T004_2_1_program_cs.py` (17 tests passed)
+    - Logs: `log_files/T004.2.1_*`, `log_tests/T004.2.1_*`, `log_learn/T004.2.1_*`
   - [ ] T004.2.2 Configure Kestrel to bind only to 127.0.0.1:5000
   - [ ] T004.2.3 Create `windows-bridge/src/ContPAQWinBridge/appsettings.json`
   - [ ] T004.2.4 Configure dependency injection container
