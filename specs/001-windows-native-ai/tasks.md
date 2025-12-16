@@ -549,7 +549,13 @@
     - Logs: `log_files/T006.1.5_*`, `log_tests/T006.1.5_*`, `log_learn/T006.1.5_*`
 
 - [ ] **T006.2** Implement FastAPI application
-  - [ ] T006.2.1 Create `ai-service/src/main.py` with FastAPI app
+  - [x] T006.2.1 Create `ai-service/src/main.py` with FastAPI app ✅ *Completed 2025-12-16*
+    - Created: `ai-service/src/main.py` with FastAPI application
+    - Metadata: title, description, version for OpenAPI documentation
+    - Router: includes health endpoint from routes.py
+    - Endpoints: /, /health, /docs, /redoc, /openapi.json
+    - Test: `tests/ai_service/test_T006_2_1_main_py.py` (12 tests passed)
+    - Logs: `log_files/T006.2.1_*`, `log_tests/T006.2.1_*`, `log_learn/T006.2.1_*`
   - [ ] T006.2.2 Configure CORS for localhost only
   - [ ] T006.2.3 Add request logging middleware
   - [ ] T006.2.4 Configure uvicorn for production
