@@ -556,7 +556,13 @@
     - Endpoints: /, /health, /docs, /redoc, /openapi.json
     - Test: `tests/ai_service/test_T006_2_1_main_py.py` (12 tests passed)
     - Logs: `log_files/T006.2.1_*`, `log_tests/T006.2.1_*`, `log_learn/T006.2.1_*`
-  - [ ] T006.2.2 Configure CORS for localhost only
+  - [x] T006.2.2 Configure CORS for localhost only
+    - Added CORSMiddleware to main.py
+    - Origins: localhost/127.0.0.1 ports 3000, 8080, 5000
+    - Methods: GET, POST, PUT, DELETE, OPTIONS
+    - No wildcard origins (security)
+    - Test: `tests/ai_service/test_T006_2_2_cors.py` (10 tests passed)
+    - Logs: `log_files/T006.2.2_*`, `log_tests/T006.2.2_*`, `log_learn/T006.2.2_*`
   - [ ] T006.2.3 Add request logging middleware
   - [ ] T006.2.4 Configure uvicorn for production
   - [ ] T006.2.5 Add graceful shutdown handler
