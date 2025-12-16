@@ -328,7 +328,14 @@
     - Mocks: window.electron, matchMedia, ResizeObserver, IntersectionObserver
     - Test: `tests/desktop_app/test_T003_5_2_unit_tests_dir.py` (15 tests passed)
     - Logs: `log_files/T003.5.2_*`, `log_tests/T003.5.2_*`, `log_learn/T003.5.2_*`
-  - [ ] T003.5.3 Create `desktop-app/tests/e2e/` directory
+  - [x] T003.5.3 Create `desktop-app/tests/e2e/` directory ✅ *Completed 2025-12-16*
+    - Created: `desktop-app/tests/e2e/` with __init__.py
+    - Subdirs: workflows/, pages/, fixtures/ (each with __init__.py)
+    - Created: `desktop-app/tests/e2e/e2e.config.ts` with test configuration
+    - Config: timeouts (30s default, 60s extraction), Electron settings
+    - Selectors: data-testid based selectors for UI elements
+    - Test: `tests/desktop_app/test_T003_5_3_e2e_tests_dir.py` (12 tests passed)
+    - Logs: `log_files/T003.5.3_*`, `log_tests/T003.5.3_*`, `log_learn/T003.5.3_*`
   - [ ] T003.5.4 Create test utilities and mocks
 
 **Checkpoint**: `npm install && npm run build` succeeds
