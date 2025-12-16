@@ -167,7 +167,7 @@
 
 ### T003 - Initialize Desktop App (Electron/React)
 
-- [ ] **T003.1** Create Electron/React project
+- [x] **T003.1** Create Electron/React project ✅ *Completed 2025-12-16*
   - [x] T003.1.1 Create `desktop-app/package.json` with dependencies ✅ *Completed 2025-12-16*
     - Created: `desktop-app/package.json` with all required dependencies
     - Dependencies: react ^18.2.0, react-dom ^18.2.0, react-pdf ^7.7.0, better-sqlite3 ^9.4.0
@@ -189,7 +189,14 @@
     - Fonts: Inter (sans), JetBrains Mono (mono)
     - Test: `tests/desktop_app/test_T003_1_3_tailwind_config.py` (8 tests passed)
     - Logs: `log_files/T003.1.3_*`, `log_tests/T003.1.3_*`, `log_learn/T003.1.3_*`
-  - [ ] T003.1.4 Create `desktop-app/electron-builder.json` for packaging
+  - [x] T003.1.4 Create `desktop-app/electron-builder.json` for packaging ✅ *Completed 2025-12-16*
+    - Created: `desktop-app/electron-builder.json` with Windows NSIS installer configuration
+    - AppId: com.contpaq.win, ProductName: ContPAQ Win
+    - Windows target: NSIS x64, maximum compression, ASAR enabled
+    - NSIS: perMachine=true, oneClick=false, Spanish language (1034)
+    - Extra resources: AI service bundled with filter for Python files
+    - Test: `tests/desktop_app/test_T003_1_4_electron_builder.py` (13 tests passed)
+    - Logs: `log_files/T003.1.4_*`, `log_tests/T003.1.4_*`, `log_learn/T003.1.4_*`
 
 - [ ] **T003.2** [P] Create Electron main process structure
   - [ ] T003.2.1 Create `desktop-app/src/main/index.ts` entry point
