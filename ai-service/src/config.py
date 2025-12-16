@@ -38,9 +38,23 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Settings will be defined in subsequent tasks:
-    # T002.3.2: HOST, PORT, LOG_LEVEL
-    # T002.3.3: TESSERACT_PATH, MODEL_PATH
+    # ===================
+    # Server Settings (T002.3.2)
+    # ===================
+
+    HOST: str = "127.0.0.1"
+    """Server host address. Default 127.0.0.1 binds only to localhost for security."""
+
+    PORT: int = 8000
+    """Server port number. Default 8000 is the standard FastAPI/Uvicorn port."""
+
+    LOG_LEVEL: str = "INFO"
+    """Logging level. Options: DEBUG, INFO, WARNING, ERROR, CRITICAL."""
+
+    # ===================
+    # Service Paths (T002.3.3)
+    # ===================
+    # TESSERACT_PATH, MODEL_PATH will be added in T002.3.3
 
 
 @lru_cache
