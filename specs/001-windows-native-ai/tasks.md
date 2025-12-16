@@ -351,7 +351,7 @@
 
 ### T004 - Initialize Windows Bridge (C#/.NET)
 
-- [ ] **T004.1** Create .NET solution structure
+- [x] **T004.1** Create .NET solution structure ✅ *Completed 2025-12-16*
   - [x] T004.1.1 Create `windows-bridge/ContPAQWinBridge.sln` ✅ *Completed 2025-12-16*
     - Created: `windows-bridge/ContPAQWinBridge.sln` with VS 2022 format (12.00)
     - Features: SDK-style project GUID, Debug|Any CPU, Release|Any CPU configurations
@@ -371,7 +371,13 @@
     - Note: ASP.NET Core provided implicitly by Microsoft.NET.Sdk.Web
     - Test: `tests/windows_bridge/test_T004_1_3_nuget_packages.py` (14 tests passed)
     - Logs: `log_files/T004.1.3_*`, `log_tests/T004.1.3_*`, `log_learn/T004.1.3_*`
-  - [ ] T004.1.4 Create `windows-bridge/Directory.Build.props` with common settings
+  - [x] T004.1.4 Create `windows-bridge/Directory.Build.props` with common settings ✅ *Completed 2025-12-16*
+    - Created: `windows-bridge/Directory.Build.props` with common MSBuild properties
+    - Build: TreatWarningsAsErrors=true, WarningLevel=5, Deterministic=true
+    - Analysis: EnableNETAnalyzers=true, AnalysisLevel=latest
+    - Metadata: Company, Product, Copyright for all projects
+    - Test: `tests/windows_bridge/test_T004_1_4_directory_build_props.py` (17 tests passed)
+    - Logs: `log_files/T004.1.4_*`, `log_tests/T004.1.4_*`, `log_learn/T004.1.4_*`
 
 - [ ] **T004.2** Create ASP.NET Core application
   - [ ] T004.2.1 Create `windows-bridge/src/ContPAQWinBridge/Program.cs`
