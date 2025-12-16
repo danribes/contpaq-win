@@ -419,7 +419,13 @@
     - Helper methods: GetCorrelationId(), ErrorResponse(), SuccessResponse<T>()
     - Test: `tests/windows_bridge/test_T004_3_1_controllers_directory.py` (8 tests passed)
     - Logs: `log_files/T004.3.1_*`, `log_tests/T004.3.1_*`, `log_learn/T004.3.1_*`
-  - [ ] T004.3.2 Create `Services/` directory with interfaces
+  - [x] T004.3.2 Create `Services/` directory with interfaces ✅ *Completed 2025-12-16*
+    - Services/ directory existed from T004.2.4 (ISdkService, SdkService)
+    - Added: IVendorService.cs - vendor operations (GetByRfc, Search, Create, Exists)
+    - Added: IEntryService.cs - entry operations (Create, CheckDuplicate, GetByFolio)
+    - DTOs: VendorDto, CreateVendorRequest, EntryResultDto, CreateEntryRequest, etc.
+    - Test: `tests/windows_bridge/test_T004_3_2_services_directory.py` (12 tests passed)
+    - Logs: `log_files/T004.3.2_*`, `log_tests/T004.3.2_*`, `log_learn/T004.3.2_*`
   - [ ] T004.3.3 Create `Models/` directory
   - [ ] T004.3.4 Create `Interop/` directory for COM wrappers
 
