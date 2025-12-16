@@ -265,7 +265,7 @@
     - Test: `tests/desktop_app/test_T003_3_4_types_index.py` (14 tests passed)
     - Logs: `log_files/T003.3.4_*`, `log_tests/T003.3.4_*`, `log_learn/T003.3.4_*`
 
-- [ ] **T003.4** [P] Create i18n structure (Spanish)
+- [x] **T003.4** [P] Create i18n structure (Spanish) ✅ *Completed 2025-12-16*
   - [x] T003.4.1 Create `desktop-app/src/renderer/i18n/es.json` with all UI strings ✅ *Completed 2025-12-16*
     - Created: `desktop-app/src/renderer/i18n/es.json` with comprehensive Spanish translations
     - Sections: app, navigation, pages, buttons, status, states, invoice, lineItem, vendor
@@ -282,9 +282,33 @@
     - TypeScript: Full type definitions for context and values
     - Test: `tests/desktop_app/test_T003_4_2_i18n_provider.py` (12 tests passed)
     - Logs: `log_files/T003.4.2_*`, `log_tests/T003.4.2_*`, `log_learn/T003.4.2_*`
-  - [ ] T003.4.3 Define all error messages in Spanish
-  - [ ] T003.4.4 Define all button labels in Spanish
-  - [ ] T003.4.5 Define all status messages in Spanish
+  - [x] T003.4.3 Define all error messages in Spanish ✅ *Completed 2025-12-16*
+    - Verified: All 16 error messages present in es.json errors section
+    - Messages: generic, networkError, serverError, fileNotFound, invalidFile, invalidPdf
+    - Additional: extractionFailed, validationFailed, saveFailed, postingFailed
+    - Services: serviceUnavailable, aiServiceDown, bridgeServiceDown
+    - Business: duplicateInvoice, vendorNotFound, rootElementNotFound
+    - Test: `tests/desktop_app/test_T003_4_3_error_messages.py` (18 tests passed)
+    - Logs: `log_files/T003.4.3_*`, `log_tests/T003.4.3_*`, `log_learn/T003.4.3_*`
+  - [x] T003.4.4 Define all button labels in Spanish ✅ *Completed 2025-12-16*
+    - Verified: All 20 button labels present in es.json buttons section
+    - CRUD: save (Guardar), edit (Editar), delete (Eliminar)
+    - Confirmation: confirm (Confirmar), cancel (Cancelar), close (Cerrar)
+    - Navigation: back (Volver), next (Siguiente), previous (Anterior)
+    - File ops: selectFile, upload (Cargar), download (Descargar), export (Exportar)
+    - Actions: validate (Validar), process (Procesar), send (Enviar), sendToContpaqi
+    - Other: retry (Reintentar), refresh (Actualizar)
+    - Test: `tests/desktop_app/test_T003_4_4_button_labels.py` (22 tests passed)
+    - Logs: `log_files/T003.4.4_*`, `log_tests/T003.4.4_*`, `log_learn/T003.4.4_*`
+  - [x] T003.4.5 Define all status messages in Spanish ✅ *Completed 2025-12-16*
+    - Verified: 20+ status messages across 3 sections (status, states, services)
+    - Status: loading, saving, processing, success, error, warning, info, ready
+    - Connection: connecting, connected, disconnected
+    - Invoice states: uploaded (Cargada), extracted (Extraída), validated (Validada), posted (Registrada)
+    - Service states: starting (Iniciando), running (En ejecución), stopped (Detenido)
+    - Patterns: Ellipsis for in-progress states, feminine gender for invoice states
+    - Test: `tests/desktop_app/test_T003_4_5_status_messages.py` (25 tests passed)
+    - Logs: `log_files/T003.4.5_*`, `log_tests/T003.4.5_*`, `log_learn/T003.4.5_*`
 
 - [ ] **T003.5** [P] Create test infrastructure
   - [ ] T003.5.1 Create Jest configuration in `package.json`
