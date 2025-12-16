@@ -215,7 +215,14 @@
     - TypeScript: Full ElectronAPI interface with global Window type
     - Test: `tests/desktop_app/test_T003_2_2_preload.py` (11 tests passed)
     - Logs: `log_files/T003.2.2_*`, `log_tests/T003.2.2_*`, `log_learn/T003.2.2_*`
-  - [ ] T003.2.3 Create `desktop-app/src/main/process-manager.ts` stub
+  - [x] T003.2.3 Create `desktop-app/src/main/process-manager.ts` stub ✅ *Completed 2025-12-16*
+    - Created: `desktop-app/src/main/process-manager.ts` stub for process lifecycle management
+    - Class: ProcessManager with ServiceStatus enum (STOPPED/STARTING/RUNNING/STOPPING/ERROR)
+    - Methods: startAIService, stopAIService, startBridgeService, stopBridgeService, checkHealth
+    - Config: ports (8000, 5000), healthCheckInterval, maxRestartAttempts, backoff
+    - Exports: ProcessManager class, processManager singleton, ServiceHealth interface
+    - Test: `tests/desktop_app/test_T003_2_3_process_manager.py` (10 tests passed)
+    - Logs: `log_files/T003.2.3_*`, `log_tests/T003.2.3_*`, `log_learn/T003.2.3_*`
   - [ ] T003.2.4 Create `desktop-app/src/main/ipc-handlers.ts` stub
 
 - [ ] **T003.3** [P] Create React renderer structure
