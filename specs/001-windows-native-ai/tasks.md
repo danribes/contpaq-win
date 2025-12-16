@@ -365,7 +365,12 @@
     - Metadata: RootNamespace, AssemblyName, Version, Documentation generation
     - Test: `tests/windows_bridge/test_T004_1_2_csproj.py` (21 tests passed)
     - Logs: `log_files/T004.1.2_*`, `log_tests/T004.1.2_*`, `log_learn/T004.1.2_*`
-  - [ ] T004.1.3 Add NuGet packages: ASP.NET Core, Serilog, Swashbuckle
+  - [x] T004.1.3 Add NuGet packages: ASP.NET Core, Serilog, Swashbuckle ✅ *Completed 2025-12-16*
+    - Added: Serilog.AspNetCore (8.0.0), Serilog.Sinks.File (5.0.0), Serilog.Sinks.Console (5.0.1)
+    - Added: Swashbuckle.AspNetCore (6.5.0), Swashbuckle.AspNetCore.Annotations (6.5.0)
+    - Note: ASP.NET Core provided implicitly by Microsoft.NET.Sdk.Web
+    - Test: `tests/windows_bridge/test_T004_1_3_nuget_packages.py` (14 tests passed)
+    - Logs: `log_files/T004.1.3_*`, `log_tests/T004.1.3_*`, `log_learn/T004.1.3_*`
   - [ ] T004.1.4 Create `windows-bridge/Directory.Build.props` with common settings
 
 - [ ] **T004.2** Create ASP.NET Core application
