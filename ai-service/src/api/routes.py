@@ -37,19 +37,19 @@ def check_models_loaded() -> bool:
     return False
 
 
-def check_ocr_available() -> bool:
+def _get_tesseract_path() -> Optional[str]:
     """
-    Check if Tesseract OCR is available.
+    Find the Tesseract executable path.
 
     Returns:
-        bool: True if Tesseract is installed and accessible
+        Optional[str]: Path to tesseract executable or None if not found
     """
-    # Stub implementation - will be enhanced in T006.1.4
     import shutil
 
     # Check if tesseract is in PATH (cross-platform)
-    if shutil.which("tesseract") is not None:
-        return True
+    tesseract_in_path = shutil.which("tesseract")
+    if tesseract_in_path is not None:
+        return tesseract_in_path
 
     # Check common Windows paths
     windows_paths = [
@@ -58,9 +58,81 @@ def check_ocr_available() -> bool:
     ]
     for path in windows_paths:
         if os.path.exists(path):
-            return True
+            return path
 
-    return False
+    return None
+
+
+def check_ocr_available() -> bool:
+    """
+    Check if Tesseract OCR is available.
+
+    Returns:
+        bool: True if Tesseract is installed and accessible
+    """
+    return _get_tesseract_path() is not None
+
+
+def get_tesseract_version() -> Optional[str]:
+    """
+    Get the installed Tesseract version.
+
+    Returns:
+        Optional[str]: Version string (e.g., "5.3.0") or None if not installed
+    """
+    import subprocess
+
+    tesseract_path = _get_tesseract_path()
+    if tesseract_path is None:
+        return None
+
+    try:
+        result = subprocess.run(
+            [tesseract_path, "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        # Parse version from output like "tesseract 5.3.0"
+        output = result.stdout or result.stderr
+        for line in output.split("\n"):
+            if "tesseract" in line.lower():
+                parts = line.split()
+                for part in parts:
+                    # Look for version-like string (contains digits and dots)
+                    if any(c.isdigit() for c in part) and "." in part:
+                        return part.strip()
+        return None
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError):
+        return None
+
+
+def check_spanish_language_available() -> bool:
+    """
+    Check if Spanish language pack is available for Tesseract.
+
+    Returns:
+        bool: True if Spanish (spa) language data is installed
+    """
+    import subprocess
+
+    tesseract_path = _get_tesseract_path()
+    if tesseract_path is None:
+        return False
+
+    try:
+        result = subprocess.run(
+            [tesseract_path, "--list-langs"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        output = result.stdout or result.stderr
+        # Check if "spa" is in the list of languages
+        languages = output.lower().split()
+        return "spa" in languages
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError):
+        return False
 
 
 def get_version() -> str:

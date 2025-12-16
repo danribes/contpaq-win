@@ -533,9 +533,14 @@
     - Response: HealthResponse model with status, timestamp, version, models_loaded, ocr_available
     - Test: 11 tests passed (endpoint exists, returns 200, JSON format, all fields)
     - Logs: `log_files/T006.1.1_*`, `log_tests/T006.1.1_*`, `log_learn/T006.1.1_*`
-  - [ ] T006.1.2 Create `ai-service/src/api/routes.py` with `/health` route
-  - [ ] T006.1.3 Return status, timestamp, version, models_loaded, ocr_available
-  - [ ] T006.1.4 Implement health check logic for Tesseract availability
+  - [x] T006.1.2 Create `ai-service/src/api/routes.py` with `/health` route ✅ *Included in T006.1.1*
+  - [x] T006.1.3 Return status, timestamp, version, models_loaded, ocr_available ✅ *Included in T006.1.1*
+  - [x] T006.1.4 Implement health check logic for Tesseract availability ✅ *Completed 2025-12-16*
+    - Functions: _get_tesseract_path(), check_ocr_available(), get_tesseract_version(), check_spanish_language_available()
+    - Cross-platform: Checks PATH and common Windows install locations
+    - Subprocess with timeout for version and language detection
+    - Test: `tests/ai_service/test_T006_1_4_tesseract_availability.py` (11 tests passed)
+    - Logs: `log_files/T006.1.4_*`, `log_tests/T006.1.4_*`, `log_learn/T006.1.4_*`
   - [ ] T006.1.5 Implement health check logic for model loading
 
 - [ ] **T006.2** Implement FastAPI application
