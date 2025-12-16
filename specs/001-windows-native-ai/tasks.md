@@ -290,7 +290,16 @@
     - Business: duplicateInvoice, vendorNotFound, rootElementNotFound
     - Test: `tests/desktop_app/test_T003_4_3_error_messages.py` (18 tests passed)
     - Logs: `log_files/T003.4.3_*`, `log_tests/T003.4.3_*`, `log_learn/T003.4.3_*`
-  - [ ] T003.4.4 Define all button labels in Spanish
+  - [x] T003.4.4 Define all button labels in Spanish ✅ *Completed 2025-12-16*
+    - Verified: All 20 button labels present in es.json buttons section
+    - CRUD: save (Guardar), edit (Editar), delete (Eliminar)
+    - Confirmation: confirm (Confirmar), cancel (Cancelar), close (Cerrar)
+    - Navigation: back (Volver), next (Siguiente), previous (Anterior)
+    - File ops: selectFile, upload (Cargar), download (Descargar), export (Exportar)
+    - Actions: validate (Validar), process (Procesar), send (Enviar), sendToContpaqi
+    - Other: retry (Reintentar), refresh (Actualizar)
+    - Test: `tests/desktop_app/test_T003_4_4_button_labels.py` (22 tests passed)
+    - Logs: `log_files/T003.4.4_*`, `log_tests/T003.4.4_*`, `log_learn/T003.4.4_*`
   - [ ] T003.4.5 Define all status messages in Spanish
 
 - [ ] **T003.5** [P] Create test infrastructure
