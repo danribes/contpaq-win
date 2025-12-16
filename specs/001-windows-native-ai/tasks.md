@@ -320,7 +320,14 @@
     - Added: jest-environment-jsdom, @testing-library/react, @testing-library/jest-dom
     - Test: `tests/desktop_app/test_T003_5_1_jest_config.py` (17 tests passed)
     - Logs: `log_files/T003.5.1_*`, `log_tests/T003.5.1_*`, `log_learn/T003.5.1_*`
-  - [ ] T003.5.2 Create `desktop-app/tests/unit/` directory
+  - [x] T003.5.2 Create `desktop-app/tests/unit/` directory ✅ *Completed 2025-12-16*
+    - Created: `desktop-app/tests/` root directory
+    - Created: `desktop-app/tests/unit/` with __init__.py
+    - Subdirs: components/, hooks/, utils/, services/ (each with __init__.py)
+    - Created: `desktop-app/tests/setup.ts` with testing-library import
+    - Mocks: window.electron, matchMedia, ResizeObserver, IntersectionObserver
+    - Test: `tests/desktop_app/test_T003_5_2_unit_tests_dir.py` (15 tests passed)
+    - Logs: `log_files/T003.5.2_*`, `log_tests/T003.5.2_*`, `log_learn/T003.5.2_*`
   - [ ] T003.5.3 Create `desktop-app/tests/e2e/` directory
   - [ ] T003.5.4 Create test utilities and mocks
 
