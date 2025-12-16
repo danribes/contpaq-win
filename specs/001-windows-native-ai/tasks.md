@@ -61,7 +61,7 @@
 
 ### T002 - Initialize AI Service (Python)
 
-- [ ] **T002.1** Create Python project configuration
+- [x] **T002.1** Create Python project configuration ✅ *Completed 2025-12-16*
   - [x] T002.1.1 Create `ai-service/pyproject.toml` with project metadata ✅ *Completed 2025-12-16*
     - Created: `ai-service/pyproject.toml` with PEP 621 metadata
     - Includes: Black, Ruff, Mypy, Pytest, Coverage configurations
@@ -72,14 +72,11 @@
     - Includes: FastAPI, uvicorn, PyMuPDF, pytesseract, transformers, torch (CPU), Pillow, pydantic
     - Test: `tests/ai_service/test_T002_1_2_requirements_txt.py` (9 tests passed)
     - Logs: `log_files/T002.1.2_*`, `log_tests/T002.1.2_*`, `log_learn/T002.1.2_*`
-  - [ ] T002.1.3 Create `ai-service/requirements-dev.txt` with dev dependencies
-    - pytest==7.4.4
-    - pytest-asyncio==0.23.3
-    - pytest-cov==4.1.0
-    - black==23.12.1
-    - ruff==0.1.11
-    - mypy==1.8.0
-    - httpx==0.26.0 (for testing)
+  - [x] T002.1.3 Create `ai-service/requirements-dev.txt` with dev dependencies ✅ *Completed 2025-12-16*
+    - Created: `ai-service/requirements-dev.txt` with all 7 core dev dependencies
+    - Includes: pytest, pytest-asyncio, pytest-cov, black, ruff, mypy, httpx
+    - Test: `tests/ai_service/test_T002_1_3_requirements_dev_txt.py` (9 tests passed)
+    - Logs: `log_files/T002.1.3_*`, `log_tests/T002.1.3_*`, `log_learn/T002.1.3_*`
 
 - [ ] **T002.2** [P] Create source directory structure
   - [ ] T002.2.1 Create `ai-service/src/__init__.py`
