@@ -563,7 +563,12 @@
     - No wildcard origins (security)
     - Test: `tests/ai_service/test_T006_2_2_cors.py` (10 tests passed)
     - Logs: `log_files/T006.2.2_*`, `log_tests/T006.2.2_*`, `log_learn/T006.2.2_*`
-  - [ ] T006.2.3 Add request logging middleware
+  - [x] T006.2.3 Add request logging middleware
+    - Created `middleware/logging.py` with RequestLoggingMiddleware
+    - Logs: method, path, status code, duration (ms)
+    - Logger: `contpaq.ai.request` for filtering
+    - Test: `tests/ai_service/test_T006_2_3_logging.py` (10 tests passed)
+    - Logs: `log_files/T006.2.3_*`, `log_tests/T006.2.3_*`, `log_learn/T006.2.3_*`
   - [ ] T006.2.4 Configure uvicorn for production
   - [ ] T006.2.5 Add graceful shutdown handler
 

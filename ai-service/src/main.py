@@ -17,6 +17,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import router
+from middleware.logging import RequestLoggingMiddleware
 
 # CORS Configuration - localhost only for security
 # Only allow connections from local development environments
@@ -69,6 +70,9 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Configure request logging middleware
+app.add_middleware(RequestLoggingMiddleware)
 
 # Include API routes
 app.include_router(router)
