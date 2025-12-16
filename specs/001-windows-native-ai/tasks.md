@@ -274,7 +274,14 @@
     - Style: Formal Spanish (usted), Mexican terminology (RFC, IVA)
     - Test: `tests/desktop_app/test_T003_4_1_i18n_es_json.py` (14 tests passed)
     - Logs: `log_files/T003.4.1_*`, `log_tests/T003.4.1_*`, `log_learn/T003.4.1_*`
-  - [ ] T003.4.2 Create i18n provider component
+  - [x] T003.4.2 Create i18n provider component ✅ *Completed 2025-12-16*
+    - Created: `desktop-app/src/renderer/i18n/index.tsx` with React context provider
+    - Exports: I18nProvider component, useTranslation hook, standalone t() function
+    - Features: Nested key access (e.g., 'buttons.save'), string interpolation ({{key}})
+    - Fallback: Returns key if translation not found, logs warning
+    - TypeScript: Full type definitions for context and values
+    - Test: `tests/desktop_app/test_T003_4_2_i18n_provider.py` (12 tests passed)
+    - Logs: `log_files/T003.4.2_*`, `log_tests/T003.4.2_*`, `log_learn/T003.4.2_*`
   - [ ] T003.4.3 Define all error messages in Spanish
   - [ ] T003.4.4 Define all button labels in Spanish
   - [ ] T003.4.5 Define all status messages in Spanish
