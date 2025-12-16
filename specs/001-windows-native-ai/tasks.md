@@ -198,7 +198,7 @@
     - Test: `tests/desktop_app/test_T003_1_4_electron_builder.py` (13 tests passed)
     - Logs: `log_files/T003.1.4_*`, `log_tests/T003.1.4_*`, `log_learn/T003.1.4_*`
 
-- [ ] **T003.2** [P] Create Electron main process structure
+- [x] **T003.2** [P] Create Electron main process structure ✅ *Completed 2025-12-16*
   - [x] T003.2.1 Create `desktop-app/src/main/index.ts` entry point ✅ *Completed 2025-12-16*
     - Created: `desktop-app/src/main/index.ts` with Electron main process entry point
     - Imports: app, BrowserWindow, ipcMain from electron
@@ -223,7 +223,14 @@
     - Exports: ProcessManager class, processManager singleton, ServiceHealth interface
     - Test: `tests/desktop_app/test_T003_2_3_process_manager.py` (10 tests passed)
     - Logs: `log_files/T003.2.3_*`, `log_tests/T003.2.3_*`, `log_learn/T003.2.3_*`
-  - [ ] T003.2.4 Create `desktop-app/src/main/ipc-handlers.ts` stub
+  - [x] T003.2.4 Create `desktop-app/src/main/ipc-handlers.ts` stub ✅ *Completed 2025-12-16*
+    - Created: `desktop-app/src/main/ipc-handlers.ts` with IPC handler stubs
+    - Handlers: AI Service (3), Bridge Service (6), Database (5), App (4), Window (3)
+    - Channels: ai:*, bridge:*, db:*, app:*, window:* matching preload.ts
+    - Functions: registerHandlers(), unregisterHandlers(), per-category registers
+    - Integration: Uses processManager for health checks, dialog for file picker
+    - Test: `tests/desktop_app/test_T003_2_4_ipc_handlers.py` (10 tests passed)
+    - Logs: `log_files/T003.2.4_*`, `log_tests/T003.2.4_*`, `log_learn/T003.2.4_*`
 
 - [ ] **T003.3** [P] Create React renderer structure
   - [ ] T003.3.1 Create `desktop-app/src/renderer/index.html`
