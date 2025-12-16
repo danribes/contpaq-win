@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import router
 from middleware.logging import RequestLoggingMiddleware
+from lifecycle import lifespan
 
 # CORS Configuration - localhost only for security
 # Only allow connections from local development environments
@@ -60,6 +61,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
 
 # Configure CORS middleware
