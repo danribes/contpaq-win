@@ -442,11 +442,36 @@
     - Test: `tests/windows_bridge/test_T004_3_4_interop_directory.py` (10 tests passed)
     - Logs: `log_files/T004.3.4_*`, `log_tests/T004.3.4_*`, `log_learn/T004.3.4_*`
 
-- [ ] **T004.4** [P] Create test project
-  - [ ] T004.4.1 Create `windows-bridge/src/ContPAQWinBridge.Tests/ContPAQWinBridge.Tests.csproj`
-  - [ ] T004.4.2 Add xUnit, Moq, FluentAssertions packages
-  - [ ] T004.4.3 Create `Controllers/` test directory
-  - [ ] T004.4.4 Create `Services/` test directory
+- [x] **T004.4** [P] Create test project ✅ *Completed 2025-12-16*
+  - [x] T004.4.1 Create `windows-bridge/src/ContPAQWinBridge.Tests/ContPAQWinBridge.Tests.csproj` ✅ *Completed 2025-12-16*
+    - Created: `windows-bridge/src/ContPAQWinBridge.Tests/` directory
+    - SDK-style project targeting net8.0 with IsTestProject=true, IsPackable=false
+    - References main ContPAQWinBridge.csproj via relative path
+    - Updated solution file to include test project
+    - Test: `tests/windows_bridge/test_T004_4_1_tests_csproj.py` (12 tests passed)
+    - Logs: `log_files/T004.4.1_*`, `log_tests/T004.4.1_*`, `log_learn/T004.4.1_*`
+  - [x] T004.4.2 Add xUnit, Moq, FluentAssertions packages ✅ *Completed 2025-12-16*
+    - Added: xunit (2.6.4), xunit.runner.visualstudio (2.5.6)
+    - Added: Microsoft.NET.Test.Sdk (17.8.0) for dotnet test support
+    - Added: Moq (4.20.70) for mocking
+    - Added: FluentAssertions (6.12.0) for expressive assertions
+    - Added: coverlet.collector (6.0.0) for code coverage
+    - Test: `tests/windows_bridge/test_T004_4_2_test_packages.py` (12 tests passed)
+    - Logs: `log_files/T004.4.2_*`, `log_tests/T004.4.2_*`, `log_learn/T004.4.2_*`
+  - [x] T004.4.3 Create `Controllers/` test directory ✅ *Completed 2025-12-16*
+    - Created: `windows-bridge/src/ContPAQWinBridge.Tests/Controllers/` directory
+    - Created: BaseControllerTests.cs with placeholder tests
+    - Uses xUnit [Fact] attributes with FluentAssertions
+    - Namespace: ContPAQWinBridge.Tests.Controllers
+    - Test: `tests/windows_bridge/test_T004_4_3_controllers_test_directory.py` (9 tests passed)
+    - Logs: `log_files/T004.4.3_*`, `log_tests/T004.4.3_*`, `log_learn/T004.4.3_*`
+  - [x] T004.4.4 Create `Services/` test directory ✅ *Completed 2025-12-16*
+    - Created: `windows-bridge/src/ContPAQWinBridge.Tests/Services/` directory
+    - Created: SdkServiceTests.cs with placeholder tests
+    - Uses xUnit [Fact] + FluentAssertions + Moq demo
+    - Namespace: ContPAQWinBridge.Tests.Services
+    - Test: `tests/windows_bridge/test_T004_4_4_services_test_directory.py` (9 tests passed)
+    - Logs: `log_files/T004.4.4_*`, `log_tests/T004.4.4_*`, `log_learn/T004.4.4_*`
 
 **Checkpoint**: `dotnet build` succeeds
 
