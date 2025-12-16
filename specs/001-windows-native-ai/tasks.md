@@ -569,7 +569,13 @@
     - Logger: `contpaq.ai.request` for filtering
     - Test: `tests/ai_service/test_T006_2_3_logging.py` (10 tests passed)
     - Logs: `log_files/T006.2.3_*`, `log_tests/T006.2.3_*`, `log_learn/T006.2.3_*`
-  - [ ] T006.2.4 Configure uvicorn for production
+  - [x] T006.2.4 Configure uvicorn for production
+    - Created `uvicorn_config.py` with production settings
+    - Host: 127.0.0.1 (localhost), Port: 8000
+    - Workers: 1 (single worker for AI model memory)
+    - Timeout: 120s for AI operations
+    - Test: `tests/ai_service/test_T006_2_4_uvicorn.py` (12 tests passed)
+    - Logs: `log_files/T006.2.4_*`, `log_tests/T006.2.4_*`, `log_learn/T006.2.4_*`
   - [ ] T006.2.5 Add graceful shutdown handler
 
 **Checkpoint**: AI service starts and `/health` returns 200
