@@ -10,6 +10,13 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
+    // Configure Kestrel to bind only to localhost:5000
+    // This ensures the service is only accessible from the local machine
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.ListenLocalhost(5000); // HTTP only - localhost service
+    });
+
     // Configure Serilog
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
