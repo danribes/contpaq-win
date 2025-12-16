@@ -25,6 +25,91 @@ class HealthResponse(BaseModel):
     ocr_available: bool
 
 
+# Default model path - relative to ai-service directory
+DEFAULT_MODEL_PATH = "./models/layoutlm"
+
+
+def get_model_path() -> str:
+    """
+    Get the configured model directory path.
+
+    Returns:
+        str: Path to the model directory
+    """
+    # Check environment variable first, then use default
+    return os.environ.get("MODEL_PATH", DEFAULT_MODEL_PATH)
+
+
+def check_model_files() -> bool:
+    """
+    Check if required model files exist in the model directory.
+
+    Required files for a HuggingFace transformer model:
+    - config.json: Model configuration
+    - pytorch_model.bin or model.safetensors: Model weights
+
+    Returns:
+        bool: True if all required files are present
+    """
+    model_path = get_model_path()
+
+    # Check if directory exists
+    if not os.path.exists(model_path) or not os.path.isdir(model_path):
+        return False
+
+    # Required files
+    config_path = os.path.join(model_path, "config.json")
+    if not os.path.exists(config_path):
+        return False
+
+    # Model weights can be in different formats
+    weights_files = [
+        os.path.join(model_path, "pytorch_model.bin"),
+        os.path.join(model_path, "model.safetensors"),
+    ]
+    has_weights = any(os.path.exists(f) for f in weights_files)
+
+    return has_weights
+
+
+def get_model_status() -> dict:
+    """
+    Get detailed model status information.
+
+    Returns:
+        dict: Model status with keys:
+            - path: str - Path to model directory
+            - exists: bool - Whether directory exists
+            - has_config: bool - Whether config.json exists
+            - has_weights: bool - Whether model weights exist
+            - ready: bool - Whether model is ready for inference
+    """
+    model_path = get_model_path()
+
+    exists = os.path.exists(model_path) and os.path.isdir(model_path)
+
+    has_config = False
+    has_weights = False
+
+    if exists:
+        config_path = os.path.join(model_path, "config.json")
+        has_config = os.path.exists(config_path)
+
+        weights_files = [
+            os.path.join(model_path, "pytorch_model.bin"),
+            os.path.join(model_path, "model.safetensors"),
+        ]
+        has_weights = any(os.path.exists(f) for f in weights_files)
+
+    return {
+        "path": model_path,
+        "exists": exists,
+        "has_config": has_config,
+        "has_weights": has_weights,
+        "ready": exists and has_config and has_weights,
+    }
+
+
 def check_models_loaded() -> bool:
     """
     Check if AI models are loaded and available.
@@ -32,9 +117,7 @@ def check_models_loaded() -> bool:
     Returns:
         bool: True if models are ready for inference
     """
-    # Stub implementation - will be enhanced in T006.1.5
-    # For now, return False as models are not implemented yet
-    return False
+    return check_model_files()
 
 
 def _get_tesseract_path() -> Optional[str]:

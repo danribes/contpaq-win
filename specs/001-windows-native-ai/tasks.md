@@ -526,7 +526,7 @@
 
 ### T006 - AI Service Health & Configuration
 
-- [ ] **T006.1** Implement health check endpoint
+- [x] **T006.1** Implement health check endpoint ✅ *Completed 2025-12-16*
   - [x] T006.1.1 [P] Write test `test_health_endpoint_returns_200.py` ✅ *Completed 2025-12-16*
     - Created: `tests/ai_service/test_T006_1_1_health_endpoint.py` with 11 tests
     - Created: `ai-service/src/api/routes.py` with health endpoint (TDD)
@@ -541,7 +541,12 @@
     - Subprocess with timeout for version and language detection
     - Test: `tests/ai_service/test_T006_1_4_tesseract_availability.py` (11 tests passed)
     - Logs: `log_files/T006.1.4_*`, `log_tests/T006.1.4_*`, `log_learn/T006.1.4_*`
-  - [ ] T006.1.5 Implement health check logic for model loading
+  - [x] T006.1.5 Implement health check logic for model loading ✅ *Completed 2025-12-16*
+    - Functions: get_model_path(), check_model_files(), get_model_status(), check_models_loaded()
+    - Checks: config.json, pytorch_model.bin OR model.safetensors
+    - Environment variable support: MODEL_PATH
+    - Test: `tests/ai_service/test_T006_1_5_model_loading.py` (16 tests passed)
+    - Logs: `log_files/T006.1.5_*`, `log_tests/T006.1.5_*`, `log_learn/T006.1.5_*`
 
 - [ ] **T006.2** Implement FastAPI application
   - [ ] T006.2.1 Create `ai-service/src/main.py` with FastAPI app
