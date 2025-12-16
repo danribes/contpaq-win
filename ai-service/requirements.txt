@@ -1,0 +1,29 @@
+# ContPAQ-Win AI Service - Production Dependencies
+# Install with: pip install -r requirements.txt
+
+# Web Framework
+fastapi==0.109.0
+uvicorn==0.27.0
+
+# PDF Processing
+PyMuPDF==1.23.8
+
+# OCR
+pytesseract==0.3.10
+
+# AI/ML - Document Understanding
+transformers==4.36.0
+torch==2.1.2+cpu  # CPU-only version for Windows deployment
+
+# Image Processing
+Pillow==10.2.0
+
+# Data Validation
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Async Support
+python-multipart==0.0.6  # For file uploads in FastAPI
+
+# Utilities
+aiofiles==23.2.1  # Async file operations

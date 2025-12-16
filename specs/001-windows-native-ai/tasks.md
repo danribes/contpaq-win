@@ -67,15 +67,11 @@
     - Includes: Black, Ruff, Mypy, Pytest, Coverage configurations
     - Test: `tests/ai_service/test_T002_1_1_pyproject_toml.py` (7 tests passed)
     - Logs: `log_files/T002.1.1_*`, `log_tests/T002.1.1_*`, `log_learn/T002.1.1_*`
-  - [ ] T002.1.2 Create `ai-service/requirements.txt` with production dependencies
-    - FastAPI==0.109.0
-    - uvicorn==0.27.0
-    - PyMuPDF==1.23.8
-    - pytesseract==0.3.10
-    - transformers==4.36.0
-    - torch==2.1.2 (CPU only)
-    - Pillow==10.2.0
-    - pydantic==2.5.3
+  - [x] T002.1.2 Create `ai-service/requirements.txt` with production dependencies ✅ *Completed 2025-12-16*
+    - Created: `ai-service/requirements.txt` with all 8 core dependencies
+    - Includes: FastAPI, uvicorn, PyMuPDF, pytesseract, transformers, torch (CPU), Pillow, pydantic
+    - Test: `tests/ai_service/test_T002_1_2_requirements_txt.py` (9 tests passed)
+    - Logs: `log_files/T002.1.2_*`, `log_tests/T002.1.2_*`, `log_learn/T002.1.2_*`
   - [ ] T002.1.3 Create `ai-service/requirements-dev.txt` with dev dependencies
     - pytest==7.4.4
     - pytest-asyncio==0.23.3
