@@ -479,13 +479,19 @@
 
 ### T005 - Initialize Database Schema
 
-- [ ] **T005.1** Create SQLite migration
-  - [ ] T005.1.1 Create `database/migrations/001_initial_schema.sql`
-  - [ ] T005.1.2 Define `vendors` table with RFC unique constraint
-  - [ ] T005.1.3 Define `invoices` table with state enum check
-  - [ ] T005.1.4 Define `line_items` table with foreign key
-  - [ ] T005.1.5 Define `extraction_results` table with foreign key
-  - [ ] T005.1.6 Define `contpaqi_entries` table with unique invoice_id
+- [x] **T005.1** Create SQLite migration ✅ *Completed 2025-12-16*
+  - [x] T005.1.1 Create `database/migrations/001_initial_schema.sql` ✅ *Completed 2025-12-16*
+    - Created: `database/migrations/001_initial_schema.sql`
+    - PRAGMA foreign_keys = ON for constraint enforcement
+    - Created all 5 tables: vendors, invoices, line_items, extraction_results, contpaqi_entries
+    - CHECK constraints for state enums, CASCADE deletes for child tables
+    - Test: `tests/database/test_T005_1_1_initial_schema.py` (11 tests passed)
+    - Logs: `log_files/T005.1.1_*`, `log_tests/T005.1.1_*`, `log_learn/T005.1.1_*`
+  - [x] T005.1.2 Define `vendors` table with RFC unique constraint ✅ *Included in T005.1.1*
+  - [x] T005.1.3 Define `invoices` table with state enum check ✅ *Included in T005.1.1*
+  - [x] T005.1.4 Define `line_items` table with foreign key ✅ *Included in T005.1.1*
+  - [x] T005.1.5 Define `extraction_results` table with foreign key ✅ *Included in T005.1.1*
+  - [x] T005.1.6 Define `contpaqi_entries` table with unique invoice_id ✅ *Included in T005.1.1*
 
 - [ ] **T005.2** [P] Create indexes
   - [ ] T005.2.1 Create index on `invoices.state`
