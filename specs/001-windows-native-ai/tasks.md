@@ -506,11 +506,17 @@
   - Test: `tests/database/test_T005_2_indexes.py` (9 tests passed)
   - Logs: `log_files/T005.2_*`, `log_tests/T005.2_*`, `log_learn/T005.2_*`
 
-- [ ] **T005.3** [P] Create seed data
-  - [ ] T005.3.1 Create `database/seed/sample_data.sql` with test vendors
-  - [ ] T005.3.2 Add sample invoice records for testing
+- [x] **T005.3** [P] Create seed data ✅ *Completed 2025-12-16*
+  - [x] T005.3.1 Create `database/seed/sample_data.sql` with test vendors ✅ *Completed 2025-12-16*
+    - 4 vendors with valid Mexican RFC formats (12-13 char)
+    - Includes both Persona Moral and Persona Física examples
+  - [x] T005.3.2 Add sample invoice records for testing ✅ *Completed 2025-12-16*
+    - 4 invoices in each state: UPLOADED, EXTRACTED, VALIDATED, POSTED
+    - Sample line_items, extraction_results, and contpaqi_entries
+  - Test: `tests/database/test_T005_3_seed_data.py` (11 tests passed)
+  - Logs: `log_files/T005.3_*`, `log_tests/T005.3_*`, `log_learn/T005.3_*`
 
-**Checkpoint**: SQLite database can be created from migration
+**Checkpoint**: SQLite database can be created from migration ✅
 
 ---
 
