@@ -265,7 +265,7 @@
     - Test: `tests/desktop_app/test_T003_3_4_types_index.py` (14 tests passed)
     - Logs: `log_files/T003.3.4_*`, `log_tests/T003.3.4_*`, `log_learn/T003.3.4_*`
 
-- [ ] **T003.4** [P] Create i18n structure (Spanish)
+- [x] **T003.4** [P] Create i18n structure (Spanish) ✅ *Completed 2025-12-16*
   - [x] T003.4.1 Create `desktop-app/src/renderer/i18n/es.json` with all UI strings ✅ *Completed 2025-12-16*
     - Created: `desktop-app/src/renderer/i18n/es.json` with comprehensive Spanish translations
     - Sections: app, navigation, pages, buttons, status, states, invoice, lineItem, vendor
@@ -300,7 +300,15 @@
     - Other: retry (Reintentar), refresh (Actualizar)
     - Test: `tests/desktop_app/test_T003_4_4_button_labels.py` (22 tests passed)
     - Logs: `log_files/T003.4.4_*`, `log_tests/T003.4.4_*`, `log_learn/T003.4.4_*`
-  - [ ] T003.4.5 Define all status messages in Spanish
+  - [x] T003.4.5 Define all status messages in Spanish ✅ *Completed 2025-12-16*
+    - Verified: 20+ status messages across 3 sections (status, states, services)
+    - Status: loading, saving, processing, success, error, warning, info, ready
+    - Connection: connecting, connected, disconnected
+    - Invoice states: uploaded (Cargada), extracted (Extraída), validated (Validada), posted (Registrada)
+    - Service states: starting (Iniciando), running (En ejecución), stopped (Detenido)
+    - Patterns: Ellipsis for in-progress states, feminine gender for invoice states
+    - Test: `tests/desktop_app/test_T003_4_5_status_messages.py` (25 tests passed)
+    - Logs: `log_files/T003.4.5_*`, `log_tests/T003.4.5_*`, `log_learn/T003.4.5_*`
 
 - [ ] **T003.5** [P] Create test infrastructure
   - [ ] T003.5.1 Create Jest configuration in `package.json`
