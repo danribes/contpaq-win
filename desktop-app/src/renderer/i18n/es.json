@@ -1,0 +1,215 @@
+{
+  "app": {
+    "name": "ContPAQ Win",
+    "description": "Sistema de gestión de facturas con extracción automática mediante IA",
+    "version": "Versión"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "processing": "Procesar Factura",
+    "settings": "Configuración",
+    "history": "Historial"
+  },
+  "pages": {
+    "home": {
+      "title": "Inicio",
+      "subtitle": "Panel de control de facturas",
+      "recentInvoices": "Facturas Recientes",
+      "noInvoices": "No hay facturas registradas",
+      "newInvoice": "Nueva Factura"
+    },
+    "processing": {
+      "title": "Procesar Factura",
+      "subtitle": "Cargar y procesar factura PDF",
+      "dropzone": "Arrastre un archivo PDF aquí o haga clic para seleccionar",
+      "selectFile": "Seleccionar Archivo",
+      "processing": "Procesando...",
+      "extracting": "Extrayendo datos..."
+    },
+    "settings": {
+      "title": "Configuración",
+      "subtitle": "Ajustes de la aplicación",
+      "company": "Empresa",
+      "services": "Servicios",
+      "about": "Acerca de"
+    },
+    "notFound": {
+      "title": "Página no encontrada",
+      "message": "La página que busca no existe",
+      "backHome": "Volver al inicio"
+    }
+  },
+  "buttons": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "validate": "Validar",
+    "process": "Procesar",
+    "send": "Enviar",
+    "sendToContpaqi": "Enviar a ContPAQi",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "confirm": "Confirmar",
+    "retry": "Reintentar",
+    "close": "Cerrar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "selectFile": "Seleccionar Archivo",
+    "upload": "Cargar",
+    "download": "Descargar",
+    "export": "Exportar",
+    "refresh": "Actualizar"
+  },
+  "status": {
+    "loading": "Cargando...",
+    "saving": "Guardando...",
+    "processing": "Procesando...",
+    "success": "Éxito",
+    "error": "Error",
+    "warning": "Advertencia",
+    "info": "Información",
+    "ready": "Listo",
+    "connecting": "Conectando...",
+    "connected": "Conectado",
+    "disconnected": "Desconectado"
+  },
+  "states": {
+    "uploaded": "Cargada",
+    "extracted": "Extraída",
+    "validated": "Validada",
+    "posted": "Registrada"
+  },
+  "invoice": {
+    "title": "Factura",
+    "number": "Número de Factura",
+    "date": "Fecha",
+    "subtotal": "Subtotal",
+    "iva": "IVA (16%)",
+    "ivaAmount": "Monto IVA",
+    "total": "Total",
+    "state": "Estado",
+    "sourceType": "Tipo de Fuente",
+    "textBased": "Basada en texto",
+    "scanned": "Escaneada",
+    "pdfPath": "Ruta del PDF",
+    "lineItems": "Conceptos",
+    "noLineItems": "Sin conceptos",
+    "duplicateWarning": "Esta factura podría ser un duplicado"
+  },
+  "lineItem": {
+    "description": "Descripción",
+    "quantity": "Cantidad",
+    "unitPrice": "Precio Unitario",
+    "amount": "Importe",
+    "add": "Agregar Concepto",
+    "remove": "Eliminar Concepto"
+  },
+  "vendor": {
+    "title": "Proveedor",
+    "rfc": "RFC",
+    "businessName": "Razón Social",
+    "address": "Dirección",
+    "contactInfo": "Información de Contacto",
+    "notFound": "Proveedor no encontrado",
+    "createNew": "Crear nuevo proveedor",
+    "select": "Seleccionar proveedor"
+  },
+  "services": {
+    "aiService": "Servicio de IA",
+    "bridgeService": "Puente de Windows",
+    "starting": "Iniciando...",
+    "running": "En ejecución",
+    "stopped": "Detenido",
+    "error": "Error",
+    "checkHealth": "Verificar estado",
+    "restart": "Reiniciar servicio"
+  },
+  "errors": {
+    "generic": "Ha ocurrido un error",
+    "networkError": "Error de conexión",
+    "serverError": "Error del servidor",
+    "fileNotFound": "Archivo no encontrado",
+    "invalidFile": "Archivo inválido",
+    "invalidPdf": "El archivo no es un PDF válido",
+    "extractionFailed": "Error al extraer datos",
+    "validationFailed": "Error de validación",
+    "saveFailed": "Error al guardar",
+    "postingFailed": "Error al registrar en ContPAQi",
+    "serviceUnavailable": "Servicio no disponible",
+    "aiServiceDown": "El servicio de IA no está disponible",
+    "bridgeServiceDown": "El puente de Windows no está disponible",
+    "duplicateInvoice": "Esta factura ya existe",
+    "vendorNotFound": "Proveedor no encontrado en ContPAQi",
+    "rootElementNotFound": "Error crítico: No se encontró el elemento root"
+  },
+  "validation": {
+    "required": "Este campo es requerido",
+    "invalidFormat": "Formato inválido",
+    "invalidRfc": "RFC inválido",
+    "rfcTooShort": "El RFC debe tener al menos 12 caracteres",
+    "rfcTooLong": "El RFC no puede tener más de 13 caracteres",
+    "invalidDate": "Fecha inválida",
+    "invalidNumber": "Número inválido",
+    "invalidAmount": "Monto inválido",
+    "totalMismatch": "El total no coincide con subtotal + IVA",
+    "ivaMismatch": "El IVA no corresponde al 16% del subtotal",
+    "negativeAmount": "El monto no puede ser negativo"
+  },
+  "confidence": {
+    "high": "Alta confianza",
+    "medium": "Confianza media",
+    "low": "Baja confianza",
+    "verified": "Verificado por usuario"
+  },
+  "dialogs": {
+    "confirmDelete": {
+      "title": "Confirmar eliminación",
+      "message": "¿Está seguro de que desea eliminar este elemento?",
+      "confirm": "Eliminar",
+      "cancel": "Cancelar"
+    },
+    "confirmPost": {
+      "title": "Confirmar envío",
+      "message": "¿Desea enviar esta factura a ContPAQi?",
+      "confirm": "Enviar",
+      "cancel": "Cancelar"
+    },
+    "duplicateWarning": {
+      "title": "Posible duplicado",
+      "message": "Esta factura podría ser un duplicado. ¿Desea continuar?",
+      "continue": "Continuar",
+      "cancel": "Cancelar"
+    },
+    "createVendor": {
+      "title": "Crear proveedor",
+      "message": "El proveedor no existe. ¿Desea crearlo?",
+      "create": "Crear",
+      "cancel": "Cancelar"
+    }
+  },
+  "filters": {
+    "all": "Todos",
+    "byState": "Por estado",
+    "byDate": "Por fecha",
+    "byVendor": "Por proveedor",
+    "search": "Buscar...",
+    "startDate": "Fecha inicial",
+    "endDate": "Fecha final",
+    "apply": "Aplicar",
+    "clear": "Limpiar"
+  },
+  "contpaqi": {
+    "posting": "Registrando en ContPAQi...",
+    "success": "Factura registrada exitosamente",
+    "folioNumber": "Número de folio",
+    "entryDate": "Fecha de registro"
+  },
+  "accessibility": {
+    "closeModal": "Cerrar ventana",
+    "openMenu": "Abrir menú",
+    "previousPage": "Página anterior",
+    "nextPage": "Página siguiente",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar"
+  }
+}
