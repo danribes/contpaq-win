@@ -115,7 +115,11 @@
     - Includes: Type annotations, docstrings, security-focused defaults
     - Test: `tests/ai_service/test_T002_3_2_server_settings.py` (8 tests passed)
     - Logs: `log_files/T002.3.2_*`, `log_tests/T002.3.2_*`, `log_learn/T002.3.2_*`
-  - [ ] T002.3.3 Define TESSERACT_PATH, MODEL_PATH settings
+  - [x] T002.3.3 Define TESSERACT_PATH, MODEL_PATH settings ✅ *Completed 2025-12-16*
+    - Added: TESSERACT_PATH (Windows default), MODEL_PATH (./models/layoutlm)
+    - Includes: Type annotations, docstrings, platform-appropriate defaults
+    - Test: `tests/ai_service/test_T002_3_3_service_paths.py` (7 tests passed)
+    - Logs: `log_files/T002.3.3_*`, `log_tests/T002.3.3_*`, `log_learn/T002.3.3_*`
   - [ ] T002.3.4 Create `.env.example` with sample configuration
 
 - [ ] **T002.4** [P] Create test infrastructure

@@ -54,7 +54,12 @@ class Settings(BaseSettings):
     # ===================
     # Service Paths (T002.3.3)
     # ===================
-    # TESSERACT_PATH, MODEL_PATH will be added in T002.3.3
+
+    TESSERACT_PATH: str = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+    """Path to Tesseract OCR executable. Windows default installation path."""
+
+    MODEL_PATH: str = "./models/layoutlm"
+    """Path to LayoutLMv3 model directory. Relative to ai-service root."""
 
 
 @lru_cache
