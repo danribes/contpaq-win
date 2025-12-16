@@ -493,11 +493,18 @@
   - [x] T005.1.5 Define `extraction_results` table with foreign key ✅ *Included in T005.1.1*
   - [x] T005.1.6 Define `contpaqi_entries` table with unique invoice_id ✅ *Included in T005.1.1*
 
-- [ ] **T005.2** [P] Create indexes
-  - [ ] T005.2.1 Create index on `invoices.state`
-  - [ ] T005.2.2 Create index on `invoices.duplicate_hash`
-  - [ ] T005.2.3 Create unique index on `vendors.rfc`
-  - [ ] T005.2.4 Create index on `extraction_results.invoice_id`
+- [x] **T005.2** [P] Create indexes ✅ *Completed 2025-12-16*
+  - [x] T005.2.1 Create index on `invoices.state` ✅ *Completed 2025-12-16*
+    - idx_invoice_state for filtering by processing state
+  - [x] T005.2.2 Create index on `invoices.duplicate_hash` ✅ *Completed 2025-12-16*
+    - idx_invoice_duplicate for duplicate detection
+  - [x] T005.2.3 Create unique index on `vendors.rfc` ✅ *Completed 2025-12-16*
+    - idx_vendor_rfc (explicit index, UNIQUE constraint creates implicit)
+  - [x] T005.2.4 Create index on `extraction_results.invoice_id` ✅ *Completed 2025-12-16*
+    - idx_extraction_invoice for join performance
+  - Additional indexes: idx_invoice_vendor, idx_lineitem_invoice, idx_invoice_date
+  - Test: `tests/database/test_T005_2_indexes.py` (9 tests passed)
+  - Logs: `log_files/T005.2_*`, `log_tests/T005.2_*`, `log_learn/T005.2_*`
 
 - [ ] **T005.3** [P] Create seed data
   - [ ] T005.3.1 Create `database/seed/sample_data.sql` with test vendors

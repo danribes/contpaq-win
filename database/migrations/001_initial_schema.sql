@@ -90,6 +90,25 @@ CREATE TABLE IF NOT EXISTS contpaqi_entries (
 );
 
 -- ============================================================================
--- Indexes (will be added in T005.2)
--- Note: Index creation is handled in subsequent migration tasks
+-- Indexes
+-- Description: Performance indexes for common query patterns
 -- ============================================================================
+
+-- T005.2.1: Index on invoices.state for filtering by processing state
+CREATE INDEX IF NOT EXISTS idx_invoice_state ON invoices(state);
+
+-- T005.2.2: Index on invoices.duplicate_hash for duplicate detection
+CREATE INDEX IF NOT EXISTS idx_invoice_duplicate ON invoices(duplicate_hash);
+
+-- T005.2.3: Unique index on vendors.rfc (already enforced by UNIQUE constraint)
+-- Note: SQLite creates an implicit index for UNIQUE constraints
+-- Adding explicit index for clarity and consistency
+CREATE INDEX IF NOT EXISTS idx_vendor_rfc ON vendors(rfc);
+
+-- T005.2.4: Index on extraction_results.invoice_id for joining with invoices
+CREATE INDEX IF NOT EXISTS idx_extraction_invoice ON extraction_results(invoice_id);
+
+-- Additional indexes for common query patterns
+CREATE INDEX IF NOT EXISTS idx_invoice_vendor ON invoices(vendor_id);
+CREATE INDEX IF NOT EXISTS idx_lineitem_invoice ON line_items(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_date ON invoices(invoice_date);
