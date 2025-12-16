@@ -443,7 +443,13 @@
     - Logs: `log_files/T004.3.4_*`, `log_tests/T004.3.4_*`, `log_learn/T004.3.4_*`
 
 - [ ] **T004.4** [P] Create test project
-  - [ ] T004.4.1 Create `windows-bridge/src/ContPAQWinBridge.Tests/ContPAQWinBridge.Tests.csproj`
+  - [x] T004.4.1 Create `windows-bridge/src/ContPAQWinBridge.Tests/ContPAQWinBridge.Tests.csproj` ✅ *Completed 2025-12-16*
+    - Created: `windows-bridge/src/ContPAQWinBridge.Tests/` directory
+    - SDK-style project targeting net8.0 with IsTestProject=true, IsPackable=false
+    - References main ContPAQWinBridge.csproj via relative path
+    - Updated solution file to include test project
+    - Test: `tests/windows_bridge/test_T004_4_1_tests_csproj.py` (12 tests passed)
+    - Logs: `log_files/T004.4.1_*`, `log_tests/T004.4.1_*`, `log_learn/T004.4.1_*`
   - [ ] T004.4.2 Add xUnit, Moq, FluentAssertions packages
   - [ ] T004.4.3 Create `Controllers/` test directory
   - [ ] T004.4.4 Create `Services/` test directory
