@@ -233,7 +233,13 @@
     - Logs: `log_files/T003.2.4_*`, `log_tests/T003.2.4_*`, `log_learn/T003.2.4_*`
 
 - [ ] **T003.3** [P] Create React renderer structure
-  - [ ] T003.3.1 Create `desktop-app/src/renderer/index.html`
+  - [x] T003.3.1 Create `desktop-app/src/renderer/index.html` ✅ *Completed 2025-12-16*
+    - Created: `desktop-app/src/renderer/index.html` with HTML5 entry point
+    - Features: Spanish lang (lang="es"), UTF-8 charset, viewport meta, CSP headers
+    - Structure: Root div (id="root") for React, module script for index.tsx
+    - Security: Content-Security-Policy restricts scripts to 'self'
+    - Test: `tests/desktop_app/test_T003_3_1_index_html.py` (12 tests passed)
+    - Logs: `log_files/T003.3.1_*`, `log_tests/T003.3.1_*`, `log_learn/T003.3.1_*`
   - [ ] T003.3.2 Create `desktop-app/src/renderer/index.tsx` entry point
   - [ ] T003.3.3 Create `desktop-app/src/renderer/App.tsx` with router setup
   - [ ] T003.3.4 Create `desktop-app/src/renderer/types/index.ts` with TypeScript interfaces
