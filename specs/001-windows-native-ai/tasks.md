@@ -606,11 +606,19 @@
   - Test: `Controllers/HealthControllerTests.cs` (15 tests)
   - Logs: `log_files/T007.1_*`, `log_tests/T007.1_*`, `log_learn/T007.1_*`
 
-- [ ] **T007.2** Create SDK service interface
-  - [ ] T007.2.1 Create `ISdkService.cs` interface
-  - [ ] T007.2.2 Define `IsAvailable()`, `GetVersion()`, `Connect()` methods
-  - [ ] T007.2.3 Create `SdkService.cs` implementation stub
-  - [ ] T007.2.4 Register in DI container
+- [x] **T007.2** Create SDK service interface ✅ *Completed 2025-12-16*
+  - [x] T007.2.1 Create `ISdkService.cs` interface
+    - Interface with 5 members: IsAvailable(), GetVersion(), IsConnected, Connect(), Disconnect()
+  - [x] T007.2.2 Define `IsAvailable()`, `GetVersion()`, `Connect()` methods
+    - Added Connect(string companyName) and Disconnect() methods
+    - Full XML documentation for all members
+  - [x] T007.2.3 Create `SdkService.cs` implementation stub
+    - Stub returns false/null for all operations
+    - Logging for diagnostics
+  - [x] T007.2.4 Register in DI container
+    - AddScoped<ISdkService, SdkService>() in Program.cs
+  - Test: `Services/SdkServiceTests.cs` (18 tests)
+  - Logs: `log_files/T007.2_*`, `log_tests/T007.2_*`, `log_learn/T007.2_*`
 
 - [ ] **T007.3** Implement COM interop stubs
   - [ ] T007.3.1 Create `Interop/ContPAQiComercialSdk.cs` with interface
