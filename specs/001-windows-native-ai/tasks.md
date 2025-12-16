@@ -311,7 +311,15 @@
     - Logs: `log_files/T003.4.5_*`, `log_tests/T003.4.5_*`, `log_learn/T003.4.5_*`
 
 - [ ] **T003.5** [P] Create test infrastructure
-  - [ ] T003.5.1 Create Jest configuration in `package.json`
+  - [x] T003.5.1 Create Jest configuration in `package.json` ✅ *Completed 2025-12-16*
+    - Updated: `desktop-app/package.json` with comprehensive Jest configuration
+    - Preset: ts-jest for TypeScript support
+    - Environment: jsdom for React component testing
+    - Coverage: 70% threshold for branches, functions, lines, statements
+    - Path aliases: @/, @main/, @renderer/ matching tsconfig.json
+    - Added: jest-environment-jsdom, @testing-library/react, @testing-library/jest-dom
+    - Test: `tests/desktop_app/test_T003_5_1_jest_config.py` (17 tests passed)
+    - Logs: `log_files/T003.5.1_*`, `log_tests/T003.5.1_*`, `log_learn/T003.5.1_*`
   - [ ] T003.5.2 Create `desktop-app/tests/unit/` directory
   - [ ] T003.5.3 Create `desktop-app/tests/e2e/` directory
   - [ ] T003.5.4 Create test utilities and mocks
