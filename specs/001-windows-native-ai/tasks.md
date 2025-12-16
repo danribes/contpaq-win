@@ -62,7 +62,11 @@
 ### T002 - Initialize AI Service (Python)
 
 - [ ] **T002.1** Create Python project configuration
-  - [ ] T002.1.1 Create `ai-service/pyproject.toml` with project metadata
+  - [x] T002.1.1 Create `ai-service/pyproject.toml` with project metadata ✅ *Completed 2025-12-16*
+    - Created: `ai-service/pyproject.toml` with PEP 621 metadata
+    - Includes: Black, Ruff, Mypy, Pytest, Coverage configurations
+    - Test: `tests/ai_service/test_T002_1_1_pyproject_toml.py` (7 tests passed)
+    - Logs: `log_files/T002.1.1_*`, `log_tests/T002.1.1_*`, `log_learn/T002.1.1_*`
   - [ ] T002.1.2 Create `ai-service/requirements.txt` with production dependencies
     - FastAPI==0.109.0
     - uvicorn==0.27.0
