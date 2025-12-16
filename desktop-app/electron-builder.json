@@ -1,0 +1,61 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "com.contpaq.win",
+  "productName": "ContPAQ Win",
+  "copyright": "Copyright © 2024 ContPAQ Win",
+  "asar": true,
+  "compression": "maximum",
+  "directories": {
+    "output": "release",
+    "buildResources": "build"
+  },
+  "files": [
+    "dist/**/*",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "../ai-service",
+      "to": "ai-service",
+      "filter": [
+        "**/*",
+        "!**/__pycache__/**",
+        "!**/*.pyc",
+        "!**/tests/**",
+        "!**/.pytest_cache/**"
+      ]
+    }
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "build/icon.ico",
+    "artifactName": "${productName}-${version}-Setup.${ext}",
+    "publisherName": "ContPAQ Win"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": true,
+    "allowElevation": true,
+    "allowToChangeInstallationDirectory": true,
+    "installerIcon": "build/icon.ico",
+    "uninstallerIcon": "build/icon.ico",
+    "installerHeaderIcon": "build/icon.ico",
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "ContPAQ Win",
+    "license": "LICENSE.txt",
+    "language": "1034"
+  },
+  "publish": {
+    "provider": "generic",
+    "url": ""
+  },
+  "electronDownload": {
+    "mirror": "https://npmmirror.com/mirrors/electron/"
+  }
+}
