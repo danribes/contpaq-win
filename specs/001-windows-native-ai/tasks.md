@@ -199,7 +199,14 @@
     - Logs: `log_files/T003.1.4_*`, `log_tests/T003.1.4_*`, `log_learn/T003.1.4_*`
 
 - [ ] **T003.2** [P] Create Electron main process structure
-  - [ ] T003.2.1 Create `desktop-app/src/main/index.ts` entry point
+  - [x] T003.2.1 Create `desktop-app/src/main/index.ts` entry point ✅ *Completed 2025-12-16*
+    - Created: `desktop-app/src/main/index.ts` with Electron main process entry point
+    - Imports: app, BrowserWindow, ipcMain from electron
+    - Security: nodeIntegration=false, contextIsolation=true, sandbox=true
+    - Lifecycle: app.whenReady(), window-all-closed, activate handlers
+    - Features: Dev/prod mode, navigation blocking, window flash prevention
+    - Test: `tests/desktop_app/test_T003_2_1_main_index.py` (13 tests passed)
+    - Logs: `log_files/T003.2.1_*`, `log_tests/T003.2.1_*`, `log_learn/T003.2.1_*`
   - [ ] T003.2.2 Create `desktop-app/src/main/preload.ts` with context bridge
   - [ ] T003.2.3 Create `desktop-app/src/main/process-manager.ts` stub
   - [ ] T003.2.4 Create `desktop-app/src/main/ipc-handlers.ts` stub
