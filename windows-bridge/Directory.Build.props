@@ -1,0 +1,25 @@
+<Project>
+
+  <!-- Common Build Settings -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>5</WarningLevel>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <!-- Code Analysis -->
+  <PropertyGroup>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+  </PropertyGroup>
+
+  <!-- Assembly Metadata -->
+  <PropertyGroup>
+    <Company>ContPAQ Win Team</Company>
+    <Product>ContPAQ Win - Windows Bridge</Product>
+    <Copyright>Copyright © 2025 ContPAQ Win Team</Copyright>
+  </PropertyGroup>
+
+</Project>
