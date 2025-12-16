@@ -336,7 +336,14 @@
     - Selectors: data-testid based selectors for UI elements
     - Test: `tests/desktop_app/test_T003_5_3_e2e_tests_dir.py` (12 tests passed)
     - Logs: `log_files/T003.5.3_*`, `log_tests/T003.5.3_*`, `log_learn/T003.5.3_*`
-  - [ ] T003.5.4 Create test utilities and mocks
+  - [x] T003.5.4 Create test utilities and mocks ✅ *Completed 2025-12-16*
+    - Created: `desktop-app/tests/mocks/electron.ts` with IPC mock implementations
+    - Created: `desktop-app/tests/mocks/api.ts` with service mocks (AI, Bridge, Database)
+    - Created: `desktop-app/tests/utils/render.tsx` with custom render and providers
+    - Created: `desktop-app/tests/utils/index.ts` with helper functions
+    - Created: `desktop-app/tests/fixtures/index.ts` with sample test data
+    - Test: `tests/desktop_app/test_T003_5_4_test_utilities.py` (15 tests passed)
+    - Logs: `log_files/T003.5.4_*`, `log_tests/T003.5.4_*`, `log_learn/T003.5.4_*`
 
 **Checkpoint**: `npm install && npm run build` succeeds
 
@@ -345,7 +352,12 @@
 ### T004 - Initialize Windows Bridge (C#/.NET)
 
 - [ ] **T004.1** Create .NET solution structure
-  - [ ] T004.1.1 Create `windows-bridge/ContPAQWinBridge.sln`
+  - [x] T004.1.1 Create `windows-bridge/ContPAQWinBridge.sln` ✅ *Completed 2025-12-16*
+    - Created: `windows-bridge/ContPAQWinBridge.sln` with VS 2022 format (12.00)
+    - Features: SDK-style project GUID, Debug|Any CPU, Release|Any CPU configurations
+    - References: `src\ContPAQWinBridge\ContPAQWinBridge.csproj` (to be created in T004.1.2)
+    - Test: `tests/windows_bridge/test_T004_1_1_solution_file.py` (19 tests passed)
+    - Logs: `log_files/T004.1.1_*`, `log_tests/T004.1.1_*`, `log_learn/T004.1.1_*`
   - [ ] T004.1.2 Create `windows-bridge/src/ContPAQWinBridge/ContPAQWinBridge.csproj`
   - [ ] T004.1.3 Add NuGet packages: ASP.NET Core, Serilog, Swashbuckle
   - [ ] T004.1.4 Create `windows-bridge/Directory.Build.props` with common settings
