@@ -479,25 +479,44 @@
 
 ### T005 - Initialize Database Schema
 
-- [ ] **T005.1** Create SQLite migration
-  - [ ] T005.1.1 Create `database/migrations/001_initial_schema.sql`
-  - [ ] T005.1.2 Define `vendors` table with RFC unique constraint
-  - [ ] T005.1.3 Define `invoices` table with state enum check
-  - [ ] T005.1.4 Define `line_items` table with foreign key
-  - [ ] T005.1.5 Define `extraction_results` table with foreign key
-  - [ ] T005.1.6 Define `contpaqi_entries` table with unique invoice_id
+- [x] **T005.1** Create SQLite migration ✅ *Completed 2025-12-16*
+  - [x] T005.1.1 Create `database/migrations/001_initial_schema.sql` ✅ *Completed 2025-12-16*
+    - Created: `database/migrations/001_initial_schema.sql`
+    - PRAGMA foreign_keys = ON for constraint enforcement
+    - Created all 5 tables: vendors, invoices, line_items, extraction_results, contpaqi_entries
+    - CHECK constraints for state enums, CASCADE deletes for child tables
+    - Test: `tests/database/test_T005_1_1_initial_schema.py` (11 tests passed)
+    - Logs: `log_files/T005.1.1_*`, `log_tests/T005.1.1_*`, `log_learn/T005.1.1_*`
+  - [x] T005.1.2 Define `vendors` table with RFC unique constraint ✅ *Included in T005.1.1*
+  - [x] T005.1.3 Define `invoices` table with state enum check ✅ *Included in T005.1.1*
+  - [x] T005.1.4 Define `line_items` table with foreign key ✅ *Included in T005.1.1*
+  - [x] T005.1.5 Define `extraction_results` table with foreign key ✅ *Included in T005.1.1*
+  - [x] T005.1.6 Define `contpaqi_entries` table with unique invoice_id ✅ *Included in T005.1.1*
 
-- [ ] **T005.2** [P] Create indexes
-  - [ ] T005.2.1 Create index on `invoices.state`
-  - [ ] T005.2.2 Create index on `invoices.duplicate_hash`
-  - [ ] T005.2.3 Create unique index on `vendors.rfc`
-  - [ ] T005.2.4 Create index on `extraction_results.invoice_id`
+- [x] **T005.2** [P] Create indexes ✅ *Completed 2025-12-16*
+  - [x] T005.2.1 Create index on `invoices.state` ✅ *Completed 2025-12-16*
+    - idx_invoice_state for filtering by processing state
+  - [x] T005.2.2 Create index on `invoices.duplicate_hash` ✅ *Completed 2025-12-16*
+    - idx_invoice_duplicate for duplicate detection
+  - [x] T005.2.3 Create unique index on `vendors.rfc` ✅ *Completed 2025-12-16*
+    - idx_vendor_rfc (explicit index, UNIQUE constraint creates implicit)
+  - [x] T005.2.4 Create index on `extraction_results.invoice_id` ✅ *Completed 2025-12-16*
+    - idx_extraction_invoice for join performance
+  - Additional indexes: idx_invoice_vendor, idx_lineitem_invoice, idx_invoice_date
+  - Test: `tests/database/test_T005_2_indexes.py` (9 tests passed)
+  - Logs: `log_files/T005.2_*`, `log_tests/T005.2_*`, `log_learn/T005.2_*`
 
-- [ ] **T005.3** [P] Create seed data
-  - [ ] T005.3.1 Create `database/seed/sample_data.sql` with test vendors
-  - [ ] T005.3.2 Add sample invoice records for testing
+- [x] **T005.3** [P] Create seed data ✅ *Completed 2025-12-16*
+  - [x] T005.3.1 Create `database/seed/sample_data.sql` with test vendors ✅ *Completed 2025-12-16*
+    - 4 vendors with valid Mexican RFC formats (12-13 char)
+    - Includes both Persona Moral and Persona Física examples
+  - [x] T005.3.2 Add sample invoice records for testing ✅ *Completed 2025-12-16*
+    - 4 invoices in each state: UPLOADED, EXTRACTED, VALIDATED, POSTED
+    - Sample line_items, extraction_results, and contpaqi_entries
+  - Test: `tests/database/test_T005_3_seed_data.py` (11 tests passed)
+  - Logs: `log_files/T005.3_*`, `log_tests/T005.3_*`, `log_learn/T005.3_*`
 
-**Checkpoint**: SQLite database can be created from migration
+**Checkpoint**: SQLite database can be created from migration ✅
 
 ---
 
@@ -507,12 +526,27 @@
 
 ### T006 - AI Service Health & Configuration
 
-- [ ] **T006.1** Implement health check endpoint
-  - [ ] T006.1.1 [P] Write test `test_health_endpoint_returns_200.py`
-  - [ ] T006.1.2 Create `ai-service/src/api/routes.py` with `/health` route
-  - [ ] T006.1.3 Return status, timestamp, version, models_loaded, ocr_available
-  - [ ] T006.1.4 Implement health check logic for Tesseract availability
-  - [ ] T006.1.5 Implement health check logic for model loading
+- [x] **T006.1** Implement health check endpoint ✅ *Completed 2025-12-16*
+  - [x] T006.1.1 [P] Write test `test_health_endpoint_returns_200.py` ✅ *Completed 2025-12-16*
+    - Created: `tests/ai_service/test_T006_1_1_health_endpoint.py` with 11 tests
+    - Created: `ai-service/src/api/routes.py` with health endpoint (TDD)
+    - Response: HealthResponse model with status, timestamp, version, models_loaded, ocr_available
+    - Test: 11 tests passed (endpoint exists, returns 200, JSON format, all fields)
+    - Logs: `log_files/T006.1.1_*`, `log_tests/T006.1.1_*`, `log_learn/T006.1.1_*`
+  - [x] T006.1.2 Create `ai-service/src/api/routes.py` with `/health` route ✅ *Included in T006.1.1*
+  - [x] T006.1.3 Return status, timestamp, version, models_loaded, ocr_available ✅ *Included in T006.1.1*
+  - [x] T006.1.4 Implement health check logic for Tesseract availability ✅ *Completed 2025-12-16*
+    - Functions: _get_tesseract_path(), check_ocr_available(), get_tesseract_version(), check_spanish_language_available()
+    - Cross-platform: Checks PATH and common Windows install locations
+    - Subprocess with timeout for version and language detection
+    - Test: `tests/ai_service/test_T006_1_4_tesseract_availability.py` (11 tests passed)
+    - Logs: `log_files/T006.1.4_*`, `log_tests/T006.1.4_*`, `log_learn/T006.1.4_*`
+  - [x] T006.1.5 Implement health check logic for model loading ✅ *Completed 2025-12-16*
+    - Functions: get_model_path(), check_model_files(), get_model_status(), check_models_loaded()
+    - Checks: config.json, pytorch_model.bin OR model.safetensors
+    - Environment variable support: MODEL_PATH
+    - Test: `tests/ai_service/test_T006_1_5_model_loading.py` (16 tests passed)
+    - Logs: `log_files/T006.1.5_*`, `log_tests/T006.1.5_*`, `log_learn/T006.1.5_*`
 
 - [ ] **T006.2** Implement FastAPI application
   - [ ] T006.2.1 Create `ai-service/src/main.py` with FastAPI app
