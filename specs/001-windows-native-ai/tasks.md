@@ -144,7 +144,12 @@
     - Format: PDF 1.4 with text streams (BT/ET operators), Helvetica font
     - Test: `tests/ai_service/test_T002_4_3_sample_pdf.py` (5 tests passed)
     - Logs: `log_files/T002.4.3_*`, `log_tests/T002.4.3_*`, `log_learn/T002.4.3_*`
-  - [ ] T002.4.4 Add sample scanned PDF to fixtures
+  - [x] T002.4.4 Add sample scanned PDF to fixtures ✅ *Completed 2025-12-16*
+    - Created: `ai-service/tests/fixtures/sample_scanned_invoice.pdf` (812 bytes)
+    - Includes: Image XObject (100x150 grayscale) simulating scanned document
+    - Format: PDF 1.4 with /Subtype /Image, FlateDecode compression
+    - Test: `tests/ai_service/test_T002_4_4_scanned_pdf.py` (5 tests passed)
+    - Logs: `log_files/T002.4.4_*`, `log_tests/T002.4.4_*`, `log_learn/T002.4.4_*`
   - [ ] T002.4.5 Create `ai-service/tests/unit/__init__.py`
   - [ ] T002.4.6 Create `ai-service/tests/integration/__init__.py`
 
