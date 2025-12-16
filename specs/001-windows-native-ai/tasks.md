@@ -394,7 +394,14 @@
     - Protocol: HTTP only (no HTTPS needed for localhost-only service)
     - Test: `tests/windows_bridge/test_T004_2_2_kestrel_binding.py` (9 tests passed)
     - Logs: `log_files/T004.2.2_*`, `log_tests/T004.2.2_*`, `log_learn/T004.2.2_*`
-  - [ ] T004.2.3 Create `windows-bridge/src/ContPAQWinBridge/appsettings.json`
+  - [x] T004.2.3 Create `windows-bridge/src/ContPAQWinBridge/appsettings.json` ✅ *Completed 2025-12-16*
+    - Created: `windows-bridge/src/ContPAQWinBridge/appsettings.json` with Serilog configuration
+    - Serilog: Using (Console, File sinks), MinimumLevel (Default: Information), Override (Microsoft: Warning)
+    - WriteTo: Console (compact template), File (daily rolling, 30-day retention)
+    - Enrich: FromLogContext, WithMachineName, WithThreadId
+    - AllowedHosts: "*" for localhost-only service
+    - Test: `tests/windows_bridge/test_T004_2_3_appsettings.py` (15 tests passed)
+    - Logs: `log_files/T004.2.3_*`, `log_tests/T004.2.3_*`, `log_learn/T004.2.3_*`
   - [ ] T004.2.4 Configure dependency injection container
 
 - [ ] **T004.3** [P] Create project structure directories
