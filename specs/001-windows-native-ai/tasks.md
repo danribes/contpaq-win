@@ -727,7 +727,10 @@
     - Logs: `log_files/T008.2.3_*`, `log_tests/T008.2.3_*`, `log_learn/T008.2.3_*`
 
 - [ ] **T008.3** Implement auto-restart logic
-  - [ ] T008.3.1 Create restart counter with max 3 retries
+  - [x] T008.3.1 Create restart counter with max 3 retries
+    - Tests: 20 passed (265 total in process-manager.test.ts)
+    - Impl: Added maxRestarts config, enableAutoRestart toggle, handleAutoRestart()
+    - Logs: `log_files/T008.3.1_*`, `log_tests/T008.3.1_*`, `log_learn/T008.3.1_*`
   - [ ] T008.3.2 Implement exponential backoff (1s, 2s, 4s)
   - [ ] T008.3.3 Emit event on max retries exceeded
   - [ ] T008.3.4 Log all restart attempts

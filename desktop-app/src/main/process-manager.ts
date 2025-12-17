@@ -16,7 +16,7 @@ import { app } from 'electron';
 /**
  * Event types emitted by ProcessManager
  */
-export type ProcessManagerEventType = 'statusChange' | 'error' | 'restart' | 'healthChange';
+export type ProcessManagerEventType = 'statusChange' | 'error' | 'restart' | 'healthChange' | 'maxRestartsExceeded';
 
 /**
  * Status change event payload
@@ -29,12 +29,13 @@ export interface StatusChangeEvent {
 }
 
 /**
- * Restart event payload (T008.1.5)
+ * Restart event payload (T008.1.5, enhanced T008.3.1)
  */
 export interface RestartEvent {
   service: 'ai' | 'bridge';
   restartCount: number;
   timestamp: Date;
+  reason?: string; // T008.3.1: Reason for restart (e.g., "crash", "manual")
 }
 
 /**
@@ -44,6 +45,16 @@ export interface HealthChangeEvent {
   service: 'ai' | 'bridge';
   healthy: boolean;
   consecutiveFailures: number;
+  timestamp: Date;
+}
+
+/**
+ * Max restarts exceeded event payload (T008.3.1)
+ */
+export interface MaxRestartsExceededEvent {
+  service: 'ai' | 'bridge';
+  restartCount: number;
+  maxRestarts: number;
   timestamp: Date;
 }
 
@@ -62,7 +73,7 @@ export interface HealthCheckResult {
 /**
  * Event listener callback type
  */
-export type EventListener = (event: StatusChangeEvent | RestartEvent | HealthChangeEvent) => void;
+export type EventListener = (event: StatusChangeEvent | RestartEvent | HealthChangeEvent | MaxRestartsExceededEvent) => void;
 
 /**
  * Service status enumeration
@@ -106,6 +117,8 @@ export interface ProcessManagerConfig {
   healthCheckTimeoutMs: number; // T008.1.6: Timeout for individual health check
   healthCheckRetries: number; // T008.1.6: Number of retries for health check
   fetchFn?: FetchFunction; // T008.1.6: Injectable fetch for testing
+  maxRestarts: number; // T008.3.1: Maximum number of auto-restarts allowed
+  enableAutoRestart: boolean; // T008.3.1: Whether to automatically restart crashed services
 }
 
 /**
@@ -130,6 +143,8 @@ const DEFAULT_CONFIG: ProcessManagerConfig = {
   shutdownTimeoutMs: 5000,  // T008.1.4: 5 second default for graceful shutdown
   healthCheckTimeoutMs: 5000, // T008.1.6: 5 second default for health check timeout
   healthCheckRetries: 3, // T008.1.6: 3 retries by default
+  maxRestarts: 3, // T008.3.1: Default max 3 auto-restarts
+  enableAutoRestart: true, // T008.3.1: Auto-restart enabled by default
 };
 
 /**
@@ -182,6 +197,7 @@ export class ProcessManager {
     this.eventListeners.set('error', new Set());
     this.eventListeners.set('restart', new Set());
     this.eventListeners.set('healthChange', new Set()); // T008.1.6
+    this.eventListeners.set('maxRestartsExceeded', new Set()); // T008.3.1
   }
 
   // ===========================================
@@ -217,7 +233,7 @@ export class ProcessManager {
    * @param event - Event type
    * @param payload - Event data
    */
-  private emit(event: ProcessManagerEventType, payload: StatusChangeEvent | RestartEvent): void {
+  private emit(event: ProcessManagerEventType, payload: StatusChangeEvent | RestartEvent | HealthChangeEvent | MaxRestartsExceededEvent): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
       listeners.forEach(listener => listener(payload));
@@ -225,16 +241,85 @@ export class ProcessManager {
   }
 
   /**
-   * Emit a restart event (T008.1.5)
+   * Emit a restart event (T008.1.5, enhanced T008.3.1)
    * @param service - Service that was restarted
    * @param restartCount - Current restart count
+   * @param reason - Optional reason for restart
    */
-  private emitRestart(service: 'ai' | 'bridge', restartCount: number): void {
-    this.emit('restart', {
+  private emitRestart(service: 'ai' | 'bridge', restartCount: number, reason?: string): void {
+    const event: RestartEvent = {
       service,
       restartCount,
       timestamp: new Date(),
+    };
+    if (reason) {
+      event.reason = reason;
+    }
+    this.emit('restart', event);
+  }
+
+  /**
+   * Emit max restarts exceeded event (T008.3.1)
+   * @param service - Service that exceeded max restarts
+   */
+  private emitMaxRestartsExceeded(service: 'ai' | 'bridge'): void {
+    const restartCount = service === 'ai' ? this.aiRestartCount : this.bridgeRestartCount;
+    this.emit('maxRestartsExceeded', {
+      service,
+      restartCount,
+      maxRestarts: this.config.maxRestarts,
+      timestamp: new Date(),
     });
+  }
+
+  /**
+   * Handle auto-restart after service crash (T008.3.1)
+   * @param service - Service that crashed
+   * @param code - Exit code
+   * @param signal - Signal that caused exit
+   */
+  private handleAutoRestart(service: 'ai' | 'bridge', code: number | null, signal: string | null): void {
+    // Check if auto-restart is enabled
+    if (!this.config.enableAutoRestart) {
+      console.log(`[${service}] Auto-restart disabled, not restarting`);
+      return;
+    }
+
+    // Get current restart count
+    const restartCount = service === 'ai' ? this.aiRestartCount : this.bridgeRestartCount;
+
+    // Check if max restarts exceeded
+    if (restartCount >= this.config.maxRestarts) {
+      console.warn(`[${service}] Max restarts (${this.config.maxRestarts}) exceeded, not restarting`);
+      this.emitMaxRestartsExceeded(service);
+      return;
+    }
+
+    // Increment restart count
+    if (service === 'ai') {
+      this.aiRestartCount++;
+    } else {
+      this.bridgeRestartCount++;
+    }
+
+    const newRestartCount = service === 'ai' ? this.aiRestartCount : this.bridgeRestartCount;
+    const reason = `crash (exit code: ${code}${signal ? `, signal: ${signal}` : ''})`;
+
+    console.log(`[${service}] Auto-restarting (attempt ${newRestartCount}/${this.config.maxRestarts})...`);
+
+    // Emit restart event
+    this.emitRestart(service, newRestartCount, reason);
+
+    // Restart the service
+    if (service === 'ai') {
+      this.startAIService().catch((err) => {
+        console.error(`[${service}] Auto-restart failed:`, err);
+      });
+    } else {
+      this.startBridgeService().catch((err) => {
+        console.error(`[${service}] Auto-restart failed:`, err);
+      });
+    }
   }
 
   // ===========================================
@@ -532,19 +617,23 @@ export class ProcessManager {
         clearTimeout(timeoutId);
 
         if (this.aiServiceStatus === ServiceStatus.STOPPING) {
-          // Normal shutdown
+          // Normal shutdown - don't auto-restart
           this.updateStatus('ai', ServiceStatus.STOPPED);
+          this.aiServiceProcess = null;
         } else if (code !== 0) {
-          // Abnormal exit
+          // Abnormal exit (crash)
           const errorMsg = `AI Service exited with code ${code}${signal ? ` (signal: ${signal})` : ''}`;
           this.setError('ai', errorMsg);
           this.updateStatus('ai', ServiceStatus.ERROR);
-        } else {
-          // Clean exit while running (unexpected)
-          this.updateStatus('ai', ServiceStatus.STOPPED);
-        }
+          this.aiServiceProcess = null;
 
-        this.aiServiceProcess = null;
+          // T008.3.1: Auto-restart on crash
+          this.handleAutoRestart('ai', code, signal);
+        } else {
+          // Clean exit while running (exit code 0) - don't auto-restart
+          this.updateStatus('ai', ServiceStatus.STOPPED);
+          this.aiServiceProcess = null;
+        }
       });
 
       // Capture stdout
@@ -767,19 +856,23 @@ export class ProcessManager {
         clearTimeout(timeoutId);
 
         if (this.bridgeServiceStatus === ServiceStatus.STOPPING) {
-          // Normal shutdown
+          // Normal shutdown - don't auto-restart
           this.updateStatus('bridge', ServiceStatus.STOPPED);
+          this.bridgeServiceProcess = null;
         } else if (code !== 0) {
-          // Abnormal exit
+          // Abnormal exit (crash)
           const errorMsg = `Bridge Service exited with code ${code}${signal ? ` (signal: ${signal})` : ''}`;
           this.setError('bridge', errorMsg);
           this.updateStatus('bridge', ServiceStatus.ERROR);
-        } else {
-          // Clean exit while running (unexpected)
-          this.updateStatus('bridge', ServiceStatus.STOPPED);
-        }
+          this.bridgeServiceProcess = null;
 
-        this.bridgeServiceProcess = null;
+          // T008.3.1: Auto-restart on crash
+          this.handleAutoRestart('bridge', code, signal);
+        } else {
+          // Clean exit while running (exit code 0) - don't auto-restart
+          this.updateStatus('bridge', ServiceStatus.STOPPED);
+          this.bridgeServiceProcess = null;
+        }
       });
 
       // Capture stdout

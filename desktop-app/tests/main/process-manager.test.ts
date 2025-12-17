@@ -1033,14 +1033,20 @@ describe('ProcessManager startAIService Spawning (T008.1.3)', () => {
     });
 
     it('should set status to ERROR on non-zero exit code', async () => {
-      setTimeout(() => mockProcess.emit('spawn'), 10);
+      // Disable auto-restart for this test to verify ERROR status stays
+      const noAutoRestartManager = new ProcessManager({ enableAutoRestart: false });
 
-      await manager.startAIService();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => mockProcess.emit('spawn'), 10);
+        return mockProcess as never;
+      });
+
+      await noAutoRestartManager.startAIService();
 
       // Simulate process crash
       mockProcess.emit('exit', 1, null);
 
-      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.ERROR);
+      expect(noAutoRestartManager.getAIServiceStatus()).toBe(ServiceStatus.ERROR);
     });
 
     it('should emit error event when process fails', async () => {
@@ -1175,17 +1181,27 @@ describe('ProcessManager stopAIService Graceful Shutdown (T008.1.4)', () => {
     });
 
     it('should not call kill if no process exists', async () => {
-      await startService();
+      // Disable auto-restart for this test to verify ERROR status stays
+      const noAutoRestartManager = new ProcessManager({ enableAutoRestart: false });
+      const localMockProcess = createMockChildProcess();
+
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => localMockProcess.emit('spawn'), 10);
+        return localMockProcess as never;
+      });
+
+      await noAutoRestartManager.startAIService();
+      expect(noAutoRestartManager.getAIServiceStatus()).toBe(ServiceStatus.RUNNING);
 
       // Simulate process already gone (e.g., crashed)
-      mockProcess.emit('exit', 1, null);
-      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.ERROR);
+      localMockProcess.emit('exit', 1, null);
+      expect(noAutoRestartManager.getAIServiceStatus()).toBe(ServiceStatus.ERROR);
 
       // Clear mock to track new calls
-      mockProcess.kill.mockClear();
+      localMockProcess.kill.mockClear();
 
       // Try to stop - should handle gracefully
-      await manager.stopAIService();
+      await noAutoRestartManager.stopAIService();
 
       // Should not throw but may or may not call kill depending on implementation
     });
@@ -2574,13 +2590,21 @@ describe('ProcessManager Bridge Service (T008.2.1)', () => {
 
   describe('Process Exit Handling', () => {
     it('should update status on process exit with error code', async () => {
-      await manager.startBridgeService();
-      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.RUNNING);
+      // Disable auto-restart for this test to verify ERROR status stays
+      const noAutoRestartManager = new ProcessManager({ enableAutoRestart: false });
+
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => mockProcess.emit('spawn'), 10);
+        return mockProcess as never;
+      });
+
+      await noAutoRestartManager.startBridgeService();
+      expect(noAutoRestartManager.getBridgeServiceStatus()).toBe(ServiceStatus.RUNNING);
 
       // Simulate process crash
       mockProcess.emit('exit', 1, null);
 
-      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.ERROR);
+      expect(noAutoRestartManager.getBridgeServiceStatus()).toBe(ServiceStatus.ERROR);
     });
 
     it('should set lastError on non-zero exit code', async () => {
@@ -2751,14 +2775,24 @@ describe('ProcessManager stopBridgeService Graceful Shutdown (T008.2.2)', () => 
     });
 
     it('should not call kill if no process exists', async () => {
-      const bridgeProcess = await startBridgeService();
+      // Disable auto-restart for this test to verify ERROR status stays
+      const noAutoRestartManager = new ProcessManager({ enableAutoRestart: false });
+
+      const bridgeProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => bridgeProcess.emit('spawn'), 10);
+        return bridgeProcess as never;
+      });
+
+      await noAutoRestartManager.startBridgeService();
+      expect(noAutoRestartManager.getBridgeServiceStatus()).toBe(ServiceStatus.RUNNING);
 
       bridgeProcess.emit('exit', 1, null);
-      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.ERROR);
+      expect(noAutoRestartManager.getBridgeServiceStatus()).toBe(ServiceStatus.ERROR);
 
       bridgeProcess.kill.mockClear();
 
-      await manager.stopBridgeService();
+      await noAutoRestartManager.stopBridgeService();
     });
   });
 
@@ -3633,6 +3667,500 @@ describe('ProcessManager Bridge Health Check Polling (T008.2.3)', () => {
       const config = manager.getConfig();
       expect(config.healthCheckRetries).toBeDefined();
       expect(config.healthCheckRetries).toBe(3); // Default
+    });
+  });
+});
+
+// ===========================================
+// T008.3.1 - Auto-Restart with Max Retries Tests
+// ===========================================
+
+describe('ProcessManager Auto-Restart with Max Retries (T008.3.1)', () => {
+  let manager: ProcessManager;
+  let mockProcess: ReturnType<typeof createMockChildProcess>;
+  const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    manager = new ProcessManager();
+    mockProcess = createMockChildProcess();
+    mockSpawn.mockImplementation(() => {
+      const proc = createMockChildProcess();
+      setTimeout(() => proc.emit('spawn'), 10);
+      return proc as never;
+    });
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
+  // ===========================================
+  // T008.3.1.1 - Max Restarts Configuration
+  // ===========================================
+
+  describe('Max Restarts Configuration', () => {
+    it('should have maxRestarts configuration option', () => {
+      const config = manager.getConfig();
+      expect(config).toHaveProperty('maxRestarts');
+    });
+
+    it('should default maxRestarts to 3', () => {
+      const config = manager.getConfig();
+      expect(config.maxRestarts).toBe(3);
+    });
+
+    it('should allow custom maxRestarts via config', () => {
+      const customManager = new ProcessManager({ maxRestarts: 5 });
+      const config = customManager.getConfig();
+      expect(config.maxRestarts).toBe(5);
+    });
+
+    it('should allow zero maxRestarts (disabled)', () => {
+      const customManager = new ProcessManager({ maxRestarts: 0 });
+      const config = customManager.getConfig();
+      expect(config.maxRestarts).toBe(0);
+    });
+  });
+
+  // ===========================================
+  // T008.3.1.2 - Auto-Restart on Crash
+  // ===========================================
+
+  describe('Auto-Restart on Crash', () => {
+    it('should have enableAutoRestart configuration option', () => {
+      const config = manager.getConfig();
+      expect(config).toHaveProperty('enableAutoRestart');
+    });
+
+    it('should default enableAutoRestart to true', () => {
+      const config = manager.getConfig();
+      expect(config.enableAutoRestart).toBe(true);
+    });
+
+    it('should auto-restart AI service when it crashes', async () => {
+      const autoRestartManager = new ProcessManager({ enableAutoRestart: true });
+
+      let spawnCount = 0;
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        spawnCount++;
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await autoRestartManager.startAIService();
+      expect(spawnCount).toBe(1);
+
+      // Simulate crash (non-zero exit)
+      processes[0].emit('exit', 1, null);
+
+      // Wait for auto-restart
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Should have spawned a new process
+      expect(spawnCount).toBeGreaterThan(1);
+    });
+
+    it('should not auto-restart when disabled', async () => {
+      const noAutoRestartManager = new ProcessManager({ enableAutoRestart: false });
+
+      let spawnCount = 0;
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        spawnCount++;
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await noAutoRestartManager.startAIService();
+      expect(spawnCount).toBe(1);
+
+      // Simulate crash
+      processes[0].emit('exit', 1, null);
+
+      // Wait a bit
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Should NOT have auto-restarted
+      expect(spawnCount).toBe(1);
+    });
+
+    it('should not auto-restart on graceful stop (exit code 0)', async () => {
+      const autoRestartManager = new ProcessManager({ enableAutoRestart: true });
+
+      let spawnCount = 0;
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        spawnCount++;
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await autoRestartManager.startAIService();
+
+      // Graceful exit (code 0)
+      processes[0].emit('exit', 0, 'SIGTERM');
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Should NOT have auto-restarted
+      expect(spawnCount).toBe(1);
+    });
+  });
+
+  // ===========================================
+  // T008.3.1.3 - Max Restarts Limit
+  // ===========================================
+
+  describe('Max Restarts Limit', () => {
+    it('should stop auto-restarting after max restarts reached', async () => {
+      const limitedManager = new ProcessManager({
+        enableAutoRestart: true,
+        maxRestarts: 3,
+      });
+
+      let spawnCount = 0;
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        spawnCount++;
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await limitedManager.startAIService();
+      expect(spawnCount).toBe(1);
+
+      // Crash 1
+      processes[0].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      expect(spawnCount).toBe(2); // Restarted
+
+      // Crash 2
+      processes[1].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      expect(spawnCount).toBe(3); // Restarted
+
+      // Crash 3
+      processes[2].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      expect(spawnCount).toBe(4); // Restarted
+
+      // Crash 4 - should NOT restart (max reached)
+      processes[3].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      expect(spawnCount).toBe(4); // No more restarts
+    });
+
+    it('should emit maxRestartsExceeded event when limit reached', async () => {
+      const limitedManager = new ProcessManager({
+        enableAutoRestart: true,
+        maxRestarts: 2,
+      });
+
+      const listener = jest.fn();
+      limitedManager.on('maxRestartsExceeded', listener);
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await limitedManager.startAIService();
+
+      // Crash and restart twice
+      processes[0].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      processes[1].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      // Third crash - max exceeded
+      processes[2].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'ai',
+          restartCount: expect.any(Number),
+        })
+      );
+    });
+
+    it('should include maxRestarts in maxRestartsExceeded event', async () => {
+      const limitedManager = new ProcessManager({
+        enableAutoRestart: true,
+        maxRestarts: 1,
+      });
+
+      const listener = jest.fn();
+      limitedManager.on('maxRestartsExceeded', listener);
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await limitedManager.startAIService();
+
+      processes[0].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      processes[1].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'ai',
+          maxRestarts: 1,
+        })
+      );
+    });
+  });
+
+  // ===========================================
+  // T008.3.1.4 - Restart Counter for Auto-Restart
+  // ===========================================
+
+  describe('Restart Counter for Auto-Restart', () => {
+    it('should increment restart count on auto-restart', async () => {
+      const autoRestartManager = new ProcessManager({ enableAutoRestart: true });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await autoRestartManager.startAIService();
+      expect(autoRestartManager.getRestartCount('ai')).toBe(0);
+
+      // Crash and auto-restart
+      processes[0].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(autoRestartManager.getRestartCount('ai')).toBe(1);
+    });
+
+    it('should track restart count across multiple crashes', async () => {
+      const autoRestartManager = new ProcessManager({
+        enableAutoRestart: true,
+        maxRestarts: 5,
+      });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await autoRestartManager.startAIService();
+
+      // Multiple crashes
+      for (let i = 0; i < 3; i++) {
+        processes[i].emit('exit', 1, null);
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+
+      expect(autoRestartManager.getRestartCount('ai')).toBe(3);
+    });
+
+    it('should allow manual reset of restart count', async () => {
+      const autoRestartManager = new ProcessManager({ enableAutoRestart: true });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await autoRestartManager.startAIService();
+
+      processes[0].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(autoRestartManager.getRestartCount('ai')).toBe(1);
+
+      autoRestartManager.resetRestartCount('ai');
+      expect(autoRestartManager.getRestartCount('ai')).toBe(0);
+    });
+  });
+
+  // ===========================================
+  // T008.3.1.5 - Bridge Service Auto-Restart
+  // ===========================================
+
+  describe('Bridge Service Auto-Restart', () => {
+    it('should auto-restart Bridge service when it crashes', async () => {
+      const autoRestartManager = new ProcessManager({ enableAutoRestart: true });
+
+      let spawnCount = 0;
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        spawnCount++;
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await autoRestartManager.startBridgeService();
+      expect(spawnCount).toBe(1);
+
+      // Simulate crash
+      processes[0].emit('exit', 1, null);
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(spawnCount).toBeGreaterThan(1);
+    });
+
+    it('should track Bridge restart count separately from AI', async () => {
+      const autoRestartManager = new ProcessManager({ enableAutoRestart: true });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await autoRestartManager.startAIService();
+      await autoRestartManager.startBridgeService();
+
+      // Crash bridge only
+      processes[1].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(autoRestartManager.getRestartCount('ai')).toBe(0);
+      expect(autoRestartManager.getRestartCount('bridge')).toBe(1);
+    });
+
+    it('should emit maxRestartsExceeded for Bridge service', async () => {
+      const limitedManager = new ProcessManager({
+        enableAutoRestart: true,
+        maxRestarts: 1,
+      });
+
+      const listener = jest.fn();
+      limitedManager.on('maxRestartsExceeded', listener);
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await limitedManager.startBridgeService();
+
+      processes[0].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      processes[1].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'bridge',
+        })
+      );
+    });
+  });
+
+  // ===========================================
+  // T008.3.1.6 - Restart Event Emission
+  // ===========================================
+
+  describe('Restart Event Emission', () => {
+    it('should emit restart event on auto-restart', async () => {
+      const autoRestartManager = new ProcessManager({ enableAutoRestart: true });
+
+      const listener = jest.fn();
+      autoRestartManager.on('restart', listener);
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await autoRestartManager.startAIService();
+
+      processes[0].emit('exit', 1, null);
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'ai',
+          restartCount: 1,
+        })
+      );
+    });
+
+    it('should include reason in restart event', async () => {
+      const autoRestartManager = new ProcessManager({ enableAutoRestart: true });
+
+      const listener = jest.fn();
+      autoRestartManager.on('restart', listener);
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      await autoRestartManager.startAIService();
+
+      processes[0].emit('exit', 1, 'SIGSEGV');
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'ai',
+          reason: expect.stringContaining('crash'),
+        })
+      );
     });
   });
 });
