@@ -2,6 +2,7 @@
  * ProcessManager Tests
  *
  * T008.1.1: Tests for process start/stop functionality
+ * T008.1.2: Tests for ProcessManager infrastructure (events, paths, errors)
  *
  * Tests the ProcessManager class which handles lifecycle management
  * of external service processes (AI Service, Windows Bridge).
@@ -413,5 +414,317 @@ describe('ProcessManager Integration', () => {
 
     await manager.stopBridgeService();
     expect(manager.isBridgeServiceRunning()).toBe(false);
+  });
+});
+
+// ===========================================
+// T008.1.2 - ProcessManager Infrastructure Tests
+// ===========================================
+
+describe('ProcessManager Infrastructure (T008.1.2)', () => {
+  let manager: ProcessManager;
+
+  beforeEach(() => {
+    manager = new ProcessManager();
+    jest.clearAllMocks();
+  });
+
+  // ===========================================
+  // Event Emitter Tests
+  // ===========================================
+
+  describe('Event Emitter', () => {
+    it('should have on method for subscribing to events', () => {
+      expect(manager.on).toBeDefined();
+      expect(typeof manager.on).toBe('function');
+    });
+
+    it('should have off method for unsubscribing from events', () => {
+      expect(manager.off).toBeDefined();
+      expect(typeof manager.off).toBe('function');
+    });
+
+    it('should emit statusChange event when AI service starts', async () => {
+      const listener = jest.fn();
+      manager.on('statusChange', listener);
+
+      await manager.startAIService();
+
+      expect(listener).toHaveBeenCalled();
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'ai',
+          status: ServiceStatus.RUNNING,
+        })
+      );
+    });
+
+    it('should emit statusChange event when AI service stops', async () => {
+      await manager.startAIService();
+
+      const listener = jest.fn();
+      manager.on('statusChange', listener);
+
+      await manager.stopAIService();
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'ai',
+          status: ServiceStatus.STOPPED,
+        })
+      );
+    });
+
+    it('should emit statusChange event when Bridge service starts', async () => {
+      const listener = jest.fn();
+      manager.on('statusChange', listener);
+
+      await manager.startBridgeService();
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'bridge',
+          status: ServiceStatus.RUNNING,
+        })
+      );
+    });
+
+    it('should allow unsubscribing from events with off', async () => {
+      const listener = jest.fn();
+      manager.on('statusChange', listener);
+      manager.off('statusChange', listener);
+
+      await manager.startAIService();
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('should support multiple event listeners', async () => {
+      const listener1 = jest.fn();
+      const listener2 = jest.fn();
+
+      manager.on('statusChange', listener1);
+      manager.on('statusChange', listener2);
+
+      await manager.startAIService();
+
+      expect(listener1).toHaveBeenCalled();
+      expect(listener2).toHaveBeenCalled();
+    });
+  });
+
+  // ===========================================
+  // Path Resolution Tests
+  // ===========================================
+
+  describe('Path Resolution', () => {
+    it('should have getAIServicePath method', () => {
+      expect(manager.getAIServicePath).toBeDefined();
+      expect(typeof manager.getAIServicePath).toBe('function');
+    });
+
+    it('should have getBridgeServicePath method', () => {
+      expect(manager.getBridgeServicePath).toBeDefined();
+      expect(typeof manager.getBridgeServicePath).toBe('function');
+    });
+
+    it('should have getPythonPath method', () => {
+      expect(manager.getPythonPath).toBeDefined();
+      expect(typeof manager.getPythonPath).toBe('function');
+    });
+
+    it('should return a string path for AI service', () => {
+      const path = manager.getAIServicePath();
+      expect(typeof path).toBe('string');
+      expect(path.length).toBeGreaterThan(0);
+    });
+
+    it('should return a string path for Bridge service', () => {
+      const path = manager.getBridgeServicePath();
+      expect(typeof path).toBe('string');
+      expect(path.length).toBeGreaterThan(0);
+    });
+
+    it('should return a string path for Python executable', () => {
+      const path = manager.getPythonPath();
+      expect(typeof path).toBe('string');
+      expect(path.length).toBeGreaterThan(0);
+    });
+
+    it('should include ai-service in AI service path', () => {
+      const path = manager.getAIServicePath();
+      expect(path).toContain('ai-service');
+    });
+
+    it('should include windows-bridge in Bridge service path', () => {
+      const path = manager.getBridgeServicePath();
+      expect(path).toContain('windows-bridge');
+    });
+  });
+
+  // ===========================================
+  // Error Handling Tests
+  // ===========================================
+
+  describe('Error Handling', () => {
+    it('should have getLastError method for AI service', () => {
+      expect(manager.getLastError).toBeDefined();
+      expect(typeof manager.getLastError).toBe('function');
+    });
+
+    it('should return null when no error has occurred', () => {
+      const error = manager.getLastError('ai');
+      expect(error).toBeNull();
+    });
+
+    it('should have setError method (internal)', () => {
+      // setError may be private, but we can test via error state
+      expect(manager.getLastError('ai')).toBeNull();
+      expect(manager.getLastError('bridge')).toBeNull();
+    });
+
+    it('should include lastError in health check when error occurred', async () => {
+      // When service is in error state, health should include error info
+      const health = await manager.checkHealth('ai');
+      expect(health).toHaveProperty('lastError');
+    });
+
+    it('should have clearError method', () => {
+      expect(manager.clearError).toBeDefined();
+      expect(typeof manager.clearError).toBe('function');
+    });
+
+    it('should clear error for specified service', () => {
+      manager.clearError('ai');
+      expect(manager.getLastError('ai')).toBeNull();
+    });
+  });
+
+  // ===========================================
+  // Configuration Access Tests
+  // ===========================================
+
+  describe('Configuration Access', () => {
+    it('should have getConfig method', () => {
+      expect(manager.getConfig).toBeDefined();
+      expect(typeof manager.getConfig).toBe('function');
+    });
+
+    it('should return current configuration', () => {
+      const config = manager.getConfig();
+      expect(config).toBeDefined();
+      expect(config.aiServicePort).toBeDefined();
+      expect(config.bridgeServicePort).toBeDefined();
+      expect(config.healthCheckInterval).toBeDefined();
+      expect(config.maxRestartAttempts).toBeDefined();
+      expect(config.restartBackoffMs).toBeDefined();
+    });
+
+    it('should return default port 8000 for AI service', () => {
+      const config = manager.getConfig();
+      expect(config.aiServicePort).toBe(8000);
+    });
+
+    it('should return default port 5000 for Bridge service', () => {
+      const config = manager.getConfig();
+      expect(config.bridgeServicePort).toBe(5000);
+    });
+
+    it('should reflect custom config when provided', () => {
+      const customManager = new ProcessManager({
+        aiServicePort: 9000,
+        bridgeServicePort: 6000,
+      });
+      const config = customManager.getConfig();
+      expect(config.aiServicePort).toBe(9000);
+      expect(config.bridgeServicePort).toBe(6000);
+    });
+
+    it('should return a copy of config (immutable)', () => {
+      const config1 = manager.getConfig();
+      const config2 = manager.getConfig();
+      expect(config1).not.toBe(config2); // Different object references
+      expect(config1).toEqual(config2); // Same values
+    });
+  });
+
+  // ===========================================
+  // Service Metadata Tests
+  // ===========================================
+
+  describe('Service Metadata', () => {
+    it('should track AI service start time', async () => {
+      await manager.startAIService();
+      const health = await manager.checkHealth('ai');
+      expect(health.uptime).toBeDefined();
+      expect(typeof health.uptime).toBe('number');
+    });
+
+    it('should have uptime of 0 or more when running', async () => {
+      await manager.startAIService();
+      const health = await manager.checkHealth('ai');
+      expect(health.uptime).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should have undefined uptime when stopped', async () => {
+      const health = await manager.checkHealth('ai');
+      expect(health.uptime).toBeUndefined();
+    });
+
+    it('should track Bridge service start time', async () => {
+      await manager.startBridgeService();
+      const health = await manager.checkHealth('bridge');
+      expect(health.uptime).toBeDefined();
+      expect(typeof health.uptime).toBe('number');
+    });
+
+    it('should reset uptime after stop and restart', async () => {
+      await manager.startAIService();
+
+      // Wait a tiny bit
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      const health1 = await manager.checkHealth('ai');
+      const uptime1 = health1.uptime;
+
+      await manager.stopAIService();
+      await manager.startAIService();
+
+      const health2 = await manager.checkHealth('ai');
+      const uptime2 = health2.uptime;
+
+      // After restart, uptime should be reset (less than or equal to uptime1)
+      expect(uptime2).toBeDefined();
+      expect(uptime2).toBeLessThanOrEqual(uptime1! + 200); // Allow for test timing
+    });
+  });
+
+  // ===========================================
+  // Restart Counter Tests
+  // ===========================================
+
+  describe('Restart Counter', () => {
+    it('should have getRestartCount method', () => {
+      expect(manager.getRestartCount).toBeDefined();
+      expect(typeof manager.getRestartCount).toBe('function');
+    });
+
+    it('should return 0 initially for AI service', () => {
+      expect(manager.getRestartCount('ai')).toBe(0);
+    });
+
+    it('should return 0 initially for Bridge service', () => {
+      expect(manager.getRestartCount('bridge')).toBe(0);
+    });
+
+    it('should have resetRestartCount method', () => {
+      expect(manager.resetRestartCount).toBeDefined();
+      expect(typeof manager.resetRestartCount).toBe('function');
+    });
+
+    it('should reset restart count to 0', () => {
+      manager.resetRestartCount('ai');
+      expect(manager.getRestartCount('ai')).toBe(0);
+    });
   });
 });

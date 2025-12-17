@@ -649,7 +649,16 @@
     - Covers: AI Service and Bridge Service lifecycle, status transitions
     - Test: `npm test -- --testPathPattern="process-manager"` (42 tests passed)
     - Logs: `log_files/T008.1.1_*`, `log_tests/T008.1.1_*`, `log_learn/T008.1.1_*`
-  - [ ] T008.1.2 Implement `ProcessManager` class in `process-manager.ts`
+  - [x] T008.1.2 Implement `ProcessManager` class in `process-manager.ts` ✅ *Completed 2025-12-17*
+    - Added: Event emitter (on/off/emit) for status change notifications
+    - Added: Path resolution (getAIServicePath, getBridgeServicePath, getPythonPath)
+    - Added: Error handling (getLastError, clearError, setError)
+    - Added: Configuration access (getConfig returns immutable copy)
+    - Added: Uptime tracking in checkHealth() method
+    - Added: Restart counter (getRestartCount, resetRestartCount)
+    - Added: updateStatus() helper for centralized status changes
+    - Test: 37 new tests (79 total) - all pass
+    - Logs: `log_files/T008.1.2_*`, `log_tests/T008.1.2_*`, `log_learn/T008.1.2_*`
   - [ ] T008.1.3 Implement `startAIService()` method
     - [ ] T008.1.3.1 Locate Python executable path
     - [ ] T008.1.3.2 Spawn uvicorn process with correct args

@@ -5,12 +5,33 @@
  * - AI Service (Python/FastAPI)
  * - Windows Bridge (.NET/ASP.NET Core)
  *
- * This is a stub implementation that will be completed in T008.
+ * T008.1.1: Basic structure with stub implementations
+ * T008.1.2: Added infrastructure (events, paths, errors, config)
  */
 
 import { ChildProcess, spawn } from 'child_process';
 import * as path from 'path';
 import { app } from 'electron';
+
+/**
+ * Event types emitted by ProcessManager
+ */
+export type ProcessManagerEventType = 'statusChange' | 'error' | 'restart';
+
+/**
+ * Status change event payload
+ */
+export interface StatusChangeEvent {
+  service: 'ai' | 'bridge';
+  status: ServiceStatus;
+  previousStatus: ServiceStatus;
+  timestamp: Date;
+}
+
+/**
+ * Event listener callback type
+ */
+export type EventListener = (event: StatusChangeEvent) => void;
 
 /**
  * Service status enumeration
@@ -72,8 +93,222 @@ export class ProcessManager {
   private bridgeRestartCount: number = 0;
   private healthCheckTimer: NodeJS.Timeout | null = null;
 
+  // T008.1.2: Event emitter
+  private eventListeners: Map<ProcessManagerEventType, Set<EventListener>> = new Map();
+
+  // T008.1.2: Error tracking
+  private aiLastError: string | null = null;
+  private bridgeLastError: string | null = null;
+
+  // T008.1.2: Start time tracking for uptime
+  private aiStartTime: Date | null = null;
+  private bridgeStartTime: Date | null = null;
+
   constructor(config: Partial<ProcessManagerConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
+    // Initialize event listener maps
+    this.eventListeners.set('statusChange', new Set());
+    this.eventListeners.set('error', new Set());
+    this.eventListeners.set('restart', new Set());
+  }
+
+  // ===========================================
+  // T008.1.2: Event Emitter Methods
+  // ===========================================
+
+  /**
+   * Subscribe to an event
+   * @param event - Event type to subscribe to
+   * @param listener - Callback function
+   */
+  on(event: ProcessManagerEventType, listener: EventListener): void {
+    const listeners = this.eventListeners.get(event);
+    if (listeners) {
+      listeners.add(listener);
+    }
+  }
+
+  /**
+   * Unsubscribe from an event
+   * @param event - Event type to unsubscribe from
+   * @param listener - Callback function to remove
+   */
+  off(event: ProcessManagerEventType, listener: EventListener): void {
+    const listeners = this.eventListeners.get(event);
+    if (listeners) {
+      listeners.delete(listener);
+    }
+  }
+
+  /**
+   * Emit an event to all listeners
+   * @param event - Event type
+   * @param payload - Event data
+   */
+  private emit(event: ProcessManagerEventType, payload: StatusChangeEvent): void {
+    const listeners = this.eventListeners.get(event);
+    if (listeners) {
+      listeners.forEach(listener => listener(payload));
+    }
+  }
+
+  // ===========================================
+  // T008.1.2: Path Resolution Methods
+  // ===========================================
+
+  /**
+   * Get the path to the AI service directory
+   * @returns Path to ai-service directory
+   */
+  getAIServicePath(): string {
+    const appPath = app.getAppPath();
+    if (app.isPackaged) {
+      // In production, ai-service is bundled in resources
+      return path.join(process.resourcesPath, 'ai-service');
+    }
+    // In development, it's a sibling directory
+    return path.join(appPath, '..', 'ai-service');
+  }
+
+  /**
+   * Get the path to the Windows Bridge service directory
+   * @returns Path to windows-bridge directory
+   */
+  getBridgeServicePath(): string {
+    const appPath = app.getAppPath();
+    if (app.isPackaged) {
+      // In production, windows-bridge is bundled in resources
+      return path.join(process.resourcesPath, 'windows-bridge');
+    }
+    // In development, it's a sibling directory
+    return path.join(appPath, '..', 'windows-bridge');
+  }
+
+  /**
+   * Get the path to the Python executable
+   * @returns Path to Python executable
+   */
+  getPythonPath(): string {
+    if (app.isPackaged) {
+      // In production, use bundled Python
+      return path.join(process.resourcesPath, 'python', 'python.exe');
+    }
+    // In development, use system Python
+    return process.platform === 'win32' ? 'python' : 'python3';
+  }
+
+  // ===========================================
+  // T008.1.2: Error Handling Methods
+  // ===========================================
+
+  /**
+   * Get the last error for a service
+   * @param service - Service to get error for
+   * @returns Last error message or null
+   */
+  getLastError(service: 'ai' | 'bridge'): string | null {
+    return service === 'ai' ? this.aiLastError : this.bridgeLastError;
+  }
+
+  /**
+   * Clear the last error for a service
+   * @param service - Service to clear error for
+   */
+  clearError(service: 'ai' | 'bridge'): void {
+    if (service === 'ai') {
+      this.aiLastError = null;
+    } else {
+      this.bridgeLastError = null;
+    }
+  }
+
+  /**
+   * Set an error for a service (internal)
+   * @param service - Service that errored
+   * @param error - Error message
+   */
+  private setError(service: 'ai' | 'bridge', error: string): void {
+    if (service === 'ai') {
+      this.aiLastError = error;
+    } else {
+      this.bridgeLastError = error;
+    }
+  }
+
+  // ===========================================
+  // T008.1.2: Configuration Access
+  // ===========================================
+
+  /**
+   * Get a copy of the current configuration
+   * @returns Copy of ProcessManagerConfig
+   */
+  getConfig(): ProcessManagerConfig {
+    return { ...this.config };
+  }
+
+  // ===========================================
+  // T008.1.2: Restart Counter Methods
+  // ===========================================
+
+  /**
+   * Get the restart count for a service
+   * @param service - Service to get count for
+   * @returns Number of restarts
+   */
+  getRestartCount(service: 'ai' | 'bridge'): number {
+    return service === 'ai' ? this.aiRestartCount : this.bridgeRestartCount;
+  }
+
+  /**
+   * Reset the restart count for a service
+   * @param service - Service to reset count for
+   */
+  resetRestartCount(service: 'ai' | 'bridge'): void {
+    if (service === 'ai') {
+      this.aiRestartCount = 0;
+    } else {
+      this.bridgeRestartCount = 0;
+    }
+  }
+
+  // ===========================================
+  // T008.1.2: Status Change Helper
+  // ===========================================
+
+  /**
+   * Update service status and emit event
+   * @param service - Service to update
+   * @param newStatus - New status
+   */
+  private updateStatus(service: 'ai' | 'bridge', newStatus: ServiceStatus): void {
+    const previousStatus = service === 'ai' ? this.aiServiceStatus : this.bridgeServiceStatus;
+
+    if (service === 'ai') {
+      this.aiServiceStatus = newStatus;
+      // Track start time
+      if (newStatus === ServiceStatus.RUNNING) {
+        this.aiStartTime = new Date();
+      } else if (newStatus === ServiceStatus.STOPPED) {
+        this.aiStartTime = null;
+      }
+    } else {
+      this.bridgeServiceStatus = newStatus;
+      // Track start time
+      if (newStatus === ServiceStatus.RUNNING) {
+        this.bridgeStartTime = new Date();
+      } else if (newStatus === ServiceStatus.STOPPED) {
+        this.bridgeStartTime = null;
+      }
+    }
+
+    // Emit status change event
+    this.emit('statusChange', {
+      service,
+      status: newStatus,
+      previousStatus,
+      timestamp: new Date(),
+    });
   }
 
   /**
@@ -86,14 +321,14 @@ export class ProcessManager {
       return;
     }
 
-    this.aiServiceStatus = ServiceStatus.STARTING;
+    this.updateStatus('ai', ServiceStatus.STARTING);
     console.log('Starting AI Service...');
 
-    // TODO: Implement actual process spawning in T008
+    // TODO: Implement actual process spawning in T008.1.3
     // This is a stub that simulates successful start
     return new Promise((resolve) => {
       setTimeout(() => {
-        this.aiServiceStatus = ServiceStatus.RUNNING;
+        this.updateStatus('ai', ServiceStatus.RUNNING);
         console.log('AI Service started (stub)');
         resolve();
       }, 100);
@@ -110,10 +345,10 @@ export class ProcessManager {
       return;
     }
 
-    this.aiServiceStatus = ServiceStatus.STOPPING;
+    this.updateStatus('ai', ServiceStatus.STOPPING);
     console.log('Stopping AI Service...');
 
-    // TODO: Implement actual process termination in T008
+    // TODO: Implement actual process termination in T008.1.4
     // This is a stub that simulates successful stop
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -121,7 +356,7 @@ export class ProcessManager {
           this.aiServiceProcess.kill();
           this.aiServiceProcess = null;
         }
-        this.aiServiceStatus = ServiceStatus.STOPPED;
+        this.updateStatus('ai', ServiceStatus.STOPPED);
         console.log('AI Service stopped (stub)');
         resolve();
       }, 100);
@@ -147,14 +382,14 @@ export class ProcessManager {
       return;
     }
 
-    this.bridgeServiceStatus = ServiceStatus.STARTING;
+    this.updateStatus('bridge', ServiceStatus.STARTING);
     console.log('Starting Bridge Service...');
 
-    // TODO: Implement actual process spawning in T008
+    // TODO: Implement actual process spawning in T008.2.1
     // This is a stub that simulates successful start
     return new Promise((resolve) => {
       setTimeout(() => {
-        this.bridgeServiceStatus = ServiceStatus.RUNNING;
+        this.updateStatus('bridge', ServiceStatus.RUNNING);
         console.log('Bridge Service started (stub)');
         resolve();
       }, 100);
@@ -171,10 +406,10 @@ export class ProcessManager {
       return;
     }
 
-    this.bridgeServiceStatus = ServiceStatus.STOPPING;
+    this.updateStatus('bridge', ServiceStatus.STOPPING);
     console.log('Stopping Bridge Service...');
 
-    // TODO: Implement actual process termination in T008
+    // TODO: Implement actual process termination in T008.2.2
     // This is a stub that simulates successful stop
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -182,7 +417,7 @@ export class ProcessManager {
           this.bridgeServiceProcess.kill();
           this.bridgeServiceProcess = null;
         }
-        this.bridgeServiceStatus = ServiceStatus.STOPPED;
+        this.updateStatus('bridge', ServiceStatus.STOPPED);
         console.log('Bridge Service stopped (stub)');
         resolve();
       }, 100);
@@ -228,12 +463,22 @@ export class ProcessManager {
    */
   async checkHealth(service: 'ai' | 'bridge'): Promise<ServiceHealth> {
     const status = service === 'ai' ? this.aiServiceStatus : this.bridgeServiceStatus;
-    const process = service === 'ai' ? this.aiServiceProcess : this.bridgeServiceProcess;
+    const serviceProcess = service === 'ai' ? this.aiServiceProcess : this.bridgeServiceProcess;
+    const startTime = service === 'ai' ? this.aiStartTime : this.bridgeStartTime;
+    const lastError = service === 'ai' ? this.aiLastError : this.bridgeLastError;
 
-    // TODO: Implement actual HTTP health check in T008
+    // Calculate uptime if service is running
+    let uptime: number | undefined;
+    if (startTime && status === ServiceStatus.RUNNING) {
+      uptime = Date.now() - startTime.getTime();
+    }
+
+    // TODO: Implement actual HTTP health check in T008.1.6
     return {
       status,
-      pid: process?.pid,
+      pid: serviceProcess?.pid,
+      uptime,
+      lastError: lastError ?? undefined,
       lastHealthCheck: new Date(),
     };
   }
