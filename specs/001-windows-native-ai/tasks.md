@@ -643,7 +643,12 @@
 ### T008 - Desktop App Process Manager
 
 - [ ] **T008.1** Implement AI service process management
-  - [ ] T008.1.1 [P] Write test for process start/stop
+  - [x] T008.1.1 [P] Write test for process start/stop ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/tests/main/process-manager.test.ts` (42 tests)
+    - Tests: Class structure, start/stop/restart methods, health checks, configuration
+    - Covers: AI Service and Bridge Service lifecycle, status transitions
+    - Test: `npm test -- --testPathPattern="process-manager"` (42 tests passed)
+    - Logs: `log_files/T008.1.1_*`, `log_tests/T008.1.1_*`, `log_learn/T008.1.1_*`
   - [ ] T008.1.2 Implement `ProcessManager` class in `process-manager.ts`
   - [ ] T008.1.3 Implement `startAIService()` method
     - [ ] T008.1.3.1 Locate Python executable path
