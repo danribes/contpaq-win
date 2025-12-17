@@ -867,22 +867,30 @@
 
 ### T012 - OCR Service for Scanned PDFs
 
-- [ ] **T012.1** Implement Tesseract wrapper
-  - [ ] T012.1.1 [P] Write test `test_ocr_extraction.py`
-  - [ ] T012.1.2 Create `ocr_service.py`
-  - [ ] T012.1.3 Implement `extract_with_ocr()` method
-    - [ ] T012.1.3.1 Convert PDF page to image (300 DPI)
-    - [ ] T012.1.3.2 Run Tesseract with Spanish language
-    - [ ] T012.1.3.3 Extract text with bounding boxes
-    - [ ] T012.1.3.4 Calculate confidence per text block
+- [x] **T012.1** Implement Tesseract wrapper ✅ *Completed 2025-12-17*
+  - [x] T012.1.1 [P] Write test `test_ocr_extraction.py` ✅ *Completed 2025-12-17*
+    - Created: `ai-service/tests/unit/test_ocr_extraction.py` (18 tests)
+  - [x] T012.1.2 Create `ocr_service.py` ✅ *Completed 2025-12-17*
+    - Created: `ai-service/src/services/ocr_service.py`
+    - Classes: OCRService, OCRResult type
+  - [x] T012.1.3 Implement `extract_with_ocr()` method ✅ *Completed 2025-12-17*
+    - [x] T012.1.3.1 Convert PDF page to image (300 DPI) - PyMuPDF matrix scaling
+    - [x] T012.1.3.2 Run Tesseract with Spanish language (lang="spa")
+    - [x] T012.1.3.3 Extract text with bounding boxes (x0, y0, x1, y1)
+    - [x] T012.1.3.4 Calculate confidence per text block (0-100%)
 
-- [ ] **T012.2** Implement image preprocessing
-  - [ ] T012.2.1 [P] Write test `test_image_preprocessing.py`
-  - [ ] T012.2.2 Implement deskewing for rotated scans
-  - [ ] T012.2.3 Implement contrast enhancement
-  - [ ] T012.2.4 Implement noise reduction
+- [x] **T012.2** Implement image preprocessing ✅ *Completed 2025-12-17*
+  - [x] T012.2.1 [P] Write test `test_image_preprocessing.py` ✅ *Completed 2025-12-17*
+    - Created: `ai-service/tests/unit/test_image_preprocessing.py` (21 tests)
+  - [x] T012.2.2 Implement deskewing for rotated scans ✅ *Completed 2025-12-17*
+    - detect_skew_angle() and deskew() methods
+    - Bicubic interpolation with white fill
+  - [x] T012.2.3 Implement contrast enhancement ✅ *Completed 2025-12-17*
+    - PIL ImageEnhance.Contrast with configurable factor
+  - [x] T012.2.4 Implement noise reduction ✅ *Completed 2025-12-17*
+    - MedianFilter with configurable strength
 
-**Checkpoint**: Text extracted from scanned PDF
+**Checkpoint**: Text extracted from scanned PDF ✅ *T012 Complete*
 
 ---
 
