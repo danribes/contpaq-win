@@ -642,7 +642,7 @@
 
 ### T008 - Desktop App Process Manager
 
-- [ ] **T008.1** Implement AI service process management
+- [x] **T008.1** Implement AI service process management ✅ *Completed 2025-12-17*
   - [x] T008.1.1 [P] Write test for process start/stop ✅ *Completed 2025-12-17*
     - Created: `desktop-app/tests/main/process-manager.test.ts` (42 tests)
     - Tests: Class structure, start/stop/restart methods, health checks, configuration
@@ -748,11 +748,19 @@
 
 ### T009 - Desktop App Database Layer
 
-- [ ] **T009.1** Implement SQLite connection
-  - [ ] T009.1.1 [P] Write test for database initialization
-  - [ ] T009.1.2 Create `database.ts` service
-  - [ ] T009.1.3 Implement database initialization with migration
-  - [ ] T009.1.4 Configure database path in user data directory
+- [x] **T009.1** Implement SQLite connection ✅ *Completed 2025-12-17*
+  - [x] T009.1.1 [P] Write test for database initialization ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/tests/main/database.test.ts` (30 tests)
+    - Tests: Class structure, lifecycle, migrations, foreign keys, error handling
+    - Logs: `log_files/T009.1.1_*`, `log_tests/T009.1.1_*`, `log_learn/T009.1.1_*`
+  - [x] T009.1.2 Create `database.ts` service ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/src/main/database.ts`
+    - DatabaseService class with initialize/close/getConnection methods
+  - [x] T009.1.3 Implement database initialization with migration ✅ *Completed 2025-12-17*
+    - Runs `database/migrations/001_initial_schema.sql` on init
+    - Enables WAL mode and foreign keys
+  - [x] T009.1.4 Configure database path in user data directory ✅ *Completed 2025-12-17*
+    - Helper: `getDefaultDatabasePath(userDataPath)` returns path in user data
 
 - [ ] **T009.2** Implement invoice repository
   - [ ] T009.2.1 [P] Write tests for CRUD operations
