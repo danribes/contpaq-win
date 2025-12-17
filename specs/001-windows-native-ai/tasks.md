@@ -836,14 +836,18 @@
 
 ### T011 - PDF Text Extraction Service
 
-- [ ] **T011.1** Implement PDF type detection
-  - [ ] T011.1.1 [P] Write test `test_detect_text_based_pdf.py`
-  - [ ] T011.1.2 [P] Write test `test_detect_scanned_pdf.py`
-  - [ ] T011.1.3 Create `pdf_extractor.py` service
-  - [ ] T011.1.4 Implement `detect_pdf_type()` using PyMuPDF
-    - [ ] T011.1.4.1 Extract text from first page
-    - [ ] T011.1.4.2 If text length < 100 chars, classify as scanned
-    - [ ] T011.1.4.3 Return SourceType enum value
+- [x] **T011.1** Implement PDF type detection ✅ *Completed 2025-12-17*
+  - [x] T011.1.1 [P] Write test `test_detect_text_based_pdf.py` ✅ *Completed 2025-12-17*
+    - Created: `ai-service/tests/unit/test_detect_text_based_pdf.py` (8 tests)
+  - [x] T011.1.2 [P] Write test `test_detect_scanned_pdf.py` ✅ *Completed 2025-12-17*
+    - Created: `ai-service/tests/unit/test_detect_scanned_pdf.py` (8 tests, 2 skipped)
+  - [x] T011.1.3 Create `pdf_extractor.py` service ✅ *Completed 2025-12-17*
+    - Created: `ai-service/src/services/pdf_extractor.py`
+    - Classes: PDFExtractor, SourceType enum
+  - [x] T011.1.4 Implement `detect_pdf_type()` using PyMuPDF ✅ *Completed 2025-12-17*
+    - [x] T011.1.4.1 Extract text from first page
+    - [x] T011.1.4.2 If text length < 100 chars, classify as scanned
+    - [x] T011.1.4.3 Return SourceType enum value (TEXT or SCANNED)
 
 - [ ] **T011.2** Implement text extraction
   - [ ] T011.2.1 [P] Write test `test_extract_text_with_positions.py`

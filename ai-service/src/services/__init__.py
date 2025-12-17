@@ -18,4 +18,6 @@ All services are designed to be:
     - Configurable via environment variables
 """
 
-__all__ = []
+from .pdf_extractor import PDFExtractor, SourceType, TEXT_THRESHOLD
+
+__all__ = ["PDFExtractor", "SourceType", "TEXT_THRESHOLD"]
