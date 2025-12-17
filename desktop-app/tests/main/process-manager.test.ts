@@ -341,14 +341,16 @@ describe('ProcessManager', () => {
       const health = await manager.checkHealth('ai');
       expect(health).toBeDefined();
       expect(health.status).toBeDefined();
-      expect(health.lastHealthCheck).toBeInstanceOf(Date);
+      // T008.1.6: lastHealthCheck is undefined until performHealthCheck is called
+      expect(health.lastHealthCheck).toBeUndefined();
     });
 
     it('should return ServiceHealth for Bridge service', async () => {
       const health = await manager.checkHealth('bridge');
       expect(health).toBeDefined();
       expect(health.status).toBeDefined();
-      expect(health.lastHealthCheck).toBeInstanceOf(Date);
+      // T008.1.6: lastHealthCheck is undefined until performHealthCheck is called
+      expect(health.lastHealthCheck).toBeUndefined();
     });
 
     it('should reflect current status in health check', async () => {
@@ -1851,6 +1853,434 @@ describe('ProcessManager restartAIService Enhanced (T008.1.5)', () => {
 
       expect(manager.getAIServiceStatus()).toBe(ServiceStatus.RUNNING);
       expect(manager.isAIServiceRunning()).toBe(true);
+    });
+  });
+});
+
+// ===========================================
+// T008.1.6 - Health Check Polling with Retry Tests
+// ===========================================
+
+describe('ProcessManager Health Check Polling (T008.1.6)', () => {
+  let manager: ProcessManager;
+  let mockProcess: ReturnType<typeof createMockChildProcess>;
+  const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
+  let mockFetch: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // Create mock fetch for dependency injection
+    mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ status: 'healthy' }),
+    } as Response);
+
+    // Create manager with injected mock fetch
+    manager = new ProcessManager({ fetchFn: mockFetch as any });
+    mockProcess = createMockChildProcess();
+    mockSpawn.mockImplementation(() => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+      return mockProcess as never;
+    });
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
+  // Helper to start the service
+  async function startService(): Promise<void> {
+    await manager.startAIService();
+    expect(manager.getAIServiceStatus()).toBe(ServiceStatus.RUNNING);
+  }
+
+  // ===========================================
+  // T008.1.6.1 - HTTP Health Check
+  // ===========================================
+
+  describe('HTTP Health Check', () => {
+    it('should have performHealthCheck method', () => {
+      expect(manager.performHealthCheck).toBeDefined();
+      expect(typeof manager.performHealthCheck).toBe('function');
+    });
+
+    it('should make HTTP request to health endpoint', async () => {
+      await startService();
+
+      await manager.performHealthCheck('ai');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/health'),
+        expect.any(Object)
+      );
+    });
+
+    it('should use correct port for AI service', async () => {
+      await startService();
+
+      await manager.performHealthCheck('ai');
+
+      const config = manager.getConfig();
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(`:${config.aiServicePort}`),
+        expect.any(Object)
+      );
+    });
+
+    it('should return healthy status on successful response', async () => {
+      await startService();
+
+      const result = await manager.performHealthCheck('ai');
+
+      expect(result.healthy).toBe(true);
+      expect(result.status).toBe(ServiceStatus.RUNNING);
+    });
+
+    it('should return unhealthy status on failed response', async () => {
+      await startService();
+
+      // Mock all retries to return failure
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 503,
+      } as Response);
+
+      const result = await manager.performHealthCheck('ai');
+
+      expect(result.healthy).toBe(false);
+    });
+
+    it('should return unhealthy on network error', async () => {
+      await startService();
+
+      // Mock all retries to reject
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      const result = await manager.performHealthCheck('ai');
+
+      expect(result.healthy).toBe(false);
+      expect(result.error).toContain('Network error');
+    });
+
+    it('should include response time in result', async () => {
+      await startService();
+
+      const result = await manager.performHealthCheck('ai');
+
+      expect(result.responseTimeMs).toBeDefined();
+      expect(typeof result.responseTimeMs).toBe('number');
+      expect(result.responseTimeMs).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should timeout if health check takes too long', async () => {
+      // Create a slow mock fetch that respects abort signal
+      const slowFetch = jest.fn().mockImplementation((_url: string, options?: { signal?: AbortSignal }) =>
+        new Promise((resolve, reject) => {
+          const timeoutId = setTimeout(() => resolve({ ok: true, status: 200 } as Response), 10000);
+          // Listen for abort signal
+          if (options?.signal) {
+            options.signal.addEventListener('abort', () => {
+              clearTimeout(timeoutId);
+              const abortError = new Error('The operation was aborted');
+              abortError.name = 'AbortError';
+              reject(abortError);
+            });
+          }
+        })
+      );
+
+      const shortManager = new ProcessManager({
+        healthCheckTimeoutMs: 100,
+        fetchFn: slowFetch as any,
+      });
+      const shortMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => shortMockProcess.emit('spawn'), 10);
+        return shortMockProcess as never;
+      });
+      await shortManager.startAIService();
+
+      const result = await shortManager.performHealthCheck('ai');
+
+      expect(result.healthy).toBe(false);
+      expect(result.error).toContain('timeout');
+    }, 15000);
+  });
+
+  // ===========================================
+  // T008.1.6.2 - Retry Logic
+  // ===========================================
+
+  describe('Retry Logic', () => {
+    it('should have configurable health check retries', () => {
+      const config = manager.getConfig();
+      expect(config).toHaveProperty('healthCheckRetries');
+    });
+
+    it('should default to 3 retries', () => {
+      const config = manager.getConfig();
+      expect(config.healthCheckRetries).toBe(3);
+    });
+
+    it('should retry on failure', async () => {
+      await startService();
+
+      // Fail twice, then succeed
+      mockFetch
+        .mockRejectedValueOnce(new Error('Retry 1'))
+        .mockRejectedValueOnce(new Error('Retry 2'))
+        .mockResolvedValueOnce({ ok: true, status: 200 } as Response);
+
+      const result = await manager.performHealthCheck('ai');
+
+      expect(result.healthy).toBe(true);
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('should return failure after all retries exhausted', async () => {
+      await startService();
+
+      // Fail all retries
+      mockFetch.mockRejectedValue(new Error('Persistent failure'));
+
+      const result = await manager.performHealthCheck('ai');
+
+      expect(result.healthy).toBe(false);
+      expect(result.retryCount).toBe(3);
+    });
+
+    it('should include retry count in result', async () => {
+      await startService();
+
+      // Fail once, then succeed
+      mockFetch
+        .mockRejectedValueOnce(new Error('First failure'))
+        .mockResolvedValueOnce({ ok: true, status: 200 } as Response);
+
+      const result = await manager.performHealthCheck('ai');
+
+      expect(result.retryCount).toBe(1);
+    });
+
+    it('should not retry on successful check', async () => {
+      await startService();
+
+      await manager.performHealthCheck('ai');
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // ===========================================
+  // T008.1.6.3 - Health Check Polling
+  // ===========================================
+
+  describe('Health Check Polling', () => {
+    it('should have startHealthCheckPolling method', () => {
+      expect((manager as any).startHealthCheckPolling).toBeDefined();
+    });
+
+    it('should have stopHealthCheckPolling method', () => {
+      expect((manager as any).stopHealthCheckPolling).toBeDefined();
+    });
+
+    it('should poll at configured interval', async () => {
+      // Start service with real timers first
+      await startService();
+
+      // Now enable fake timers
+      jest.useFakeTimers();
+
+      // Manually trigger polling start (normally done by startAll)
+      (manager as any).startHealthCheckPolling();
+
+      // Clear any calls from startup
+      mockFetch.mockClear();
+
+      // Fast-forward past one interval
+      const config = manager.getConfig();
+      await jest.advanceTimersByTimeAsync(config.healthCheckInterval + 100);
+
+      jest.useRealTimers();
+
+      // Health check should have been called
+      expect(mockFetch).toHaveBeenCalled();
+
+      // Clean up
+      (manager as any).stopHealthCheckPolling();
+    });
+
+    it('should update lastHealthCheck timestamp', async () => {
+      await startService();
+
+      const beforeCheck = new Date();
+      await manager.performHealthCheck('ai');
+      const afterCheck = new Date();
+
+      const health = await manager.checkHealth('ai');
+
+      expect(health.lastHealthCheck).toBeDefined();
+      expect(health.lastHealthCheck!.getTime()).toBeGreaterThanOrEqual(beforeCheck.getTime());
+      expect(health.lastHealthCheck!.getTime()).toBeLessThanOrEqual(afterCheck.getTime());
+    });
+
+    it('should stop polling when stopHealthCheckPolling is called', async () => {
+      // Start service with real timers first
+      await startService();
+
+      // Now enable fake timers
+      jest.useFakeTimers();
+
+      (manager as any).startHealthCheckPolling();
+
+      // Stop polling
+      (manager as any).stopHealthCheckPolling();
+
+      // Clear any previous calls
+      mockFetch.mockClear();
+
+      // Fast-forward
+      const config = manager.getConfig();
+      await jest.advanceTimersByTimeAsync(config.healthCheckInterval * 2);
+
+      jest.useRealTimers();
+
+      // Should not have made any new calls
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+  });
+
+  // ===========================================
+  // T008.1.6.4 - Health Status Events
+  // ===========================================
+
+  describe('Health Status Events', () => {
+    it('should emit healthChange event when health status changes', async () => {
+      await startService();
+
+      const healthListener = jest.fn();
+      manager.on('healthChange', healthListener);
+
+      // First check - healthy
+      await manager.performHealthCheck('ai');
+
+      // Should not emit on first check (no change)
+      expect(healthListener).not.toHaveBeenCalled();
+
+      // Simulate unhealthy
+      mockFetch.mockRejectedValue(new Error('Service down'));
+
+      await manager.performHealthCheck('ai');
+
+      // Should emit on change to unhealthy
+      expect(healthListener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'ai',
+          healthy: false,
+        })
+      );
+    });
+
+    it('should include consecutive failure count in event', async () => {
+      await startService();
+
+      const healthListener = jest.fn();
+      manager.on('healthChange', healthListener);
+
+      mockFetch.mockRejectedValue(new Error('Service down'));
+
+      await manager.performHealthCheck('ai');
+      await manager.performHealthCheck('ai');
+      await manager.performHealthCheck('ai');
+
+      expect(healthListener).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          consecutiveFailures: 3,
+        })
+      );
+    });
+
+    it('should reset consecutive failures on successful check', async () => {
+      await startService();
+
+      // Fail a few times
+      mockFetch.mockRejectedValue(new Error('Service down'));
+      await manager.performHealthCheck('ai');
+      await manager.performHealthCheck('ai');
+
+      // Now succeed
+      mockFetch.mockResolvedValue({ ok: true, status: 200 } as Response);
+      await manager.performHealthCheck('ai');
+
+      // Check consecutive failures is reset
+      const health = await manager.checkHealth('ai');
+      expect(health.consecutiveFailures).toBe(0);
+    });
+  });
+
+  // ===========================================
+  // T008.1.6.5 - Service Not Running
+  // ===========================================
+
+  describe('Service Not Running', () => {
+    it('should skip health check if service is not running', async () => {
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
+
+      const result = await manager.performHealthCheck('ai');
+
+      expect(result.healthy).toBe(false);
+      expect(result.skipped).toBe(true);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should skip health check if service is starting', async () => {
+      // Start but don't wait for spawn
+      mockSpawn.mockImplementation(() => {
+        // Don't emit spawn - stays in STARTING
+        return mockProcess as never;
+      });
+
+      manager.startAIService(); // Don't await
+
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STARTING);
+
+      const result = await manager.performHealthCheck('ai');
+
+      expect(result.skipped).toBe(true);
+    });
+  });
+
+  // ===========================================
+  // T008.1.6.6 - Configuration
+  // ===========================================
+
+  describe('Configuration', () => {
+    it('should have configurable health check timeout', () => {
+      const config = manager.getConfig();
+      expect(config).toHaveProperty('healthCheckTimeoutMs');
+    });
+
+    it('should default health check timeout to 5000ms', () => {
+      const config = manager.getConfig();
+      expect(config.healthCheckTimeoutMs).toBe(5000);
+    });
+
+    it('should allow custom health check interval', () => {
+      const customManager = new ProcessManager({
+        healthCheckInterval: 10000,
+      });
+
+      expect(customManager.getConfig().healthCheckInterval).toBe(10000);
+    });
+
+    it('should allow custom health check retries', () => {
+      const customManager = new ProcessManager({
+        healthCheckRetries: 5,
+      });
+
+      expect(customManager.getConfig().healthCheckRetries).toBe(5);
     });
   });
 });

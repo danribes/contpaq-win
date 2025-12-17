@@ -690,7 +690,21 @@
     - Enhanced: restartAIService() with wasRunning check
     - Test: 13 new tests (137 total) - all pass
     - Logs: `log_files/T008.1.5_*`, `log_tests/T008.1.5_*`, `log_learn/T008.1.5_*`
-  - [ ] T008.1.6 Implement health check polling with retry
+  - [x] T008.1.6 Implement health check polling with retry ✅ *Completed 2025-12-17*
+    - [x] T008.1.6.1 HTTP health check to /health endpoint
+    - [x] T008.1.6.2 Retry logic with configurable attempts (default 3)
+    - [x] T008.1.6.3 Request timeout with AbortController (default 5000ms)
+    - [x] T008.1.6.4 Health status change events
+    - [x] T008.1.6.5 Consecutive failure tracking
+    - [x] T008.1.6.6 Skip check for non-running services
+    - Added: performHealthCheck() method with HealthCheckResult
+    - Added: healthCheckTimeoutMs, healthCheckRetries config options
+    - Added: FetchFunction type for dependency injection (testability)
+    - Added: HealthChangeEvent interface
+    - Updated: startHealthCheckPolling() to call performHealthCheck()
+    - Updated: checkHealth() to include consecutiveFailures
+    - Test: 28 new tests (165 total) - all pass
+    - Logs: `log_files/T008.1.6_*`, `log_tests/T008.1.6_*`, `log_learn/T008.1.6_*`
 
 - [ ] **T008.2** Implement Windows Bridge process management
   - [ ] T008.2.1 Implement `startBridgeService()` method
