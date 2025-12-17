@@ -29,9 +29,18 @@ export interface StatusChangeEvent {
 }
 
 /**
+ * Restart event payload (T008.1.5)
+ */
+export interface RestartEvent {
+  service: 'ai' | 'bridge';
+  restartCount: number;
+  timestamp: Date;
+}
+
+/**
  * Event listener callback type
  */
-export type EventListener = (event: StatusChangeEvent) => void;
+export type EventListener = (event: StatusChangeEvent | RestartEvent) => void;
 
 /**
  * Service status enumeration
@@ -163,11 +172,24 @@ export class ProcessManager {
    * @param event - Event type
    * @param payload - Event data
    */
-  private emit(event: ProcessManagerEventType, payload: StatusChangeEvent): void {
+  private emit(event: ProcessManagerEventType, payload: StatusChangeEvent | RestartEvent): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
       listeners.forEach(listener => listener(payload));
     }
+  }
+
+  /**
+   * Emit a restart event (T008.1.5)
+   * @param service - Service that was restarted
+   * @param restartCount - Current restart count
+   */
+  private emitRestart(service: 'ai' | 'bridge', restartCount: number): void {
+    this.emit('restart', {
+      service,
+      restartCount,
+      timestamp: new Date(),
+    });
   }
 
   // ===========================================
@@ -596,10 +618,27 @@ export class ProcessManager {
 
   /**
    * Restart the AI Service
+   * T008.1.5: Enhanced with restart counter and event emission
    * @returns Promise that resolves when service is restarted
    */
   async restartAIService(): Promise<void> {
+    // T008.1.5: Track if this is a true restart (service was running)
+    const wasRunning = this.aiServiceStatus === ServiceStatus.RUNNING ||
+                       this.aiServiceStatus === ServiceStatus.STARTING;
+
     await this.stopAIService();
+
+    // T008.1.5: Increment restart counter only for true restarts
+    if (wasRunning) {
+      this.aiRestartCount++;
+    }
+
+    // T008.1.5: Emit restart event before attempting start (for true restarts)
+    if (wasRunning) {
+      this.emitRestart('ai', this.aiRestartCount);
+    }
+
+    // Start the service (may throw if start fails)
     await this.startAIService();
   }
 
