@@ -3,6 +3,7 @@
  *
  * T008.1.1: Tests for process start/stop functionality
  * T008.1.2: Tests for ProcessManager infrastructure (events, paths, errors)
+ * T008.1.3: Tests for startAIService process spawning
  *
  * Tests the ProcessManager class which handles lifecycle management
  * of external service processes (AI Service, Windows Bridge).
@@ -14,6 +15,29 @@ import ProcessManager, {
   ProcessManagerConfig,
   processManager,
 } from '@main/process-manager';
+import { EventEmitter } from 'events';
+import { spawn } from 'child_process';
+
+// Create mock process factory for T008.1.3 tests
+function createMockChildProcess() {
+  const mockProcess = new EventEmitter() as EventEmitter & {
+    pid: number;
+    stdout: EventEmitter;
+    stderr: EventEmitter;
+    kill: jest.Mock;
+    killed: boolean;
+  };
+  mockProcess.pid = 12345;
+  mockProcess.stdout = new EventEmitter();
+  mockProcess.stderr = new EventEmitter();
+  mockProcess.kill = jest.fn().mockImplementation(() => {
+    mockProcess.killed = true;
+    mockProcess.emit('exit', 0, null);
+    return true;
+  });
+  mockProcess.killed = false;
+  return mockProcess;
+}
 
 // Mock child_process module
 jest.mock('child_process', () => ({
@@ -32,10 +56,19 @@ jest.mock('electron', () => ({
 
 describe('ProcessManager', () => {
   let manager: ProcessManager;
+  let mockProcess: ReturnType<typeof createMockChildProcess>;
+  const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
 
   beforeEach(() => {
-    manager = new ProcessManager();
     jest.clearAllMocks();
+    // Setup mock process for all tests
+    mockProcess = createMockChildProcess();
+    // Auto-emit spawn event after a short delay to simulate successful start
+    mockSpawn.mockImplementation(() => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+      return mockProcess as never;
+    });
+    manager = new ProcessManager();
   });
 
   // ===========================================
@@ -726,5 +759,315 @@ describe('ProcessManager Infrastructure (T008.1.2)', () => {
       manager.resetRestartCount('ai');
       expect(manager.getRestartCount('ai')).toBe(0);
     });
+  });
+});
+
+// ===========================================
+// T008.1.3 - startAIService Process Spawning Tests
+// ===========================================
+
+describe('ProcessManager startAIService Spawning (T008.1.3)', () => {
+  let manager: ProcessManager;
+  let mockProcess: ReturnType<typeof createMockChildProcess>;
+  const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
+
+  beforeEach(() => {
+    manager = new ProcessManager();
+    mockProcess = createMockChildProcess();
+    mockSpawn.mockReturnValue(mockProcess as never);
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    // Clean up any pending timers
+    jest.clearAllTimers();
+  });
+
+  // ===========================================
+  // T008.1.3.1 - Locate Python executable path
+  // ===========================================
+
+  describe('Python Path Resolution', () => {
+    it('should use getPythonPath for the executable', async () => {
+      const pythonPath = manager.getPythonPath();
+      expect(pythonPath).toBeDefined();
+      expect(typeof pythonPath).toBe('string');
+    });
+
+    it('should return python3 in development on non-Windows', () => {
+      // The mock has isPackaged: false
+      const pythonPath = manager.getPythonPath();
+      // On Linux test environment, should return python3
+      expect(['python', 'python3']).toContain(pythonPath);
+    });
+  });
+
+  // ===========================================
+  // T008.1.3.2 - Spawn uvicorn process with correct args
+  // ===========================================
+
+  describe('Process Spawning', () => {
+    it('should call spawn when starting AI service', async () => {
+      // Simulate spawn event after a tick
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+
+      await manager.startAIService();
+
+      expect(mockSpawn).toHaveBeenCalled();
+    });
+
+    it('should spawn with Python executable path', async () => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+
+      await manager.startAIService();
+
+      const pythonPath = manager.getPythonPath();
+      expect(mockSpawn).toHaveBeenCalledWith(
+        pythonPath,
+        expect.any(Array),
+        expect.any(Object)
+      );
+    });
+
+    it('should spawn with uvicorn module arguments', async () => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+
+      await manager.startAIService();
+
+      expect(mockSpawn).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.arrayContaining(['-m', 'uvicorn']),
+        expect.any(Object)
+      );
+    });
+
+    it('should include main:app in uvicorn arguments', async () => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+
+      await manager.startAIService();
+
+      expect(mockSpawn).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.arrayContaining(['main:app']),
+        expect.any(Object)
+      );
+    });
+
+    it('should include host and port in uvicorn arguments', async () => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+
+      await manager.startAIService();
+
+      const config = manager.getConfig();
+      expect(mockSpawn).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.arrayContaining([
+          '--host', '127.0.0.1',
+          '--port', String(config.aiServicePort),
+        ]),
+        expect.any(Object)
+      );
+    });
+
+    it('should spawn with cwd set to AI service path', async () => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+
+      await manager.startAIService();
+
+      const aiPath = manager.getAIServicePath();
+      expect(mockSpawn).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(Array),
+        expect.objectContaining({
+          cwd: expect.stringContaining('ai-service'),
+        })
+      );
+    });
+
+    it('should spawn with shell:false for security', async () => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+
+      await manager.startAIService();
+
+      expect(mockSpawn).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(Array),
+        expect.objectContaining({
+          shell: false,
+        })
+      );
+    });
+
+    it('should store process reference after spawn', async () => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+
+      await manager.startAIService();
+
+      const health = await manager.checkHealth('ai');
+      expect(health.pid).toBe(mockProcess.pid);
+    });
+  });
+
+  // ===========================================
+  // T008.1.3.3 - Capture stdout/stderr for logging
+  // ===========================================
+
+  describe('Output Capture', () => {
+    it('should capture stdout from the process', async () => {
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      setTimeout(() => {
+        mockProcess.emit('spawn');
+        mockProcess.stdout.emit('data', Buffer.from('AI Service started on port 8000'));
+      }, 10);
+
+      await manager.startAIService();
+
+      // Give time for stdout event to be processed
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(logSpy).toHaveBeenCalledWith(
+        expect.stringContaining('AI Service')
+      );
+
+      logSpy.mockRestore();
+    });
+
+    it('should capture stderr from the process', async () => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      setTimeout(() => {
+        mockProcess.emit('spawn');
+        mockProcess.stderr.emit('data', Buffer.from('Warning: some warning'));
+      }, 10);
+
+      await manager.startAIService();
+
+      // Give time for stderr event to be processed
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(errorSpy).toHaveBeenCalled();
+
+      errorSpy.mockRestore();
+    });
+
+    it('should have getProcessLogs method', () => {
+      expect(manager.getProcessLogs).toBeDefined();
+      expect(typeof manager.getProcessLogs).toBe('function');
+    });
+
+    it('should return logs for AI service', () => {
+      const logs = manager.getProcessLogs('ai');
+      expect(logs).toBeDefined();
+      expect(Array.isArray(logs)).toBe(true);
+    });
+  });
+
+  // ===========================================
+  // Process Event Handling
+  // ===========================================
+
+  describe('Process Event Handling', () => {
+    it('should set status to RUNNING on spawn event', async () => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+
+      await manager.startAIService();
+
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.RUNNING);
+    });
+
+    it('should set status to ERROR on error event', async () => {
+      setTimeout(() => {
+        mockProcess.emit('error', new Error('Failed to spawn'));
+      }, 10);
+
+      try {
+        await manager.startAIService();
+      } catch {
+        // Expected to throw or reject
+      }
+
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.ERROR);
+    });
+
+    it('should set lastError on error event', async () => {
+      setTimeout(() => {
+        mockProcess.emit('error', new Error('Failed to spawn'));
+      }, 10);
+
+      try {
+        await manager.startAIService();
+      } catch {
+        // Expected
+      }
+
+      const error = manager.getLastError('ai');
+      expect(error).toContain('Failed to spawn');
+    });
+
+    it('should set status to STOPPED on exit event', async () => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+
+      await manager.startAIService();
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.RUNNING);
+
+      // Simulate process exit
+      mockProcess.emit('exit', 0, null);
+
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
+    });
+
+    it('should set status to ERROR on non-zero exit code', async () => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+
+      await manager.startAIService();
+
+      // Simulate process crash
+      mockProcess.emit('exit', 1, null);
+
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.ERROR);
+    });
+
+    it('should emit error event when process fails', async () => {
+      const errorListener = jest.fn();
+      manager.on('error', errorListener);
+
+      setTimeout(() => {
+        mockProcess.emit('error', new Error('Spawn failed'));
+      }, 10);
+
+      try {
+        await manager.startAIService();
+      } catch {
+        // Expected
+      }
+
+      expect(errorListener).toHaveBeenCalled();
+    });
+  });
+
+  // ===========================================
+  // Timeout Handling
+  // ===========================================
+
+  describe('Startup Timeout', () => {
+    it('should have configurable startup timeout', () => {
+      const config = manager.getConfig();
+      expect(config).toHaveProperty('startupTimeoutMs');
+    });
+
+    it('should reject if spawn event not received within timeout', async () => {
+      // Don't emit spawn event - let it timeout
+      jest.useFakeTimers();
+
+      const startPromise = manager.startAIService();
+
+      // Fast-forward past timeout
+      jest.advanceTimersByTime(30000);
+
+      jest.useRealTimers();
+
+      await expect(startPromise).rejects.toThrow(/timeout/i);
+    }, 10000);
   });
 });
