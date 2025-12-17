@@ -713,7 +713,12 @@
     - Test infrastructure: Updated mock to create new process per spawn call
     - Test: 29 new tests (194 total) - all pass
     - Logs: `log_files/T008.2.1_*`, `log_tests/T008.2.1_*`, `log_learn/T008.2.1_*`
-  - [ ] T008.2.2 Implement `stopBridgeService()` method
+  - [x] T008.2.2 Implement `stopBridgeService()` method
+    - Implemented: Graceful shutdown with SIGTERM/SIGKILL pattern
+    - Pattern: SIGTERM first, SIGKILL after shutdownTimeoutMs (default 5s)
+    - Exception handling: Catches errors if process already terminated
+    - Test: 22 new tests (216 total) - all pass
+    - Logs: `log_files/T008.2.2_*`, `log_tests/T008.2.2_*`, `log_learn/T008.2.2_*`
   - [ ] T008.2.3 Implement health check polling
 
 - [ ] **T008.3** Implement auto-restart logic

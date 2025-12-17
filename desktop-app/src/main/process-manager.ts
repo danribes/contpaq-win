@@ -846,6 +846,7 @@ export class ProcessManager {
 
   /**
    * Stop the Windows Bridge Service
+   * T008.2.2: Graceful shutdown with SIGTERM, force kill with SIGKILL after timeout
    * @returns Promise that resolves when service is stopped
    */
   async stopBridgeService(): Promise<void> {
@@ -857,18 +858,80 @@ export class ProcessManager {
     this.updateStatus('bridge', ServiceStatus.STOPPING);
     console.log('Stopping Bridge Service...');
 
-    // TODO: Implement actual process termination in T008.2.2
-    // This is a stub that simulates successful stop
+    // If no process exists (e.g., already crashed), just clean up
+    if (!this.bridgeServiceProcess) {
+      this.bridgeServiceProcess = null;
+      this.updateStatus('bridge', ServiceStatus.STOPPED);
+      console.log('Bridge Service stopped (no process)');
+      return;
+    }
+
     return new Promise((resolve) => {
-      setTimeout(() => {
-        if (this.bridgeServiceProcess) {
-          this.bridgeServiceProcess.kill();
-          this.bridgeServiceProcess = null;
+      const process = this.bridgeServiceProcess!;
+      let shutdownTimeoutId: NodeJS.Timeout | null = null;
+      let forceKillTimeoutId: NodeJS.Timeout | null = null;
+      let isResolved = false;
+
+      // Handler for process exit
+      const onExit = () => {
+        if (isResolved) return;
+        isResolved = true;
+
+        // Clear timeouts
+        if (shutdownTimeoutId) {
+          clearTimeout(shutdownTimeoutId);
+          shutdownTimeoutId = null;
         }
+        if (forceKillTimeoutId) {
+          clearTimeout(forceKillTimeoutId);
+          forceKillTimeoutId = null;
+        }
+
+        // Clean up
+        this.bridgeServiceProcess = null;
         this.updateStatus('bridge', ServiceStatus.STOPPED);
-        console.log('Bridge Service stopped (stub)');
+        console.log('Bridge Service stopped');
         resolve();
-      }, 100);
+      };
+
+      // Listen for exit event
+      process.once('exit', onExit);
+
+      // T008.2.2.1: Send SIGTERM for graceful shutdown
+      try {
+        process.kill('SIGTERM');
+        console.log('Sent SIGTERM to Bridge Service');
+      } catch (error) {
+        // Process may already be dead
+        console.log('Failed to send SIGTERM (process may have already exited)');
+        onExit();
+        return;
+      }
+
+      // T008.2.2.2: Set timeout for graceful shutdown
+      shutdownTimeoutId = setTimeout(() => {
+        if (isResolved) return;
+
+        // T008.2.2.3: Force kill with SIGKILL
+        console.warn('Bridge Service did not shut down gracefully, force killing...');
+
+        try {
+          process.kill('SIGKILL');
+        } catch {
+          // Process may already be dead
+          console.log('Failed to send SIGKILL (process may have already exited)');
+        }
+
+        // Give SIGKILL a brief moment to take effect, then force resolve
+        forceKillTimeoutId = setTimeout(() => {
+          if (isResolved) return;
+
+          // Force cleanup even if process didn't respond
+          console.warn('Bridge Service process did not respond to SIGKILL, force cleaning up');
+          process.removeListener('exit', onExit);
+          onExit();
+        }, 1000); // 1 second grace period for SIGKILL
+      }, this.config.shutdownTimeoutMs);
     });
   }
 

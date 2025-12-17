@@ -2658,3 +2658,452 @@ describe('ProcessManager Bridge Service (T008.2.1)', () => {
     });
   });
 });
+
+// ===========================================
+// T008.2.2 - stopBridgeService Graceful Shutdown Tests
+// ===========================================
+
+describe('ProcessManager stopBridgeService Graceful Shutdown (T008.2.2)', () => {
+  let manager: ProcessManager;
+  let mockProcess: ReturnType<typeof createMockChildProcess>;
+  const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
+
+  beforeEach(() => {
+    manager = new ProcessManager();
+    mockProcess = createMockChildProcess();
+    mockSpawn.mockImplementation(() => {
+      const proc = createMockChildProcess();
+      setTimeout(() => proc.emit('spawn'), 10);
+      return proc as never;
+    });
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
+  // Helper to start the bridge service before testing stop
+  async function startBridgeService(): Promise<ReturnType<typeof createMockChildProcess>> {
+    const bridgeProcess = createMockChildProcess();
+    mockSpawn.mockImplementation(() => {
+      setTimeout(() => bridgeProcess.emit('spawn'), 10);
+      return bridgeProcess as never;
+    });
+    await manager.startBridgeService();
+    expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.RUNNING);
+    return bridgeProcess;
+  }
+
+  // ===========================================
+  // T008.2.2.1 - Send SIGTERM to process
+  // ===========================================
+
+  describe('SIGTERM Signal', () => {
+    it('should call kill with SIGTERM when stopping', async () => {
+      const bridgeProcess = await startBridgeService();
+
+      bridgeProcess.kill.mockImplementation(() => {
+        setTimeout(() => bridgeProcess.emit('exit', 0, 'SIGTERM'), 50);
+        return true;
+      });
+
+      await manager.stopBridgeService();
+
+      expect(bridgeProcess.kill).toHaveBeenCalledWith('SIGTERM');
+    });
+
+    it('should send SIGTERM as first termination signal', async () => {
+      const bridgeProcess = await startBridgeService();
+
+      bridgeProcess.kill.mockImplementation(() => {
+        setTimeout(() => bridgeProcess.emit('exit', 0, 'SIGTERM'), 50);
+        return true;
+      });
+
+      await manager.stopBridgeService();
+
+      expect(bridgeProcess.kill.mock.calls[0][0]).toBe('SIGTERM');
+    });
+
+    it('should set status to STOPPING before sending signal', async () => {
+      const bridgeProcess = await startBridgeService();
+
+      let statusWhenKilled: ServiceStatus | null = null;
+      bridgeProcess.kill.mockImplementation(() => {
+        statusWhenKilled = manager.getBridgeServiceStatus();
+        bridgeProcess.emit('exit', 0, 'SIGTERM');
+        return true;
+      });
+
+      await manager.stopBridgeService();
+
+      expect(statusWhenKilled).toBe(ServiceStatus.STOPPING);
+    });
+
+    it('should not call kill if already stopped', async () => {
+      const bridgeProcess = createMockChildProcess();
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.STOPPED);
+
+      await manager.stopBridgeService();
+
+      expect(bridgeProcess.kill).not.toHaveBeenCalled();
+    });
+
+    it('should not call kill if no process exists', async () => {
+      const bridgeProcess = await startBridgeService();
+
+      bridgeProcess.emit('exit', 1, null);
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.ERROR);
+
+      bridgeProcess.kill.mockClear();
+
+      await manager.stopBridgeService();
+    });
+  });
+
+  // ===========================================
+  // T008.2.2.2 - Wait for graceful shutdown (5s timeout)
+  // ===========================================
+
+  describe('Graceful Shutdown Timeout', () => {
+    it('should have configurable shutdown timeout', () => {
+      const config = manager.getConfig();
+      expect(config).toHaveProperty('shutdownTimeoutMs');
+    });
+
+    it('should wait for process to exit after SIGTERM', async () => {
+      const bridgeProcess = await startBridgeService();
+
+      let exitCalled = false;
+      bridgeProcess.kill.mockImplementation(() => {
+        setTimeout(() => {
+          exitCalled = true;
+          bridgeProcess.emit('exit', 0, 'SIGTERM');
+        }, 100);
+        return true;
+      });
+
+      await manager.stopBridgeService();
+
+      expect(exitCalled).toBe(true);
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.STOPPED);
+    });
+
+    it('should resolve Promise when process exits gracefully', async () => {
+      const bridgeProcess = await startBridgeService();
+
+      bridgeProcess.kill.mockImplementation(() => {
+        setTimeout(() => bridgeProcess.emit('exit', 0, 'SIGTERM'), 50);
+        return true;
+      });
+
+      const stopPromise = manager.stopBridgeService();
+
+      await expect(stopPromise).resolves.toBeUndefined();
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.STOPPED);
+    });
+
+    it('should set status to STOPPED after graceful shutdown', async () => {
+      const bridgeProcess = await startBridgeService();
+
+      bridgeProcess.kill.mockImplementation(() => {
+        setTimeout(() => bridgeProcess.emit('exit', 0, 'SIGTERM'), 50);
+        return true;
+      });
+
+      await manager.stopBridgeService();
+
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.STOPPED);
+    });
+
+    it('should clear process reference after shutdown', async () => {
+      const bridgeProcess = await startBridgeService();
+
+      bridgeProcess.kill.mockImplementation(() => {
+        setTimeout(() => bridgeProcess.emit('exit', 0, 'SIGTERM'), 50);
+        return true;
+      });
+
+      await manager.stopBridgeService();
+
+      const health = await manager.checkHealth('bridge');
+      expect(health.pid).toBeUndefined();
+    });
+  });
+
+  // ===========================================
+  // T008.2.2.3 - Force kill if timeout exceeded
+  // ===========================================
+
+  describe('Force Kill on Timeout', () => {
+    it('should send SIGKILL if SIGTERM times out', async () => {
+      const shortManager = new ProcessManager({ shutdownTimeoutMs: 100 });
+      const shortMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => shortMockProcess.emit('spawn'), 10);
+        return shortMockProcess as never;
+      });
+
+      await shortManager.startBridgeService();
+
+      shortMockProcess.kill.mockImplementation((signal: string) => {
+        if (signal === 'SIGKILL') {
+          shortMockProcess.emit('exit', null, 'SIGKILL');
+        }
+        return true;
+      });
+
+      await shortManager.stopBridgeService();
+
+      expect(shortMockProcess.kill).toHaveBeenCalledWith('SIGKILL');
+    }, 10000);
+
+    it('should call SIGKILL only after SIGTERM timeout', async () => {
+      const shortManager = new ProcessManager({ shutdownTimeoutMs: 100 });
+      const shortMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => shortMockProcess.emit('spawn'), 10);
+        return shortMockProcess as never;
+      });
+
+      await shortManager.startBridgeService();
+
+      const killCalls: string[] = [];
+      shortMockProcess.kill.mockImplementation((signal: string) => {
+        killCalls.push(signal);
+        if (signal === 'SIGKILL') {
+          shortMockProcess.emit('exit', null, 'SIGKILL');
+        }
+        return true;
+      });
+
+      await shortManager.stopBridgeService();
+
+      expect(killCalls[0]).toBe('SIGTERM');
+      expect(killCalls).toContain('SIGKILL');
+    }, 10000);
+
+    it('should set status to STOPPED after force kill', async () => {
+      const shortManager = new ProcessManager({ shutdownTimeoutMs: 100 });
+      const shortMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => shortMockProcess.emit('spawn'), 10);
+        return shortMockProcess as never;
+      });
+
+      await shortManager.startBridgeService();
+
+      shortMockProcess.kill.mockImplementation((signal: string) => {
+        if (signal === 'SIGKILL') {
+          shortMockProcess.emit('exit', null, 'SIGKILL');
+        }
+        return true;
+      });
+
+      await shortManager.stopBridgeService();
+
+      expect(shortManager.getBridgeServiceStatus()).toBe(ServiceStatus.STOPPED);
+    }, 10000);
+
+    it('should log warning when force kill is needed', async () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      const shortManager = new ProcessManager({ shutdownTimeoutMs: 100 });
+      const shortMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => shortMockProcess.emit('spawn'), 10);
+        return shortMockProcess as never;
+      });
+
+      await shortManager.startBridgeService();
+
+      shortMockProcess.kill.mockImplementation((signal: string) => {
+        if (signal === 'SIGKILL') {
+          shortMockProcess.emit('exit', null, 'SIGKILL');
+        }
+        return true;
+      });
+
+      await shortManager.stopBridgeService();
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('force')
+      );
+
+      warnSpy.mockRestore();
+    }, 10000);
+
+    it('should resolve even if both SIGTERM and SIGKILL fail', async () => {
+      const shortManager = new ProcessManager({ shutdownTimeoutMs: 100 });
+      const shortMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => shortMockProcess.emit('spawn'), 10);
+        return shortMockProcess as never;
+      });
+
+      await shortManager.startBridgeService();
+
+      shortMockProcess.kill.mockReturnValue(false);
+
+      await expect(shortManager.stopBridgeService()).resolves.toBeUndefined();
+    }, 15000);
+  });
+
+  // ===========================================
+  // Edge Cases
+  // ===========================================
+
+  describe('Edge Cases', () => {
+    it('should handle multiple stop calls gracefully', async () => {
+      const bridgeProcess = await startBridgeService();
+
+      bridgeProcess.kill.mockImplementation(() => {
+        bridgeProcess.emit('exit', 0, 'SIGTERM');
+        return true;
+      });
+
+      await manager.stopBridgeService();
+      await manager.stopBridgeService();
+      await manager.stopBridgeService();
+
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.STOPPED);
+    }, 10000);
+
+    it('should handle stop when process does not exist', async () => {
+      const crashMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => crashMockProcess.emit('error', new Error('Failed to start')), 10);
+        return crashMockProcess as never;
+      });
+
+      try {
+        await manager.startBridgeService();
+      } catch {
+        // Expected - service failed to start
+      }
+
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.ERROR);
+
+      crashMockProcess.kill.mockImplementation(() => {
+        crashMockProcess.emit('exit', 0, 'SIGTERM');
+        return true;
+      });
+
+      await manager.stopBridgeService();
+
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.STOPPED);
+    }, 10000);
+
+    it('should emit statusChange event with correct previous status', async () => {
+      const bridgeProcess = await startBridgeService();
+
+      const listener = jest.fn();
+      manager.on('statusChange', listener);
+
+      bridgeProcess.kill.mockImplementation(() => {
+        bridgeProcess.emit('exit', 0, 'SIGTERM');
+        return true;
+      });
+
+      await manager.stopBridgeService();
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'bridge',
+          status: ServiceStatus.STOPPING,
+          previousStatus: ServiceStatus.RUNNING,
+        })
+      );
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'bridge',
+          status: ServiceStatus.STOPPED,
+          previousStatus: ServiceStatus.STOPPING,
+        })
+      );
+    }, 10000);
+
+    it('should not throw if kill() throws an error', async () => {
+      const bridgeProcess = await startBridgeService();
+
+      bridgeProcess.kill.mockImplementation(() => {
+        throw new Error('Process already terminated');
+      });
+
+      await expect(manager.stopBridgeService()).resolves.toBeUndefined();
+
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.STOPPED);
+    }, 10000);
+
+    it('should clear shutdown timeout when process exits gracefully', async () => {
+      const bridgeProcess = await startBridgeService();
+
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+      bridgeProcess.kill.mockImplementation(() => {
+        bridgeProcess.emit('exit', 0, 'SIGTERM');
+        return true;
+      });
+
+      await manager.stopBridgeService();
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    }, 10000);
+  });
+
+  // ===========================================
+  // Configuration Tests
+  // ===========================================
+
+  describe('Shutdown Configuration', () => {
+    it('should allow custom shutdown timeout via config', () => {
+      const customManager = new ProcessManager({
+        shutdownTimeoutMs: 10000,
+      });
+
+      const config = customManager.getConfig();
+      expect(config.shutdownTimeoutMs).toBe(10000);
+    });
+
+    it('should use custom shutdown timeout when stopping bridge', async () => {
+      jest.useFakeTimers();
+
+      const customManager = new ProcessManager({
+        shutdownTimeoutMs: 2000,
+      });
+
+      const customMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => customMockProcess.emit('spawn'), 10);
+        return customMockProcess as never;
+      });
+
+      jest.useRealTimers();
+      await customManager.startBridgeService();
+      jest.useFakeTimers();
+
+      let sigkillCalled = false;
+      customMockProcess.kill.mockImplementation((signal: string) => {
+        if (signal === 'SIGKILL') {
+          sigkillCalled = true;
+          customMockProcess.emit('exit', null, 'SIGKILL');
+        }
+        return true;
+      });
+
+      const stopPromise = customManager.stopBridgeService();
+
+      jest.advanceTimersByTime(2000);
+
+      jest.useRealTimers();
+
+      await stopPromise;
+
+      expect(sigkillCalled).toBe(true);
+    });
+  });
+});
