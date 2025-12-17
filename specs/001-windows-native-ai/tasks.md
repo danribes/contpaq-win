@@ -707,7 +707,12 @@
     - Logs: `log_files/T008.1.6_*`, `log_tests/T008.1.6_*`, `log_learn/T008.1.6_*`
 
 - [ ] **T008.2** Implement Windows Bridge process management
-  - [ ] T008.2.1 Implement `startBridgeService()` method
+  - [x] T008.2.1 Implement `startBridgeService()` method
+    - Implemented: getDotnetPath(), startBridgeService(), addBridgeLog(), emitBridgeError()
+    - Pattern: Uses `dotnet <dll> --urls http://...` for .NET Core execution
+    - Test infrastructure: Updated mock to create new process per spawn call
+    - Test: 29 new tests (194 total) - all pass
+    - Logs: `log_files/T008.2.1_*`, `log_tests/T008.2.1_*`, `log_learn/T008.2.1_*`
   - [ ] T008.2.2 Implement `stopBridgeService()` method
   - [ ] T008.2.3 Implement health check polling
 
