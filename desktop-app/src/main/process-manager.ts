@@ -282,6 +282,19 @@ export class ProcessManager {
     return process.platform === 'win32' ? 'python' : 'python3';
   }
 
+  /**
+   * Get the path to the dotnet executable (T008.2.1)
+   * @returns Path to dotnet executable
+   */
+  getDotnetPath(): string {
+    if (app.isPackaged) {
+      // In production, use bundled dotnet runtime
+      return path.join(process.resourcesPath, 'dotnet', 'dotnet.exe');
+    }
+    // In development, use system dotnet
+    return 'dotnet';
+  }
+
   // ===========================================
   // T008.1.2: Error Handling Methods
   // ===========================================
@@ -689,6 +702,7 @@ export class ProcessManager {
 
   /**
    * Start the Windows Bridge Service (.NET)
+   * T008.2.1: Real process spawning implementation
    * @returns Promise that resolves when service is started
    */
   async startBridgeService(): Promise<void> {
@@ -700,14 +714,133 @@ export class ProcessManager {
     this.updateStatus('bridge', ServiceStatus.STARTING);
     console.log('Starting Bridge Service...');
 
-    // TODO: Implement actual process spawning in T008.2.1
-    // This is a stub that simulates successful start
-    return new Promise((resolve) => {
-      setTimeout(() => {
+    return new Promise((resolve, reject) => {
+      // T008.2.1: Real process spawning implementation
+      const dotnetPath = this.getDotnetPath();
+      const bridgeServicePath = this.getBridgeServicePath();
+      const dllPath = path.join(bridgeServicePath, 'WindowsBridge.dll');
+
+      const args = [
+        dllPath,
+        '--urls', `http://127.0.0.1:${this.config.bridgeServicePort}`,
+      ];
+
+      const spawnOptions = {
+        cwd: bridgeServicePath,
+        shell: false,
+        stdio: ['ignore', 'pipe', 'pipe'] as const,
+      };
+
+      // Spawn the process
+      this.bridgeServiceProcess = spawn(dotnetPath, args, spawnOptions);
+
+      // Setup timeout
+      const timeoutId = setTimeout(() => {
+        if (this.bridgeServiceStatus === ServiceStatus.STARTING) {
+          const error = new Error(`Bridge Service startup timeout after ${this.config.startupTimeoutMs}ms`);
+          this.setError('bridge', error.message);
+          this.updateStatus('bridge', ServiceStatus.ERROR);
+          this.emitBridgeError(error);
+          reject(error);
+        }
+      }, this.config.startupTimeoutMs);
+
+      // Handle spawn event (process started successfully)
+      this.bridgeServiceProcess.on('spawn', () => {
+        clearTimeout(timeoutId);
         this.updateStatus('bridge', ServiceStatus.RUNNING);
-        console.log('Bridge Service started (stub)');
+        console.log(`Bridge Service started (PID: ${this.bridgeServiceProcess?.pid})`);
         resolve();
-      }, 100);
+      });
+
+      // Handle error event (failed to spawn)
+      this.bridgeServiceProcess.on('error', (error: Error) => {
+        clearTimeout(timeoutId);
+        this.setError('bridge', error.message);
+        this.updateStatus('bridge', ServiceStatus.ERROR);
+        this.emitBridgeError(error);
+        reject(error);
+      });
+
+      // Handle exit event (process terminated)
+      this.bridgeServiceProcess.on('exit', (code: number | null, signal: string | null) => {
+        clearTimeout(timeoutId);
+
+        if (this.bridgeServiceStatus === ServiceStatus.STOPPING) {
+          // Normal shutdown
+          this.updateStatus('bridge', ServiceStatus.STOPPED);
+        } else if (code !== 0) {
+          // Abnormal exit
+          const errorMsg = `Bridge Service exited with code ${code}${signal ? ` (signal: ${signal})` : ''}`;
+          this.setError('bridge', errorMsg);
+          this.updateStatus('bridge', ServiceStatus.ERROR);
+        } else {
+          // Clean exit while running (unexpected)
+          this.updateStatus('bridge', ServiceStatus.STOPPED);
+        }
+
+        this.bridgeServiceProcess = null;
+      });
+
+      // Capture stdout
+      if (this.bridgeServiceProcess.stdout) {
+        this.bridgeServiceProcess.stdout.on('data', (data: Buffer) => {
+          const message = data.toString().trim();
+          if (message) {
+            this.addBridgeLog('stdout', message);
+          }
+        });
+      }
+
+      // Capture stderr
+      if (this.bridgeServiceProcess.stderr) {
+        this.bridgeServiceProcess.stderr.on('data', (data: Buffer) => {
+          const message = data.toString().trim();
+          if (message) {
+            this.addBridgeLog('stderr', message);
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Add a log entry for the bridge service (T008.2.1)
+   * @param level - Log level (stdout or stderr)
+   * @param message - Log message
+   */
+  private addBridgeLog(level: 'stdout' | 'stderr', message: string): void {
+    const entry: ProcessLogEntry = {
+      timestamp: new Date(),
+      level,
+      message,
+    };
+
+    this.bridgeProcessLogs.push(entry);
+
+    // Trim logs if exceeding max
+    if (this.bridgeProcessLogs.length > this.MAX_LOG_ENTRIES) {
+      this.bridgeProcessLogs.shift();
+    }
+
+    // Also log to console
+    if (level === 'stdout') {
+      console.log(`[Bridge Service] ${message}`);
+    } else {
+      console.error(`[Bridge Service ERROR] ${message}`);
+    }
+  }
+
+  /**
+   * Emit error event for bridge service (T008.2.1)
+   * @param error - Error object
+   */
+  private emitBridgeError(error: Error): void {
+    this.emit('error', {
+      service: 'bridge',
+      status: ServiceStatus.ERROR,
+      previousStatus: ServiceStatus.STARTING,
+      timestamp: new Date(),
     });
   }
 

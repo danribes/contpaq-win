@@ -64,9 +64,11 @@ describe('ProcessManager', () => {
     // Setup mock process for all tests
     mockProcess = createMockChildProcess();
     // Auto-emit spawn event after a short delay to simulate successful start
+    // T008.2.1: Create new mock process for each spawn call to support multiple services
     mockSpawn.mockImplementation(() => {
-      setTimeout(() => mockProcess.emit('spawn'), 10);
-      return mockProcess as never;
+      const proc = createMockChildProcess();
+      setTimeout(() => proc.emit('spawn'), 10);
+      return proc as never;
     });
     manager = new ProcessManager();
   });
@@ -2281,6 +2283,378 @@ describe('ProcessManager Health Check Polling (T008.1.6)', () => {
       });
 
       expect(customManager.getConfig().healthCheckRetries).toBe(5);
+    });
+  });
+});
+
+// ===========================================
+// T008.2.1 - Bridge Service Process Spawning Tests
+// ===========================================
+
+describe('ProcessManager Bridge Service (T008.2.1)', () => {
+  let manager: ProcessManager;
+  let mockProcess: ReturnType<typeof createMockChildProcess>;
+  const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    manager = new ProcessManager();
+    mockProcess = createMockChildProcess();
+    mockSpawn.mockImplementation(() => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+      return mockProcess as never;
+    });
+  });
+
+  // ===========================================
+  // T008.2.1.1 - Process Spawning
+  // ===========================================
+
+  describe('Process Spawning', () => {
+    it('should spawn dotnet process for Bridge service', async () => {
+      await manager.startBridgeService();
+
+      expect(mockSpawn).toHaveBeenCalled();
+      const [command] = mockSpawn.mock.calls[0];
+      expect(command).toContain('dotnet');
+    });
+
+    it('should use correct arguments for dotnet process', async () => {
+      await manager.startBridgeService();
+
+      expect(mockSpawn).toHaveBeenCalled();
+      const [, args] = mockSpawn.mock.calls[0];
+      // Should run the WindowsBridge.dll
+      expect(args).toContainEqual(expect.stringContaining('WindowsBridge.dll'));
+    });
+
+    it('should use correct port from config', async () => {
+      await manager.startBridgeService();
+
+      expect(mockSpawn).toHaveBeenCalled();
+      const [, args] = mockSpawn.mock.calls[0];
+      const config = manager.getConfig();
+      expect(args.join(' ')).toContain(String(config.bridgeServicePort));
+    });
+
+    it('should set correct working directory', async () => {
+      await manager.startBridgeService();
+
+      expect(mockSpawn).toHaveBeenCalled();
+      const [, , options] = mockSpawn.mock.calls[0];
+      expect(options).toHaveProperty('cwd');
+      expect(options.cwd).toContain('windows-bridge');
+    });
+
+    it('should set shell option to false', async () => {
+      await manager.startBridgeService();
+
+      expect(mockSpawn).toHaveBeenCalled();
+      const [, , options] = mockSpawn.mock.calls[0];
+      expect(options).toHaveProperty('shell', false);
+    });
+
+    it('should configure stdio for process output capture', async () => {
+      await manager.startBridgeService();
+
+      expect(mockSpawn).toHaveBeenCalled();
+      const [, , options] = mockSpawn.mock.calls[0];
+      expect(options).toHaveProperty('stdio');
+      expect(options.stdio).toEqual(['ignore', 'pipe', 'pipe']);
+    });
+  });
+
+  // ===========================================
+  // T008.2.1.2 - Status Transitions
+  // ===========================================
+
+  describe('Status Transitions', () => {
+    it('should transition from STOPPED to STARTING', async () => {
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.STOPPED);
+
+      const startPromise = manager.startBridgeService();
+
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.STARTING);
+
+      await startPromise;
+    });
+
+    it('should transition from STARTING to RUNNING on spawn', async () => {
+      await manager.startBridgeService();
+
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.RUNNING);
+    });
+
+    it('should not start if already running', async () => {
+      await manager.startBridgeService();
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.RUNNING);
+
+      mockSpawn.mockClear();
+      await manager.startBridgeService();
+
+      expect(mockSpawn).not.toHaveBeenCalled();
+    });
+
+    it('should emit statusChange event on STARTING', async () => {
+      const listener = jest.fn();
+      manager.on('statusChange', listener);
+
+      const startPromise = manager.startBridgeService();
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'bridge',
+          status: ServiceStatus.STARTING,
+          previousStatus: ServiceStatus.STOPPED,
+        })
+      );
+
+      await startPromise;
+    });
+
+    it('should emit statusChange event on RUNNING', async () => {
+      const listener = jest.fn();
+      manager.on('statusChange', listener);
+
+      await manager.startBridgeService();
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'bridge',
+          status: ServiceStatus.RUNNING,
+          previousStatus: ServiceStatus.STARTING,
+        })
+      );
+    });
+  });
+
+  // ===========================================
+  // T008.2.1.3 - Error Handling
+  // ===========================================
+
+  describe('Error Handling', () => {
+    it('should transition to ERROR status on spawn error', async () => {
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => mockProcess.emit('error', new Error('Spawn failed')), 10);
+        return mockProcess as never;
+      });
+
+      await expect(manager.startBridgeService()).rejects.toThrow('Spawn failed');
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.ERROR);
+    });
+
+    it('should set lastError on spawn failure', async () => {
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => mockProcess.emit('error', new Error('ENOENT: dotnet not found')), 10);
+        return mockProcess as never;
+      });
+
+      await expect(manager.startBridgeService()).rejects.toThrow();
+
+      expect(manager.getLastError('bridge')).toBe('ENOENT: dotnet not found');
+    });
+
+    it('should emit error event on spawn failure', async () => {
+      const errorListener = jest.fn();
+      manager.on('error', errorListener);
+
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => mockProcess.emit('error', new Error('Failed')), 10);
+        return mockProcess as never;
+      });
+
+      await expect(manager.startBridgeService()).rejects.toThrow();
+
+      expect(errorListener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'bridge',
+          status: ServiceStatus.ERROR,
+        })
+      );
+    });
+
+    it('should handle exit before spawn event', async () => {
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => mockProcess.emit('exit', 1, null), 10);
+        return mockProcess as never;
+      });
+
+      // Process exits immediately without spawning
+      const startPromise = manager.startBridgeService();
+
+      // Wait for the exit and timeout
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check status - should be error
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.ERROR);
+    });
+  });
+
+  // ===========================================
+  // T008.2.1.4 - Startup Timeout
+  // ===========================================
+
+  describe('Startup Timeout', () => {
+    it('should timeout if spawn event not received', async () => {
+      // Create manager with very short timeout
+      const shortManager = new ProcessManager({ startupTimeoutMs: 100 });
+      const shortMockProcess = createMockChildProcess();
+
+      mockSpawn.mockImplementation(() => {
+        // Never emit spawn event
+        return shortMockProcess as never;
+      });
+
+      await expect(shortManager.startBridgeService()).rejects.toThrow(/timeout/i);
+      expect(shortManager.getBridgeServiceStatus()).toBe(ServiceStatus.ERROR);
+    });
+
+    it('should use startupTimeoutMs from config', async () => {
+      const customManager = new ProcessManager({ startupTimeoutMs: 50 });
+      const customMockProcess = createMockChildProcess();
+
+      mockSpawn.mockImplementation(() => {
+        // Never emit spawn - will timeout
+        return customMockProcess as never;
+      });
+
+      const startTime = Date.now();
+      await expect(customManager.startBridgeService()).rejects.toThrow();
+      const elapsed = Date.now() - startTime;
+
+      // Should timeout around 50ms (with some tolerance)
+      expect(elapsed).toBeGreaterThanOrEqual(40);
+      expect(elapsed).toBeLessThan(500);
+    });
+  });
+
+  // ===========================================
+  // T008.2.1.5 - Process Output Logging
+  // ===========================================
+
+  describe('Process Output Logging', () => {
+    it('should capture stdout output', async () => {
+      await manager.startBridgeService();
+
+      // Emit some stdout
+      mockProcess.stdout.emit('data', Buffer.from('Bridge service started\n'));
+
+      const logs = manager.getProcessLogs('bridge');
+      expect(logs.length).toBeGreaterThan(0);
+      expect(logs[logs.length - 1].level).toBe('stdout');
+      expect(logs[logs.length - 1].message).toContain('Bridge service started');
+    });
+
+    it('should capture stderr output', async () => {
+      await manager.startBridgeService();
+
+      // Emit some stderr
+      mockProcess.stderr.emit('data', Buffer.from('Warning: something\n'));
+
+      const logs = manager.getProcessLogs('bridge');
+      expect(logs.length).toBeGreaterThan(0);
+      const stderrLogs = logs.filter(l => l.level === 'stderr');
+      expect(stderrLogs.length).toBeGreaterThan(0);
+    });
+
+    it('should include timestamp in log entries', async () => {
+      await manager.startBridgeService();
+
+      mockProcess.stdout.emit('data', Buffer.from('Test output\n'));
+
+      const logs = manager.getProcessLogs('bridge');
+      expect(logs.length).toBeGreaterThan(0);
+      expect(logs[logs.length - 1].timestamp).toBeInstanceOf(Date);
+    });
+  });
+
+  // ===========================================
+  // T008.2.1.6 - Process Exit Handling
+  // ===========================================
+
+  describe('Process Exit Handling', () => {
+    it('should update status on process exit with error code', async () => {
+      await manager.startBridgeService();
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.RUNNING);
+
+      // Simulate process crash
+      mockProcess.emit('exit', 1, null);
+
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.ERROR);
+    });
+
+    it('should set lastError on non-zero exit code', async () => {
+      await manager.startBridgeService();
+
+      mockProcess.emit('exit', 1, null);
+
+      expect(manager.getLastError('bridge')).toContain('exited with code 1');
+    });
+
+    it('should include signal in error message if present', async () => {
+      await manager.startBridgeService();
+
+      mockProcess.emit('exit', null, 'SIGTERM');
+
+      expect(manager.getLastError('bridge')).toContain('SIGTERM');
+    });
+
+    it('should clean up process reference on exit', async () => {
+      await manager.startBridgeService();
+
+      mockProcess.emit('exit', 0, null);
+
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.STOPPED);
+    });
+  });
+
+  // ===========================================
+  // T008.2.1.7 - Uptime and PID Tracking
+  // ===========================================
+
+  describe('Uptime and PID Tracking', () => {
+    it('should track PID after successful start', async () => {
+      await manager.startBridgeService();
+
+      const health = await manager.checkHealth('bridge');
+      expect(health.pid).toBe(12345);
+    });
+
+    it('should track uptime after successful start', async () => {
+      await manager.startBridgeService();
+
+      // Wait a bit
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      const health = await manager.checkHealth('bridge');
+      expect(health.uptime).toBeGreaterThan(0);
+    });
+
+    it('should reset uptime on stop', async () => {
+      await manager.startBridgeService();
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      // Simulate exit (stop)
+      mockProcess.emit('exit', 0, null);
+
+      const health = await manager.checkHealth('bridge');
+      expect(health.uptime).toBeUndefined();
+    });
+  });
+
+  // ===========================================
+  // T008.2.1.8 - getDotnetPath Method
+  // ===========================================
+
+  describe('getDotnetPath', () => {
+    it('should have getDotnetPath method', () => {
+      expect(manager.getDotnetPath).toBeDefined();
+      expect(typeof manager.getDotnetPath).toBe('function');
+    });
+
+    it('should return system dotnet path in development', () => {
+      const dotnetPath = manager.getDotnetPath();
+      expect(dotnetPath).toBe('dotnet');
     });
   });
 });
