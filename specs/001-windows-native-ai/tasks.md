@@ -672,10 +672,15 @@
     - Added: emitError() for error event emission
     - Test: 22 new tests (101 total) - all pass
     - Logs: `log_files/T008.1.3_*`, `log_tests/T008.1.3_*`, `log_learn/T008.1.3_*`
-  - [ ] T008.1.4 Implement `stopAIService()` method
-    - [ ] T008.1.4.1 Send SIGTERM to process
-    - [ ] T008.1.4.2 Wait for graceful shutdown (5s timeout)
-    - [ ] T008.1.4.3 Force kill if timeout exceeded
+  - [x] T008.1.4 Implement `stopAIService()` method ✅ *Completed 2025-12-17*
+    - [x] T008.1.4.1 Send SIGTERM to process
+    - [x] T008.1.4.2 Wait for graceful shutdown (5s timeout)
+    - [x] T008.1.4.3 Force kill with SIGKILL if timeout exceeded
+    - Added: shutdownTimeoutMs config (5s default)
+    - Added: Double timeout pattern (graceful + SIGKILL grace period)
+    - Added: Error handling for already-dead processes
+    - Test: 23 new tests (124 total) - all pass
+    - Logs: `log_files/T008.1.4_*`, `log_tests/T008.1.4_*`, `log_learn/T008.1.4_*`
   - [ ] T008.1.5 Implement `restartAIService()` method
   - [ ] T008.1.6 Implement health check polling with retry
 

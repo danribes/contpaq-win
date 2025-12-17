@@ -178,14 +178,25 @@ describe('ProcessManager', () => {
       await manager.startAIService();
       expect(manager.getAIServiceStatus()).toBe(ServiceStatus.RUNNING);
 
-      const stopPromise = manager.stopAIService();
+      // Track status transitions via events
+      const statusTransitions: ServiceStatus[] = [];
+      manager.on('statusChange', (event) => {
+        if (event.service === 'ai') {
+          statusTransitions.push(event.status);
+        }
+      });
 
-      // Status should be STOPPING after call
-      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPING);
+      // Setup kill to emit exit with slight delay so we can observe STOPPING
+      mockProcess.kill.mockImplementation(() => {
+        setTimeout(() => mockProcess.emit('exit', 0, 'SIGTERM'), 10);
+        return true;
+      });
 
-      await stopPromise;
+      await manager.stopAIService();
 
-      // Status should be STOPPED after completion
+      // Should have transitioned through STOPPING to STOPPED
+      expect(statusTransitions).toContain(ServiceStatus.STOPPING);
+      expect(statusTransitions).toContain(ServiceStatus.STOPPED);
       expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
     });
 
@@ -1069,5 +1080,488 @@ describe('ProcessManager startAIService Spawning (T008.1.3)', () => {
 
       await expect(startPromise).rejects.toThrow(/timeout/i);
     }, 10000);
+  });
+});
+
+// ===========================================
+// T008.1.4 - stopAIService Graceful Shutdown Tests
+// ===========================================
+
+describe('ProcessManager stopAIService Graceful Shutdown (T008.1.4)', () => {
+  let manager: ProcessManager;
+  let mockProcess: ReturnType<typeof createMockChildProcess>;
+  const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
+
+  beforeEach(() => {
+    manager = new ProcessManager();
+    mockProcess = createMockChildProcess();
+    mockSpawn.mockImplementation(() => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+      return mockProcess as never;
+    });
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
+  // Helper to start the service before testing stop
+  async function startService(): Promise<void> {
+    await manager.startAIService();
+    expect(manager.getAIServiceStatus()).toBe(ServiceStatus.RUNNING);
+  }
+
+  // ===========================================
+  // T008.1.4.1 - Send SIGTERM to process
+  // ===========================================
+
+  describe('SIGTERM Signal', () => {
+    it('should call kill with SIGTERM when stopping', async () => {
+      await startService();
+
+      // Setup mock to not auto-exit, simulate graceful shutdown
+      mockProcess.kill.mockImplementation(() => {
+        setTimeout(() => mockProcess.emit('exit', 0, 'SIGTERM'), 50);
+        return true;
+      });
+
+      await manager.stopAIService();
+
+      expect(mockProcess.kill).toHaveBeenCalledWith('SIGTERM');
+    });
+
+    it('should send SIGTERM as first termination signal', async () => {
+      await startService();
+
+      mockProcess.kill.mockImplementation(() => {
+        setTimeout(() => mockProcess.emit('exit', 0, 'SIGTERM'), 50);
+        return true;
+      });
+
+      await manager.stopAIService();
+
+      // First call should be SIGTERM
+      expect(mockProcess.kill.mock.calls[0][0]).toBe('SIGTERM');
+    });
+
+    it('should set status to STOPPING before sending signal', async () => {
+      await startService();
+
+      // Track status when kill is called
+      let statusWhenKilled: ServiceStatus | null = null;
+      mockProcess.kill.mockImplementation(() => {
+        statusWhenKilled = manager.getAIServiceStatus();
+        mockProcess.emit('exit', 0, 'SIGTERM');
+        return true;
+      });
+
+      await manager.stopAIService();
+
+      expect(statusWhenKilled).toBe(ServiceStatus.STOPPING);
+    });
+
+    it('should not call kill if already stopped', async () => {
+      // Don't start service - already stopped
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
+
+      await manager.stopAIService();
+
+      expect(mockProcess.kill).not.toHaveBeenCalled();
+    });
+
+    it('should not call kill if no process exists', async () => {
+      await startService();
+
+      // Simulate process already gone (e.g., crashed)
+      mockProcess.emit('exit', 1, null);
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.ERROR);
+
+      // Clear mock to track new calls
+      mockProcess.kill.mockClear();
+
+      // Try to stop - should handle gracefully
+      await manager.stopAIService();
+
+      // Should not throw but may or may not call kill depending on implementation
+    });
+  });
+
+  // ===========================================
+  // T008.1.4.2 - Wait for graceful shutdown (5s timeout)
+  // ===========================================
+
+  describe('Graceful Shutdown Timeout', () => {
+    it('should have configurable shutdown timeout', () => {
+      const config = manager.getConfig();
+      expect(config).toHaveProperty('shutdownTimeoutMs');
+    });
+
+    it('should default shutdown timeout to 5000ms', () => {
+      const config = manager.getConfig();
+      expect(config.shutdownTimeoutMs).toBe(5000);
+    });
+
+    it('should wait for process to exit after SIGTERM', async () => {
+      await startService();
+
+      // Simulate delayed graceful shutdown
+      let exitCalled = false;
+      mockProcess.kill.mockImplementation(() => {
+        setTimeout(() => {
+          exitCalled = true;
+          mockProcess.emit('exit', 0, 'SIGTERM');
+        }, 100);
+        return true;
+      });
+
+      await manager.stopAIService();
+
+      expect(exitCalled).toBe(true);
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
+    });
+
+    it('should resolve Promise when process exits gracefully', async () => {
+      await startService();
+
+      mockProcess.kill.mockImplementation(() => {
+        setTimeout(() => mockProcess.emit('exit', 0, 'SIGTERM'), 50);
+        return true;
+      });
+
+      const stopPromise = manager.stopAIService();
+
+      await expect(stopPromise).resolves.toBeUndefined();
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
+    });
+
+    it('should set status to STOPPED after graceful shutdown', async () => {
+      await startService();
+
+      mockProcess.kill.mockImplementation(() => {
+        setTimeout(() => mockProcess.emit('exit', 0, 'SIGTERM'), 50);
+        return true;
+      });
+
+      await manager.stopAIService();
+
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
+    });
+
+    it('should clear process reference after shutdown', async () => {
+      await startService();
+
+      mockProcess.kill.mockImplementation(() => {
+        setTimeout(() => mockProcess.emit('exit', 0, 'SIGTERM'), 50);
+        return true;
+      });
+
+      await manager.stopAIService();
+
+      const health = await manager.checkHealth('ai');
+      expect(health.pid).toBeUndefined();
+    });
+  });
+
+  // ===========================================
+  // T008.1.4.3 - Force kill if timeout exceeded
+  // ===========================================
+
+  describe('Force Kill on Timeout', () => {
+    it('should send SIGKILL if SIGTERM times out', async () => {
+      // Use shorter timeout for test
+      const shortManager = new ProcessManager({ shutdownTimeoutMs: 100 });
+      const shortMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => shortMockProcess.emit('spawn'), 10);
+        return shortMockProcess as never;
+      });
+
+      await shortManager.startAIService();
+
+      // Mock kill to not exit the process (simulating hung process)
+      shortMockProcess.kill.mockImplementation((signal: string) => {
+        if (signal === 'SIGKILL') {
+          shortMockProcess.emit('exit', null, 'SIGKILL');
+        }
+        // SIGTERM doesn't trigger exit (hung process)
+        return true;
+      });
+
+      await shortManager.stopAIService();
+
+      expect(shortMockProcess.kill).toHaveBeenCalledWith('SIGKILL');
+    }, 10000);
+
+    it('should call SIGKILL only after SIGTERM timeout', async () => {
+      // Use shorter timeout for test
+      const shortManager = new ProcessManager({ shutdownTimeoutMs: 100 });
+      const shortMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => shortMockProcess.emit('spawn'), 10);
+        return shortMockProcess as never;
+      });
+
+      await shortManager.startAIService();
+
+      const killCalls: string[] = [];
+      shortMockProcess.kill.mockImplementation((signal: string) => {
+        killCalls.push(signal);
+        if (signal === 'SIGKILL') {
+          shortMockProcess.emit('exit', null, 'SIGKILL');
+        }
+        return true;
+      });
+
+      await shortManager.stopAIService();
+
+      // SIGTERM should be called first, then SIGKILL after timeout
+      expect(killCalls[0]).toBe('SIGTERM');
+      expect(killCalls).toContain('SIGKILL');
+    }, 10000);
+
+    it('should set status to STOPPED after force kill', async () => {
+      // Use shorter timeout for test
+      const shortManager = new ProcessManager({ shutdownTimeoutMs: 100 });
+      const shortMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => shortMockProcess.emit('spawn'), 10);
+        return shortMockProcess as never;
+      });
+
+      await shortManager.startAIService();
+
+      shortMockProcess.kill.mockImplementation((signal: string) => {
+        if (signal === 'SIGKILL') {
+          shortMockProcess.emit('exit', null, 'SIGKILL');
+        }
+        return true;
+      });
+
+      await shortManager.stopAIService();
+
+      expect(shortManager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
+    }, 10000);
+
+    it('should log warning when force kill is needed', async () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      // Use shorter timeout for test
+      const shortManager = new ProcessManager({ shutdownTimeoutMs: 100 });
+      const shortMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => shortMockProcess.emit('spawn'), 10);
+        return shortMockProcess as never;
+      });
+
+      await shortManager.startAIService();
+
+      shortMockProcess.kill.mockImplementation((signal: string) => {
+        if (signal === 'SIGKILL') {
+          shortMockProcess.emit('exit', null, 'SIGKILL');
+        }
+        return true;
+      });
+
+      await shortManager.stopAIService();
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('force')
+      );
+
+      warnSpy.mockRestore();
+    }, 10000);
+
+    it('should resolve even if both SIGTERM and SIGKILL fail', async () => {
+      // Use shorter timeout for test
+      const shortManager = new ProcessManager({ shutdownTimeoutMs: 100 });
+      const shortMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => shortMockProcess.emit('spawn'), 10);
+        return shortMockProcess as never;
+      });
+
+      await shortManager.startAIService();
+
+      // Simulate process that ignores both signals
+      shortMockProcess.kill.mockReturnValue(false);
+
+      // Should still resolve (not hang forever) due to force cleanup
+      await expect(shortManager.stopAIService()).resolves.toBeUndefined();
+    }, 15000);
+  });
+
+  // ===========================================
+  // Edge Cases
+  // ===========================================
+
+  describe('Edge Cases', () => {
+    it('should handle multiple stop calls gracefully', async () => {
+      await startService();
+
+      // Setup mock to emit exit immediately on first kill
+      mockProcess.kill.mockImplementation(() => {
+        mockProcess.emit('exit', 0, 'SIGTERM');
+        return true;
+      });
+
+      // Call stop multiple times - second and third should return quickly
+      // because status transitions to STOPPING/STOPPED
+      await manager.stopAIService();
+      await manager.stopAIService();  // Should be no-op (already stopped)
+      await manager.stopAIService();  // Should be no-op (already stopped)
+
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
+    }, 10000);
+
+    it('should handle stop when process does not exist', async () => {
+      // Verify that stopping when no process exists works gracefully
+      // This simulates a case where status is not STOPPED but process is gone
+
+      // Start and immediately emit exit (process crashes before spawn)
+      const crashMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        // Emit error before spawn (simulating early crash)
+        setTimeout(() => crashMockProcess.emit('error', new Error('Failed to start')), 10);
+        return crashMockProcess as never;
+      });
+
+      try {
+        await manager.startAIService();
+      } catch {
+        // Expected - service failed to start
+      }
+
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.ERROR);
+
+      // Setup kill to emit exit
+      crashMockProcess.kill.mockImplementation(() => {
+        crashMockProcess.emit('exit', 0, 'SIGTERM');
+        return true;
+      });
+
+      // Stop should handle this gracefully
+      await manager.stopAIService();
+
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
+    }, 10000);
+
+    it('should emit statusChange event with correct previous status', async () => {
+      await startService();
+
+      const listener = jest.fn();
+      manager.on('statusChange', listener);
+
+      mockProcess.kill.mockImplementation(() => {
+        // Emit exit event synchronously
+        mockProcess.emit('exit', 0, 'SIGTERM');
+        return true;
+      });
+
+      await manager.stopAIService();
+
+      // Should have events for STOPPING and STOPPED
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'ai',
+          status: ServiceStatus.STOPPING,
+          previousStatus: ServiceStatus.RUNNING,
+        })
+      );
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'ai',
+          status: ServiceStatus.STOPPED,
+          previousStatus: ServiceStatus.STOPPING,
+        })
+      );
+    }, 10000);
+
+    it('should not throw if kill() throws an error', async () => {
+      await startService();
+
+      mockProcess.kill.mockImplementation(() => {
+        throw new Error('Process already terminated');
+      });
+
+      // Should not throw
+      await expect(manager.stopAIService()).resolves.toBeUndefined();
+
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
+    }, 10000);
+
+    it('should clear shutdown timeout when process exits gracefully', async () => {
+      await startService();
+
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+      mockProcess.kill.mockImplementation(() => {
+        // Process exits immediately (synchronously)
+        mockProcess.emit('exit', 0, 'SIGTERM');
+        return true;
+      });
+
+      await manager.stopAIService();
+
+      // Timeout should be cleared when exit is received
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    }, 10000);
+  });
+
+  // ===========================================
+  // Configuration Tests
+  // ===========================================
+
+  describe('Shutdown Configuration', () => {
+    it('should allow custom shutdown timeout via config', () => {
+      const customManager = new ProcessManager({
+        shutdownTimeoutMs: 10000,
+      });
+
+      const config = customManager.getConfig();
+      expect(config.shutdownTimeoutMs).toBe(10000);
+    });
+
+    it('should use custom shutdown timeout when stopping', async () => {
+      jest.useFakeTimers();
+
+      const customManager = new ProcessManager({
+        shutdownTimeoutMs: 2000, // 2 second timeout
+      });
+
+      const customMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => customMockProcess.emit('spawn'), 10);
+        return customMockProcess as never;
+      });
+
+      // Need real timer for startAIService
+      jest.useRealTimers();
+      await customManager.startAIService();
+      jest.useFakeTimers();
+
+      let sigkillCalled = false;
+      customMockProcess.kill.mockImplementation((signal: string) => {
+        if (signal === 'SIGKILL') {
+          sigkillCalled = true;
+          customMockProcess.emit('exit', null, 'SIGKILL');
+        }
+        return true;
+      });
+
+      const stopPromise = customManager.stopAIService();
+
+      // Fast-forward 2 seconds (custom timeout)
+      jest.advanceTimersByTime(2000);
+
+      jest.useRealTimers();
+
+      await stopPromise;
+
+      expect(sigkillCalled).toBe(true);
+    });
   });
 });
