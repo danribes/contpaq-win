@@ -879,13 +879,18 @@
     - [x] T012.1.3.3 Extract text with bounding boxes (x0, y0, x1, y1)
     - [x] T012.1.3.4 Calculate confidence per text block (0-100%)
 
-- [ ] **T012.2** Implement image preprocessing
-  - [ ] T012.2.1 [P] Write test `test_image_preprocessing.py`
-  - [ ] T012.2.2 Implement deskewing for rotated scans
-  - [ ] T012.2.3 Implement contrast enhancement
-  - [ ] T012.2.4 Implement noise reduction
+- [x] **T012.2** Implement image preprocessing ✅ *Completed 2025-12-17*
+  - [x] T012.2.1 [P] Write test `test_image_preprocessing.py` ✅ *Completed 2025-12-17*
+    - Created: `ai-service/tests/unit/test_image_preprocessing.py` (21 tests)
+  - [x] T012.2.2 Implement deskewing for rotated scans ✅ *Completed 2025-12-17*
+    - detect_skew_angle() and deskew() methods
+    - Bicubic interpolation with white fill
+  - [x] T012.2.3 Implement contrast enhancement ✅ *Completed 2025-12-17*
+    - PIL ImageEnhance.Contrast with configurable factor
+  - [x] T012.2.4 Implement noise reduction ✅ *Completed 2025-12-17*
+    - MedianFilter with configurable strength
 
-**Checkpoint**: Text extracted from scanned PDF
+**Checkpoint**: Text extracted from scanned PDF ✅ *T012 Complete*
 
 ---
 

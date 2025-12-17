@@ -20,6 +20,7 @@ All services are designed to be:
 
 from .pdf_extractor import PDFExtractor, SourceType, TEXT_THRESHOLD
 from .ocr_service import OCRService, OCRResult, DEFAULT_DPI, DEFAULT_LANGUAGE
+from .image_preprocessor import ImagePreprocessor
 
 __all__ = [
     "PDFExtractor",
@@ -29,4 +30,5 @@ __all__ = [
     "OCRResult",
     "DEFAULT_DPI",
     "DEFAULT_LANGUAGE",
+    "ImagePreprocessor",
 ]
