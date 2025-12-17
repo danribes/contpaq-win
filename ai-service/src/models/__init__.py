@@ -15,4 +15,16 @@ All models use Pydantic for:
     - OpenAPI schema generation for FastAPI
 """
 
-__all__ = []
+from .extraction import (
+    BoundingBox,
+    ExtractionField,
+    LineItemExtraction,
+    InvoiceExtraction,
+)
+
+__all__ = [
+    "BoundingBox",
+    "ExtractionField",
+    "LineItemExtraction",
+    "InvoiceExtraction",
+]

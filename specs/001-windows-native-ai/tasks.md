@@ -896,12 +896,12 @@
 
 ### T013 - AI Field Extraction Service
 
-- [ ] **T013.1** Create Pydantic models
-  - [ ] T013.1.1 Create `extraction.py` models file
-  - [ ] T013.1.2 Define `BoundingBox` model
-  - [ ] T013.1.3 Define `ExtractionField` model with confidence
-  - [ ] T013.1.4 Define `LineItemExtraction` model
-  - [ ] T013.1.5 Define `InvoiceExtraction` response model
+- [x] **T013.1** Create Pydantic models ✅ 2025-12-17
+  - [x] T013.1.1 Create `extraction.py` models file
+  - [x] T013.1.2 Define `BoundingBox` model
+  - [x] T013.1.3 Define `ExtractionField` model with confidence
+  - [x] T013.1.4 Define `LineItemExtraction` model
+  - [x] T013.1.5 Define `InvoiceExtraction` response model
 
 - [ ] **T013.2** Implement LayoutLMv3 inference
   - [ ] T013.2.1 [P] Write test `test_layoutlm_inference.py`
