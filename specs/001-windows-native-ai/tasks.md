@@ -849,16 +849,19 @@
     - [x] T011.1.4.2 If text length < 100 chars, classify as scanned
     - [x] T011.1.4.3 Return SourceType enum value (TEXT or SCANNED)
 
-- [ ] **T011.2** Implement text extraction
-  - [ ] T011.2.1 [P] Write test `test_extract_text_with_positions.py`
-  - [ ] T011.2.2 Implement `extract_text()` method
-    - [ ] T011.2.2.1 Open PDF with PyMuPDF
-    - [ ] T011.2.2.2 Extract text blocks with coordinates
-    - [ ] T011.2.2.3 Return structured text data with bounding boxes
-  - [ ] T011.2.3 Handle multi-page PDFs
-  - [ ] T011.2.4 Handle password-protected PDFs (raise error)
+- [x] **T011.2** Implement text extraction ✅ *Completed 2025-12-17*
+  - [x] T011.2.1 [P] Write test `test_extract_text_with_positions.py` ✅ *Completed 2025-12-17*
+    - Created: `ai-service/tests/unit/test_extract_text_with_positions.py` (16 tests)
+  - [x] T011.2.2 Implement `extract_text()` method ✅ *Completed 2025-12-17*
+    - [x] T011.2.2.1 Open PDF with PyMuPDF (fitz.open)
+    - [x] T011.2.2.2 Extract text blocks with coordinates using "dict" mode
+    - [x] T011.2.2.3 Return structured text data with bounding boxes (TextBlock type)
+  - [x] T011.2.3 Handle multi-page PDFs ✅ *Completed 2025-12-17*
+    - Iterates through all pages, includes page number in each block
+  - [x] T011.2.4 Handle password-protected PDFs (raise error) ✅ *Completed 2025-12-17*
+    - Raises PermissionError for encrypted PDFs
 
-**Checkpoint**: Text extracted from text-based PDF
+**Checkpoint**: Text extracted from text-based PDF ✅ *T011 Complete*
 
 ---
 
