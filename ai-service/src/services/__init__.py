@@ -21,6 +21,8 @@ All services are designed to be:
 from .pdf_extractor import PDFExtractor, SourceType, TEXT_THRESHOLD
 from .ocr_service import OCRService, OCRResult, DEFAULT_DPI, DEFAULT_LANGUAGE
 from .image_preprocessor import ImagePreprocessor
+from .ai_extractor import AIExtractor, FieldLabel, LAYOUTLM_MODEL_NAME, BIO_LABELS
+from .line_item_extractor import LineItemExtractor, TableRegion, TextBlock
 
 __all__ = [
     "PDFExtractor",
@@ -31,4 +33,11 @@ __all__ = [
     "DEFAULT_DPI",
     "DEFAULT_LANGUAGE",
     "ImagePreprocessor",
+    "AIExtractor",
+    "FieldLabel",
+    "LAYOUTLM_MODEL_NAME",
+    "BIO_LABELS",
+    "LineItemExtractor",
+    "TableRegion",
+    "TextBlock",
 ]
