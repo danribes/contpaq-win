@@ -706,7 +706,7 @@
     - Test: 28 new tests (165 total) - all pass
     - Logs: `log_files/T008.1.6_*`, `log_tests/T008.1.6_*`, `log_learn/T008.1.6_*`
 
-- [ ] **T008.2** Implement Windows Bridge process management
+- [x] **T008.2** Implement Windows Bridge process management
   - [x] T008.2.1 Implement `startBridgeService()` method
     - Implemented: getDotnetPath(), startBridgeService(), addBridgeLog(), emitBridgeError()
     - Pattern: Uses `dotnet <dll> --urls http://...` for .NET Core execution
@@ -719,7 +719,12 @@
     - Exception handling: Catches errors if process already terminated
     - Test: 22 new tests (216 total) - all pass
     - Logs: `log_files/T008.2.2_*`, `log_tests/T008.2.2_*`, `log_learn/T008.2.2_*`
-  - [ ] T008.2.3 Implement health check polling
+  - [x] T008.2.3 Implement health check polling
+    - Implementation: Reused from T008.1.6 (performHealthCheck already supports 'bridge')
+    - Tests: Verify bridge-specific behavior (port 5000, independent failure tracking)
+    - Polling: startAll() checks both AI and bridge services
+    - Test: 29 new tests (245 total) - all pass
+    - Logs: `log_files/T008.2.3_*`, `log_tests/T008.2.3_*`, `log_learn/T008.2.3_*`
 
 - [ ] **T008.3** Implement auto-restart logic
   - [ ] T008.3.1 Create restart counter with max 3 retries

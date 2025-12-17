@@ -3107,3 +3107,532 @@ describe('ProcessManager stopBridgeService Graceful Shutdown (T008.2.2)', () => 
     });
   });
 });
+
+// ===========================================
+// T008.2.3 - Bridge Service Health Check Polling Tests
+// ===========================================
+
+describe('ProcessManager Bridge Health Check Polling (T008.2.3)', () => {
+  let manager: ProcessManager;
+  let mockProcess: ReturnType<typeof createMockChildProcess>;
+  const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
+  let mockFetch: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // Create mock fetch for dependency injection
+    mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ status: 'healthy' }),
+    } as Response);
+
+    manager = new ProcessManager({ fetchFn: mockFetch as unknown as never });
+    mockProcess = createMockChildProcess();
+    mockSpawn.mockImplementation(() => {
+      const proc = createMockChildProcess();
+      setTimeout(() => proc.emit('spawn'), 10);
+      return proc as never;
+    });
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
+  // Helper to start the bridge service
+  async function startBridgeService(): Promise<void> {
+    await manager.startBridgeService();
+    expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.RUNNING);
+  }
+
+  // ===========================================
+  // T008.2.3.1 - HTTP Health Check for Bridge
+  // ===========================================
+
+  describe('HTTP Health Check for Bridge', () => {
+    it('should make HTTP request to bridge health endpoint', async () => {
+      await startBridgeService();
+
+      await manager.performHealthCheck('bridge');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/health'),
+        expect.any(Object)
+      );
+    });
+
+    it('should use correct port for Bridge service', async () => {
+      await startBridgeService();
+
+      await manager.performHealthCheck('bridge');
+
+      const config = manager.getConfig();
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(`:${config.bridgeServicePort}`),
+        expect.any(Object)
+      );
+    });
+
+    it('should use bridgeServicePort (5000) for health check', async () => {
+      await startBridgeService();
+
+      await manager.performHealthCheck('bridge');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://127.0.0.1:5000/health',
+        expect.any(Object)
+      );
+    });
+
+    it('should return healthy status on successful response', async () => {
+      await startBridgeService();
+
+      const result = await manager.performHealthCheck('bridge');
+
+      expect(result.healthy).toBe(true);
+      expect(result.status).toBe(ServiceStatus.RUNNING);
+    });
+
+    it('should return unhealthy status on failed response', async () => {
+      await startBridgeService();
+
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 503,
+      } as Response);
+
+      const result = await manager.performHealthCheck('bridge');
+
+      expect(result.healthy).toBe(false);
+    });
+
+    it('should return unhealthy on network error', async () => {
+      await startBridgeService();
+
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      const result = await manager.performHealthCheck('bridge');
+
+      expect(result.healthy).toBe(false);
+      expect(result.error).toContain('Network error');
+    });
+
+    it('should include response time in result', async () => {
+      await startBridgeService();
+
+      const result = await manager.performHealthCheck('bridge');
+
+      expect(result.responseTimeMs).toBeDefined();
+      expect(typeof result.responseTimeMs).toBe('number');
+      expect(result.responseTimeMs).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should timeout if bridge health check takes too long', async () => {
+      const slowFetch = jest.fn().mockImplementation((_url: string, options?: { signal?: AbortSignal }) =>
+        new Promise((resolve, reject) => {
+          const timeoutId = setTimeout(() => resolve({ ok: true, status: 200 } as Response), 10000);
+          if (options?.signal) {
+            options.signal.addEventListener('abort', () => {
+              clearTimeout(timeoutId);
+              const abortError = new Error('The operation was aborted');
+              abortError.name = 'AbortError';
+              reject(abortError);
+            });
+          }
+        })
+      );
+
+      const shortManager = new ProcessManager({
+        healthCheckTimeoutMs: 100,
+        fetchFn: slowFetch as unknown as never,
+      });
+      const shortMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => shortMockProcess.emit('spawn'), 10);
+        return shortMockProcess as never;
+      });
+      await shortManager.startBridgeService();
+
+      const result = await shortManager.performHealthCheck('bridge');
+
+      expect(result.healthy).toBe(false);
+      expect(result.error).toContain('timeout');
+    }, 10000);
+  });
+
+  // ===========================================
+  // T008.2.3.2 - Retry Logic for Bridge
+  // ===========================================
+
+  describe('Retry Logic for Bridge', () => {
+    it('should retry on failure up to configured retries', async () => {
+      await startBridgeService();
+
+      // Fail first 2 attempts, succeed on 3rd
+      let callCount = 0;
+      mockFetch.mockImplementation(() => {
+        callCount++;
+        if (callCount < 3) {
+          return Promise.reject(new Error('Connection refused'));
+        }
+        return Promise.resolve({ ok: true, status: 200 } as Response);
+      });
+
+      const result = await manager.performHealthCheck('bridge');
+
+      expect(result.healthy).toBe(true);
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('should return failure after all retries exhausted', async () => {
+      await startBridgeService();
+
+      mockFetch.mockRejectedValue(new Error('Connection refused'));
+
+      const result = await manager.performHealthCheck('bridge');
+
+      expect(result.healthy).toBe(false);
+      // Default retries is 3, so 1 initial + 3 retries = 4 calls
+      expect(mockFetch).toHaveBeenCalledTimes(4);
+    });
+
+    it('should track retry count in result', async () => {
+      await startBridgeService();
+
+      mockFetch.mockRejectedValue(new Error('Connection refused'));
+
+      const result = await manager.performHealthCheck('bridge');
+
+      expect(result.retryCount).toBe(3); // Max retries
+    });
+
+    it('should succeed on first try with retryCount 0', async () => {
+      await startBridgeService();
+
+      const result = await manager.performHealthCheck('bridge');
+
+      expect(result.healthy).toBe(true);
+      expect(result.retryCount).toBe(0);
+    });
+  });
+
+  // ===========================================
+  // T008.2.3.3 - Consecutive Failures for Bridge
+  // ===========================================
+
+  describe('Consecutive Failures for Bridge', () => {
+    it('should track consecutive failures for bridge service', async () => {
+      await startBridgeService();
+
+      mockFetch.mockRejectedValue(new Error('Connection refused'));
+
+      // First failure
+      await manager.performHealthCheck('bridge');
+      let health = await manager.checkHealth('bridge');
+      expect(health.consecutiveFailures).toBe(1);
+
+      // Second failure
+      await manager.performHealthCheck('bridge');
+      health = await manager.checkHealth('bridge');
+      expect(health.consecutiveFailures).toBe(2);
+
+      // Third failure
+      await manager.performHealthCheck('bridge');
+      health = await manager.checkHealth('bridge');
+      expect(health.consecutiveFailures).toBe(3);
+    });
+
+    it('should reset consecutive failures on success', async () => {
+      await startBridgeService();
+
+      // First fail several times
+      mockFetch.mockRejectedValue(new Error('Connection refused'));
+      await manager.performHealthCheck('bridge');
+      await manager.performHealthCheck('bridge');
+
+      let health = await manager.checkHealth('bridge');
+      expect(health.consecutiveFailures).toBe(2);
+
+      // Then succeed
+      mockFetch.mockResolvedValue({ ok: true, status: 200 } as Response);
+      await manager.performHealthCheck('bridge');
+
+      health = await manager.checkHealth('bridge');
+      expect(health.consecutiveFailures).toBe(0);
+    });
+
+    it('should track bridge failures independently from AI failures', async () => {
+      // Start both services
+      await manager.startAIService();
+      await manager.startBridgeService();
+
+      mockFetch.mockRejectedValue(new Error('Connection refused'));
+
+      // Fail bridge health check
+      await manager.performHealthCheck('bridge');
+
+      // AI should still have 0 failures
+      const aiHealth = await manager.checkHealth('ai');
+      const bridgeHealth = await manager.checkHealth('bridge');
+
+      expect(aiHealth.consecutiveFailures).toBe(0);
+      expect(bridgeHealth.consecutiveFailures).toBe(1);
+    });
+  });
+
+  // ===========================================
+  // T008.2.3.4 - Health Change Events for Bridge
+  // ===========================================
+
+  describe('Health Change Events for Bridge', () => {
+    it('should emit healthChange event when bridge becomes unhealthy', async () => {
+      await startBridgeService();
+
+      const listener = jest.fn();
+      manager.on('healthChange', listener);
+
+      // First call establishes baseline (no event)
+      await manager.performHealthCheck('bridge');
+
+      // Second call with failure should emit event
+      mockFetch.mockRejectedValue(new Error('Connection refused'));
+      await manager.performHealthCheck('bridge');
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'bridge',
+          healthy: false,
+        })
+      );
+    });
+
+    it('should emit healthChange event when bridge becomes healthy again', async () => {
+      await startBridgeService();
+
+      // First establish healthy baseline
+      await manager.performHealthCheck('bridge');
+
+      // Then fail
+      mockFetch.mockRejectedValue(new Error('Connection refused'));
+      await manager.performHealthCheck('bridge');
+
+      const listener = jest.fn();
+      manager.on('healthChange', listener);
+
+      // Then succeed again
+      mockFetch.mockResolvedValue({ ok: true, status: 200 } as Response);
+      await manager.performHealthCheck('bridge');
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'bridge',
+          healthy: true,
+        })
+      );
+    });
+
+    it('should include consecutiveFailures in healthChange event', async () => {
+      await startBridgeService();
+
+      // First call to establish baseline
+      await manager.performHealthCheck('bridge');
+
+      const listener = jest.fn();
+      manager.on('healthChange', listener);
+
+      // Multiple failures
+      mockFetch.mockRejectedValue(new Error('Connection refused'));
+      await manager.performHealthCheck('bridge');
+      await manager.performHealthCheck('bridge');
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'bridge',
+          healthy: false,
+          consecutiveFailures: expect.any(Number),
+        })
+      );
+    });
+
+    it('should include timestamp in healthChange event', async () => {
+      await startBridgeService();
+
+      await manager.performHealthCheck('bridge');
+
+      const listener = jest.fn();
+      manager.on('healthChange', listener);
+
+      mockFetch.mockRejectedValue(new Error('Connection refused'));
+      await manager.performHealthCheck('bridge');
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'bridge',
+          timestamp: expect.any(Date),
+        })
+      );
+    });
+  });
+
+  // ===========================================
+  // T008.2.3.5 - Bridge Service Not Running
+  // ===========================================
+
+  describe('Bridge Service Not Running', () => {
+    it('should skip health check if bridge service is STOPPED', async () => {
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.STOPPED);
+
+      const result = await manager.performHealthCheck('bridge');
+
+      expect(result.healthy).toBe(false);
+      expect(result.skipped).toBe(true);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should skip health check if bridge service is STARTING', async () => {
+      // Start bridge but don't let it complete
+      const neverSpawnProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        // Never emit spawn
+        return neverSpawnProcess as never;
+      });
+
+      // Start but don't await (will be pending)
+      manager.startBridgeService().catch(() => {});
+
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.STARTING);
+
+      const result = await manager.performHealthCheck('bridge');
+
+      expect(result.healthy).toBe(false);
+      expect(result.skipped).toBe(true);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should skip health check if bridge service is in ERROR state', async () => {
+      // Start and then crash
+      const crashProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => crashProcess.emit('error', new Error('Crash')), 10);
+        return crashProcess as never;
+      });
+
+      try {
+        await manager.startBridgeService();
+      } catch {
+        // Expected
+      }
+
+      expect(manager.getBridgeServiceStatus()).toBe(ServiceStatus.ERROR);
+
+      const result = await manager.performHealthCheck('bridge');
+
+      expect(result.healthy).toBe(false);
+      expect(result.skipped).toBe(true);
+    });
+  });
+
+  // ===========================================
+  // T008.2.3.6 - Health Check Polling Integration
+  // ===========================================
+
+  describe('Health Check Polling Integration', () => {
+    it('should check both AI and bridge services during polling', async () => {
+      // Use short polling interval for test
+      const pollingManager = new ProcessManager({
+        healthCheckInterval: 50,
+        fetchFn: mockFetch as unknown as never,
+      });
+
+      const pollingMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => pollingMockProcess.emit('spawn'), 10);
+        return pollingMockProcess as never;
+      });
+
+      await pollingManager.startAll();
+
+      // Wait for at least one polling cycle (50ms interval + buffer)
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Both services should have been checked
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(':8000/health'), // AI port
+        expect.any(Object)
+      );
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(':5000/health'), // Bridge port
+        expect.any(Object)
+      );
+    });
+
+    it('should update lastHealthCheck for bridge after polling', async () => {
+      await startBridgeService();
+
+      const beforeCheck = await manager.checkHealth('bridge');
+      expect(beforeCheck.lastHealthCheck).toBeUndefined();
+
+      await manager.performHealthCheck('bridge');
+
+      const afterCheck = await manager.checkHealth('bridge');
+      expect(afterCheck.lastHealthCheck).toBeDefined();
+      expect(afterCheck.lastHealthCheck).toBeInstanceOf(Date);
+    });
+  });
+
+  // ===========================================
+  // T008.2.3.7 - Configuration for Bridge Health Check
+  // ===========================================
+
+  describe('Configuration for Bridge Health Check', () => {
+    it('should use configured bridgeServicePort', () => {
+      const customManager = new ProcessManager({
+        bridgeServicePort: 6000,
+        fetchFn: mockFetch as unknown as never,
+      });
+
+      const config = customManager.getConfig();
+      expect(config.bridgeServicePort).toBe(6000);
+    });
+
+    it('should default bridgeServicePort to 5000', () => {
+      const config = manager.getConfig();
+      expect(config.bridgeServicePort).toBe(5000);
+    });
+
+    it('should use custom port for bridge health check', async () => {
+      const customManager = new ProcessManager({
+        bridgeServicePort: 6000,
+        fetchFn: mockFetch as unknown as never,
+      });
+
+      const customMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => customMockProcess.emit('spawn'), 10);
+        return customMockProcess as never;
+      });
+
+      await customManager.startBridgeService();
+      await customManager.performHealthCheck('bridge');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://127.0.0.1:6000/health',
+        expect.any(Object)
+      );
+    });
+
+    it('should use same healthCheckTimeoutMs for bridge as AI', async () => {
+      const config = manager.getConfig();
+      expect(config.healthCheckTimeoutMs).toBeDefined();
+      expect(config.healthCheckTimeoutMs).toBe(5000); // Default
+    });
+
+    it('should use same healthCheckRetries for bridge as AI', async () => {
+      const config = manager.getConfig();
+      expect(config.healthCheckRetries).toBeDefined();
+      expect(config.healthCheckRetries).toBe(3); // Default
+    });
+  });
+});
