@@ -65,6 +65,7 @@ export interface ProcessManagerConfig {
   maxRestartAttempts: number;
   restartBackoffMs: number;
   startupTimeoutMs: number;  // T008.1.3: Timeout for process startup
+  shutdownTimeoutMs: number; // T008.1.4: Timeout for graceful shutdown before force kill
 }
 
 /**
@@ -86,6 +87,7 @@ const DEFAULT_CONFIG: ProcessManagerConfig = {
   maxRestartAttempts: 3,
   restartBackoffMs: 1000,
   startupTimeoutMs: 30000,  // T008.1.3: 30 second default timeout
+  shutdownTimeoutMs: 5000,  // T008.1.4: 5 second default for graceful shutdown
 };
 
 /**
@@ -503,6 +505,7 @@ export class ProcessManager {
 
   /**
    * Stop the AI Service
+   * T008.1.4: Graceful shutdown with SIGTERM, force kill with SIGKILL after timeout
    * @returns Promise that resolves when service is stopped
    */
   async stopAIService(): Promise<void> {
@@ -514,18 +517,80 @@ export class ProcessManager {
     this.updateStatus('ai', ServiceStatus.STOPPING);
     console.log('Stopping AI Service...');
 
-    // TODO: Implement actual process termination in T008.1.4
-    // This is a stub that simulates successful stop
+    // If no process exists (e.g., already crashed), just clean up
+    if (!this.aiServiceProcess) {
+      this.aiServiceProcess = null;
+      this.updateStatus('ai', ServiceStatus.STOPPED);
+      console.log('AI Service stopped (no process)');
+      return;
+    }
+
     return new Promise((resolve) => {
-      setTimeout(() => {
-        if (this.aiServiceProcess) {
-          this.aiServiceProcess.kill();
-          this.aiServiceProcess = null;
+      const process = this.aiServiceProcess!;
+      let shutdownTimeoutId: NodeJS.Timeout | null = null;
+      let forceKillTimeoutId: NodeJS.Timeout | null = null;
+      let isResolved = false;
+
+      // Handler for process exit
+      const onExit = () => {
+        if (isResolved) return;
+        isResolved = true;
+
+        // Clear timeouts
+        if (shutdownTimeoutId) {
+          clearTimeout(shutdownTimeoutId);
+          shutdownTimeoutId = null;
         }
+        if (forceKillTimeoutId) {
+          clearTimeout(forceKillTimeoutId);
+          forceKillTimeoutId = null;
+        }
+
+        // Clean up
+        this.aiServiceProcess = null;
         this.updateStatus('ai', ServiceStatus.STOPPED);
-        console.log('AI Service stopped (stub)');
+        console.log('AI Service stopped');
         resolve();
-      }, 100);
+      };
+
+      // Listen for exit event
+      process.once('exit', onExit);
+
+      // T008.1.4.1: Send SIGTERM for graceful shutdown
+      try {
+        process.kill('SIGTERM');
+        console.log('Sent SIGTERM to AI Service');
+      } catch (error) {
+        // Process may already be dead
+        console.log('Failed to send SIGTERM (process may have already exited)');
+        onExit();
+        return;
+      }
+
+      // T008.1.4.2: Set timeout for graceful shutdown
+      shutdownTimeoutId = setTimeout(() => {
+        if (isResolved) return;
+
+        // T008.1.4.3: Force kill with SIGKILL
+        console.warn('AI Service did not shut down gracefully, force killing...');
+
+        try {
+          process.kill('SIGKILL');
+        } catch {
+          // Process may already be dead
+          console.log('Failed to send SIGKILL (process may have already exited)');
+        }
+
+        // Give SIGKILL a brief moment to take effect, then force resolve
+        forceKillTimeoutId = setTimeout(() => {
+          if (isResolved) return;
+
+          // Force cleanup even if process didn't respond
+          console.warn('AI Service process did not respond to SIGKILL, force cleaning up');
+          process.removeListener('exit', onExit);
+          onExit();
+        }, 1000); // 1 second grace period for SIGKILL
+      }, this.config.shutdownTimeoutMs);
     });
   }
 
