@@ -762,13 +762,21 @@
   - [x] T009.1.4 Configure database path in user data directory ✅ *Completed 2025-12-17*
     - Helper: `getDefaultDatabasePath(userDataPath)` returns path in user data
 
-- [ ] **T009.2** Implement invoice repository
-  - [ ] T009.2.1 [P] Write tests for CRUD operations
-  - [ ] T009.2.2 Implement `createInvoice()` method
-  - [ ] T009.2.3 Implement `getInvoiceById()` method
-  - [ ] T009.2.4 Implement `updateInvoice()` method
-  - [ ] T009.2.5 Implement `listInvoices()` with filtering by state
-  - [ ] T009.2.6 Implement `checkDuplicate()` by hash
+- [x] **T009.2** Implement invoice repository ✅ *Completed 2025-12-17*
+  - [x] T009.2.1 [P] Write tests for CRUD operations ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/tests/main/invoice-repository.test.ts` (40 tests)
+    - Tests: Class structure, create, get, update, list, delete, duplicate check
+    - Logs: `log_files/T009.2.1_*`, `log_tests/T009.2.1_*`, `log_learn/T009.2.1_*`
+  - [x] T009.2.2 Implement `createInvoice()` method ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/src/main/invoice-repository.ts`
+    - UUID generation, auto-timestamps, foreign key validation
+  - [x] T009.2.3 Implement `getInvoiceById()` method ✅ *Completed 2025-12-17*
+  - [x] T009.2.4 Implement `updateInvoice()` method ✅ *Completed 2025-12-17*
+    - Dynamic field updates, auto updated_at timestamp
+  - [x] T009.2.5 Implement `listInvoices()` with filtering by state ✅ *Completed 2025-12-17*
+    - Single/multiple state filter, pagination (limit/offset), order by created_at DESC
+  - [x] T009.2.6 Implement `checkDuplicate()` by hash ✅ *Completed 2025-12-17*
+    - Returns isDuplicate flag and existing invoice if found
 
 - [ ] **T009.3** Implement vendor repository
   - [ ] T009.3.1 [P] Write tests for vendor operations
