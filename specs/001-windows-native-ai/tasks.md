@@ -903,21 +903,21 @@
   - [x] T013.1.4 Define `LineItemExtraction` model
   - [x] T013.1.5 Define `InvoiceExtraction` response model
 
-- [ ] **T013.2** Implement LayoutLMv3 inference
-  - [ ] T013.2.1 [P] Write test `test_layoutlm_inference.py`
-  - [ ] T013.2.2 Create `ai_extractor.py` service
-  - [ ] T013.2.3 Load LayoutLMv3 model on startup
-  - [ ] T013.2.4 Implement `extract_fields()` method
-    - [ ] T013.2.4.1 Prepare input tokens from text + layout
-    - [ ] T013.2.4.2 Run model inference
-    - [ ] T013.2.4.3 Parse model output to structured fields
-    - [ ] T013.2.4.4 Calculate confidence scores per field
-  - [ ] T013.2.5 Implement field mapping to Mexican invoice schema
-    - [ ] T013.2.5.1 Map vendor_rfc field
-    - [ ] T013.2.5.2 Map vendor_name field
-    - [ ] T013.2.5.3 Map invoice_number field
-    - [ ] T013.2.5.4 Map invoice_date field
-    - [ ] T013.2.5.5 Map subtotal, iva_amount, total fields
+- [x] **T013.2** Implement LayoutLMv3 inference ✅ 2025-12-17
+  - [x] T013.2.1 [P] Write test `test_layoutlm_inference.py`
+  - [x] T013.2.2 Create `ai_extractor.py` service
+  - [x] T013.2.3 Load LayoutLMv3 model on startup
+  - [x] T013.2.4 Implement `extract_fields()` method
+    - [x] T013.2.4.1 Prepare input tokens from text + layout
+    - [x] T013.2.4.2 Run model inference
+    - [x] T013.2.4.3 Parse model output to structured fields
+    - [x] T013.2.4.4 Calculate confidence scores per field
+  - [x] T013.2.5 Implement field mapping to Mexican invoice schema
+    - [x] T013.2.5.1 Map vendor_rfc field
+    - [x] T013.2.5.2 Map vendor_name field
+    - [x] T013.2.5.3 Map invoice_number field
+    - [x] T013.2.5.4 Map invoice_date field
+    - [x] T013.2.5.5 Map subtotal, iva_amount, total fields
 
 - [ ] **T013.3** Implement line item extraction
   - [ ] T013.3.1 [P] Write test `test_line_item_extraction.py`
