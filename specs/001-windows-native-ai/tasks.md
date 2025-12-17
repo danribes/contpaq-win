@@ -659,10 +659,19 @@
     - Added: updateStatus() helper for centralized status changes
     - Test: 37 new tests (79 total) - all pass
     - Logs: `log_files/T008.1.2_*`, `log_tests/T008.1.2_*`, `log_learn/T008.1.2_*`
-  - [ ] T008.1.3 Implement `startAIService()` method
-    - [ ] T008.1.3.1 Locate Python executable path
-    - [ ] T008.1.3.2 Spawn uvicorn process with correct args
-    - [ ] T008.1.3.3 Capture stdout/stderr for logging
+  - [x] T008.1.3 Implement `startAIService()` method ✅ *Completed 2025-12-17*
+    - [x] T008.1.3.1 Locate Python executable path - Uses getPythonPath()
+    - [x] T008.1.3.2 Spawn uvicorn process with correct args
+      - Args: `-m uvicorn main:app --host 127.0.0.1 --port {port}`
+      - Options: `cwd: ai-service/src, shell: false`
+    - [x] T008.1.3.3 Capture stdout/stderr for logging
+      - Added: ProcessLogEntry interface, getProcessLogs(), addLog()
+      - Max 1000 log entries per service
+    - Added: startupTimeoutMs config (30s default)
+    - Added: Process event handling (spawn, error, exit)
+    - Added: emitError() for error event emission
+    - Test: 22 new tests (101 total) - all pass
+    - Logs: `log_files/T008.1.3_*`, `log_tests/T008.1.3_*`, `log_learn/T008.1.3_*`
   - [ ] T008.1.4 Implement `stopAIService()` method
     - [ ] T008.1.4.1 Send SIGTERM to process
     - [ ] T008.1.4.2 Wait for graceful shutdown (5s timeout)

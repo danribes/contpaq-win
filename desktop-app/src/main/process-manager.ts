@@ -64,6 +64,16 @@ export interface ProcessManagerConfig {
   healthCheckInterval: number;
   maxRestartAttempts: number;
   restartBackoffMs: number;
+  startupTimeoutMs: number;  // T008.1.3: Timeout for process startup
+}
+
+/**
+ * Log entry for process output
+ */
+export interface ProcessLogEntry {
+  timestamp: Date;
+  level: 'stdout' | 'stderr';
+  message: string;
 }
 
 /**
@@ -75,6 +85,7 @@ const DEFAULT_CONFIG: ProcessManagerConfig = {
   healthCheckInterval: 5000,
   maxRestartAttempts: 3,
   restartBackoffMs: 1000,
+  startupTimeoutMs: 30000,  // T008.1.3: 30 second default timeout
 };
 
 /**
@@ -103,6 +114,11 @@ export class ProcessManager {
   // T008.1.2: Start time tracking for uptime
   private aiStartTime: Date | null = null;
   private bridgeStartTime: Date | null = null;
+
+  // T008.1.3: Process logs
+  private aiProcessLogs: ProcessLogEntry[] = [];
+  private bridgeProcessLogs: ProcessLogEntry[] = [];
+  private readonly MAX_LOG_ENTRIES = 1000;
 
   constructor(config: Partial<ProcessManagerConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -273,6 +289,61 @@ export class ProcessManager {
   }
 
   // ===========================================
+  // T008.1.3: Process Logging Methods
+  // ===========================================
+
+  /**
+   * Get process logs for a service
+   * @param service - Service to get logs for
+   * @returns Array of log entries
+   */
+  getProcessLogs(service: 'ai' | 'bridge'): ProcessLogEntry[] {
+    const logs = service === 'ai' ? this.aiProcessLogs : this.bridgeProcessLogs;
+    return [...logs]; // Return copy
+  }
+
+  /**
+   * Add a log entry for a service
+   * @param service - Service to add log for
+   * @param level - Log level (stdout or stderr)
+   * @param message - Log message
+   */
+  private addLog(service: 'ai' | 'bridge', level: 'stdout' | 'stderr', message: string): void {
+    const logs = service === 'ai' ? this.aiProcessLogs : this.bridgeProcessLogs;
+    const entry: ProcessLogEntry = {
+      timestamp: new Date(),
+      level,
+      message,
+    };
+
+    logs.push(entry);
+
+    // Trim logs if exceeding max
+    if (logs.length > this.MAX_LOG_ENTRIES) {
+      logs.shift();
+    }
+
+    // Also log to console
+    if (level === 'stdout') {
+      console.log(`[AI Service] ${message}`);
+    } else {
+      console.error(`[AI Service ERROR] ${message}`);
+    }
+  }
+
+  /**
+   * Clear process logs for a service
+   * @param service - Service to clear logs for
+   */
+  clearProcessLogs(service: 'ai' | 'bridge'): void {
+    if (service === 'ai') {
+      this.aiProcessLogs = [];
+    } else {
+      this.bridgeProcessLogs = [];
+    }
+  }
+
+  // ===========================================
   // T008.1.2: Status Change Helper
   // ===========================================
 
@@ -324,14 +395,109 @@ export class ProcessManager {
     this.updateStatus('ai', ServiceStatus.STARTING);
     console.log('Starting AI Service...');
 
-    // TODO: Implement actual process spawning in T008.1.3
-    // This is a stub that simulates successful start
-    return new Promise((resolve) => {
-      setTimeout(() => {
+    return new Promise((resolve, reject) => {
+      // T008.1.3: Real process spawning implementation
+      const pythonPath = this.getPythonPath();
+      const aiServicePath = this.getAIServicePath();
+      const srcPath = path.join(aiServicePath, 'src');
+
+      const args = [
+        '-m', 'uvicorn',
+        'main:app',
+        '--host', '127.0.0.1',
+        '--port', String(this.config.aiServicePort),
+      ];
+
+      const spawnOptions = {
+        cwd: srcPath,
+        shell: false,
+        stdio: ['ignore', 'pipe', 'pipe'] as const,
+      };
+
+      // Spawn the process
+      this.aiServiceProcess = spawn(pythonPath, args, spawnOptions);
+
+      // Setup timeout
+      const timeoutId = setTimeout(() => {
+        if (this.aiServiceStatus === ServiceStatus.STARTING) {
+          const error = new Error(`AI Service startup timeout after ${this.config.startupTimeoutMs}ms`);
+          this.setError('ai', error.message);
+          this.updateStatus('ai', ServiceStatus.ERROR);
+          this.emitError('ai', error);
+          reject(error);
+        }
+      }, this.config.startupTimeoutMs);
+
+      // Handle spawn event (process started successfully)
+      this.aiServiceProcess.on('spawn', () => {
+        clearTimeout(timeoutId);
         this.updateStatus('ai', ServiceStatus.RUNNING);
-        console.log('AI Service started (stub)');
+        console.log(`AI Service started (PID: ${this.aiServiceProcess?.pid})`);
         resolve();
-      }, 100);
+      });
+
+      // Handle error event (failed to spawn)
+      this.aiServiceProcess.on('error', (error: Error) => {
+        clearTimeout(timeoutId);
+        this.setError('ai', error.message);
+        this.updateStatus('ai', ServiceStatus.ERROR);
+        this.emitError('ai', error);
+        reject(error);
+      });
+
+      // Handle exit event (process terminated)
+      this.aiServiceProcess.on('exit', (code: number | null, signal: string | null) => {
+        clearTimeout(timeoutId);
+
+        if (this.aiServiceStatus === ServiceStatus.STOPPING) {
+          // Normal shutdown
+          this.updateStatus('ai', ServiceStatus.STOPPED);
+        } else if (code !== 0) {
+          // Abnormal exit
+          const errorMsg = `AI Service exited with code ${code}${signal ? ` (signal: ${signal})` : ''}`;
+          this.setError('ai', errorMsg);
+          this.updateStatus('ai', ServiceStatus.ERROR);
+        } else {
+          // Clean exit while running (unexpected)
+          this.updateStatus('ai', ServiceStatus.STOPPED);
+        }
+
+        this.aiServiceProcess = null;
+      });
+
+      // Capture stdout
+      if (this.aiServiceProcess.stdout) {
+        this.aiServiceProcess.stdout.on('data', (data: Buffer) => {
+          const message = data.toString().trim();
+          if (message) {
+            this.addLog('ai', 'stdout', message);
+          }
+        });
+      }
+
+      // Capture stderr
+      if (this.aiServiceProcess.stderr) {
+        this.aiServiceProcess.stderr.on('data', (data: Buffer) => {
+          const message = data.toString().trim();
+          if (message) {
+            this.addLog('ai', 'stderr', message);
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Emit error event
+   * @param service - Service that errored
+   * @param error - Error object
+   */
+  private emitError(service: 'ai' | 'bridge', error: Error): void {
+    this.emit('error', {
+      service,
+      status: ServiceStatus.ERROR,
+      previousStatus: ServiceStatus.STARTING,
+      timestamp: new Date(),
     });
   }
 
