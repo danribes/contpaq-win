@@ -29,13 +29,14 @@ export interface StatusChangeEvent {
 }
 
 /**
- * Restart event payload (T008.1.5, enhanced T008.3.1)
+ * Restart event payload (T008.1.5, enhanced T008.3.1, T008.3.2)
  */
 export interface RestartEvent {
   service: 'ai' | 'bridge';
   restartCount: number;
   timestamp: Date;
   reason?: string; // T008.3.1: Reason for restart (e.g., "crash", "manual")
+  delay?: number; // T008.3.2: Backoff delay in ms before restart
 }
 
 /**
@@ -241,12 +242,13 @@ export class ProcessManager {
   }
 
   /**
-   * Emit a restart event (T008.1.5, enhanced T008.3.1)
+   * Emit a restart event (T008.1.5, enhanced T008.3.1, T008.3.2)
    * @param service - Service that was restarted
    * @param restartCount - Current restart count
    * @param reason - Optional reason for restart
+   * @param delay - Optional backoff delay in ms
    */
-  private emitRestart(service: 'ai' | 'bridge', restartCount: number, reason?: string): void {
+  private emitRestart(service: 'ai' | 'bridge', restartCount: number, reason?: string, delay?: number): void {
     const event: RestartEvent = {
       service,
       restartCount,
@@ -254,6 +256,9 @@ export class ProcessManager {
     };
     if (reason) {
       event.reason = reason;
+    }
+    if (delay !== undefined) {
+      event.delay = delay;
     }
     this.emit('restart', event);
   }
@@ -273,7 +278,7 @@ export class ProcessManager {
   }
 
   /**
-   * Handle auto-restart after service crash (T008.3.1)
+   * Handle auto-restart after service crash (T008.3.1, T008.3.2)
    * @param service - Service that crashed
    * @param code - Exit code
    * @param signal - Signal that caused exit
@@ -305,21 +310,30 @@ export class ProcessManager {
     const newRestartCount = service === 'ai' ? this.aiRestartCount : this.bridgeRestartCount;
     const reason = `crash (exit code: ${code}${signal ? `, signal: ${signal}` : ''})`;
 
-    console.log(`[${service}] Auto-restarting (attempt ${newRestartCount}/${this.config.maxRestarts})...`);
+    // T008.3.2: Calculate exponential backoff delay
+    // delay = baseDelay * 2^(restartCount - 1)
+    // restartCount=1 → delay = base * 1 (1s)
+    // restartCount=2 → delay = base * 2 (2s)
+    // restartCount=3 → delay = base * 4 (4s)
+    const delay = this.config.restartBackoffMs * Math.pow(2, newRestartCount - 1);
 
-    // Emit restart event
-    this.emitRestart(service, newRestartCount, reason);
+    console.log(`[${service}] Auto-restarting (attempt ${newRestartCount}/${this.config.maxRestarts}) in ${delay}ms...`);
 
-    // Restart the service
-    if (service === 'ai') {
-      this.startAIService().catch((err) => {
-        console.error(`[${service}] Auto-restart failed:`, err);
-      });
-    } else {
-      this.startBridgeService().catch((err) => {
-        console.error(`[${service}] Auto-restart failed:`, err);
-      });
-    }
+    // Emit restart event with delay info
+    this.emitRestart(service, newRestartCount, reason, delay);
+
+    // T008.3.2: Restart the service after exponential backoff delay
+    setTimeout(() => {
+      if (service === 'ai') {
+        this.startAIService().catch((err) => {
+          console.error(`[${service}] Auto-restart failed:`, err);
+        });
+      } else {
+        this.startBridgeService().catch((err) => {
+          console.error(`[${service}] Auto-restart failed:`, err);
+        });
+      }
+    }, delay);
   }
 
   // ===========================================

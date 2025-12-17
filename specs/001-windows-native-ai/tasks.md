@@ -731,7 +731,10 @@
     - Tests: 20 passed (265 total in process-manager.test.ts)
     - Impl: Added maxRestarts config, enableAutoRestart toggle, handleAutoRestart()
     - Logs: `log_files/T008.3.1_*`, `log_tests/T008.3.1_*`, `log_learn/T008.3.1_*`
-  - [ ] T008.3.2 Implement exponential backoff (1s, 2s, 4s)
+  - [x] T008.3.2 Implement exponential backoff (1s, 2s, 4s)
+    - Tests: 10 passed (275 total in process-manager.test.ts)
+    - Impl: Added delay calculation, setTimeout for restart, delay field in RestartEvent
+    - Logs: `log_files/T008.3.2_*`, `log_tests/T008.3.2_*`, `log_learn/T008.3.2_*`
   - [ ] T008.3.3 Emit event on max retries exceeded
   - [ ] T008.3.4 Log all restart attempts
 
