@@ -16,7 +16,7 @@ import { app } from 'electron';
 /**
  * Event types emitted by ProcessManager
  */
-export type ProcessManagerEventType = 'statusChange' | 'error' | 'restart';
+export type ProcessManagerEventType = 'statusChange' | 'error' | 'restart' | 'healthChange';
 
 /**
  * Status change event payload
@@ -38,9 +38,31 @@ export interface RestartEvent {
 }
 
 /**
+ * Health change event payload (T008.1.6)
+ */
+export interface HealthChangeEvent {
+  service: 'ai' | 'bridge';
+  healthy: boolean;
+  consecutiveFailures: number;
+  timestamp: Date;
+}
+
+/**
+ * Health check result (T008.1.6)
+ */
+export interface HealthCheckResult {
+  healthy: boolean;
+  status: ServiceStatus;
+  error?: string;
+  responseTimeMs?: number;
+  retryCount?: number;
+  skipped?: boolean;
+}
+
+/**
  * Event listener callback type
  */
-export type EventListener = (event: StatusChangeEvent | RestartEvent) => void;
+export type EventListener = (event: StatusChangeEvent | RestartEvent | HealthChangeEvent) => void;
 
 /**
  * Service status enumeration
@@ -62,7 +84,13 @@ export interface ServiceHealth {
   uptime?: number;
   lastError?: string;
   lastHealthCheck?: Date;
+  consecutiveFailures?: number; // T008.1.6
 }
+
+/**
+ * Fetch function type for dependency injection (T008.1.6)
+ */
+export type FetchFunction = typeof globalThis.fetch;
 
 /**
  * Process Manager configuration
@@ -75,6 +103,9 @@ export interface ProcessManagerConfig {
   restartBackoffMs: number;
   startupTimeoutMs: number;  // T008.1.3: Timeout for process startup
   shutdownTimeoutMs: number; // T008.1.4: Timeout for graceful shutdown before force kill
+  healthCheckTimeoutMs: number; // T008.1.6: Timeout for individual health check
+  healthCheckRetries: number; // T008.1.6: Number of retries for health check
+  fetchFn?: FetchFunction; // T008.1.6: Injectable fetch for testing
 }
 
 /**
@@ -97,6 +128,8 @@ const DEFAULT_CONFIG: ProcessManagerConfig = {
   restartBackoffMs: 1000,
   startupTimeoutMs: 30000,  // T008.1.3: 30 second default timeout
   shutdownTimeoutMs: 5000,  // T008.1.4: 5 second default for graceful shutdown
+  healthCheckTimeoutMs: 5000, // T008.1.6: 5 second default for health check timeout
+  healthCheckRetries: 3, // T008.1.6: 3 retries by default
 };
 
 /**
@@ -131,12 +164,24 @@ export class ProcessManager {
   private bridgeProcessLogs: ProcessLogEntry[] = [];
   private readonly MAX_LOG_ENTRIES = 1000;
 
+  // T008.1.6: Health check tracking
+  private aiConsecutiveFailures: number = 0;
+  private bridgeConsecutiveFailures: number = 0;
+  private aiLastHealthCheck: Date | null = null;
+  private bridgeLastHealthCheck: Date | null = null;
+  private aiLastHealthStatus: boolean | null = null; // For change detection
+  private bridgeLastHealthStatus: boolean | null = null;
+  private fetchFn: FetchFunction;
+
   constructor(config: Partial<ProcessManagerConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
+    // T008.1.6: Use injected fetch or default to globalThis.fetch
+    this.fetchFn = config.fetchFn || globalThis.fetch;
     // Initialize event listener maps
     this.eventListeners.set('statusChange', new Set());
     this.eventListeners.set('error', new Set());
     this.eventListeners.set('restart', new Set());
+    this.eventListeners.set('healthChange', new Set()); // T008.1.6
   }
 
   // ===========================================
@@ -736,6 +781,8 @@ export class ProcessManager {
     const serviceProcess = service === 'ai' ? this.aiServiceProcess : this.bridgeServiceProcess;
     const startTime = service === 'ai' ? this.aiStartTime : this.bridgeStartTime;
     const lastError = service === 'ai' ? this.aiLastError : this.bridgeLastError;
+    const lastHealthCheck = service === 'ai' ? this.aiLastHealthCheck : this.bridgeLastHealthCheck;
+    const consecutiveFailures = service === 'ai' ? this.aiConsecutiveFailures : this.bridgeConsecutiveFailures;
 
     // Calculate uptime if service is running
     let uptime: number | undefined;
@@ -743,14 +790,147 @@ export class ProcessManager {
       uptime = Date.now() - startTime.getTime();
     }
 
-    // TODO: Implement actual HTTP health check in T008.1.6
     return {
       status,
       pid: serviceProcess?.pid,
       uptime,
       lastError: lastError ?? undefined,
-      lastHealthCheck: new Date(),
+      lastHealthCheck: lastHealthCheck ?? undefined,
+      consecutiveFailures,
     };
+  }
+
+  /**
+   * Perform HTTP health check with retry logic (T008.1.6)
+   * @param service - Service to check health of
+   * @returns Promise with health check result
+   */
+  async performHealthCheck(service: 'ai' | 'bridge'): Promise<HealthCheckResult> {
+    const status = service === 'ai' ? this.aiServiceStatus : this.bridgeServiceStatus;
+    const port = service === 'ai' ? this.config.aiServicePort : this.config.bridgeServicePort;
+
+    // Skip if service is not running
+    if (status !== ServiceStatus.RUNNING) {
+      return {
+        healthy: false,
+        status,
+        skipped: true,
+      };
+    }
+
+    const url = `http://127.0.0.1:${port}/health`;
+    const startTime = Date.now();
+    let lastError: string | undefined;
+
+    // Retry loop
+    for (let attempt = 0; attempt <= this.config.healthCheckRetries; attempt++) {
+      try {
+        // Create abort controller for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.healthCheckTimeoutMs);
+
+        const response = await this.fetchFn(url, {
+          method: 'GET',
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        const responseTimeMs = Date.now() - startTime;
+
+        if (response.ok) {
+          // Success - reset consecutive failures
+          if (service === 'ai') {
+            this.aiConsecutiveFailures = 0;
+            this.aiLastHealthCheck = new Date();
+            this.emitHealthChangeIfNeeded(service, true);
+          } else {
+            this.bridgeConsecutiveFailures = 0;
+            this.bridgeLastHealthCheck = new Date();
+            this.emitHealthChangeIfNeeded(service, true);
+          }
+
+          return {
+            healthy: true,
+            status,
+            responseTimeMs,
+            retryCount: attempt, // Return actual attempt number as retry count
+          };
+        } else {
+          // HTTP error response
+          lastError = `HTTP ${response.status}`;
+        }
+      } catch (error) {
+        // Network error or timeout
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            lastError = 'Health check timeout';
+          } else {
+            lastError = error.message;
+          }
+        } else {
+          lastError = 'Unknown error';
+        }
+      }
+
+      // If not last attempt, continue to next retry
+      if (attempt < this.config.healthCheckRetries) {
+        continue;
+      }
+    }
+
+    // All retries exhausted - increment consecutive failures
+    const responseTimeMs = Date.now() - startTime;
+
+    if (service === 'ai') {
+      this.aiConsecutiveFailures++;
+      this.aiLastHealthCheck = new Date();
+      this.emitHealthChangeIfNeeded(service, false);
+    } else {
+      this.bridgeConsecutiveFailures++;
+      this.bridgeLastHealthCheck = new Date();
+      this.emitHealthChangeIfNeeded(service, false);
+    }
+
+    return {
+      healthy: false,
+      status,
+      error: lastError,
+      responseTimeMs,
+      retryCount: this.config.healthCheckRetries,
+    };
+  }
+
+  /**
+   * Emit health change event if status changed (T008.1.6)
+   * @param service - Service that changed
+   * @param healthy - New health status
+   */
+  private emitHealthChangeIfNeeded(service: 'ai' | 'bridge', healthy: boolean): void {
+    const lastStatus = service === 'ai' ? this.aiLastHealthStatus : this.bridgeLastHealthStatus;
+    const consecutiveFailures = service === 'ai' ? this.aiConsecutiveFailures : this.bridgeConsecutiveFailures;
+
+    // Update last status
+    if (service === 'ai') {
+      this.aiLastHealthStatus = healthy;
+    } else {
+      this.bridgeLastHealthStatus = healthy;
+    }
+
+    // Don't emit on first check (no previous status to compare against)
+    if (lastStatus === null) {
+      return;
+    }
+
+    // Only emit if status changed (or on subsequent failures to update count)
+    if (lastStatus !== healthy || (!healthy && consecutiveFailures > 0)) {
+      this.emit('healthChange', {
+        service,
+        healthy,
+        consecutiveFailures,
+        timestamp: new Date(),
+      });
+    }
   }
 
   /**
@@ -786,7 +966,7 @@ export class ProcessManager {
   }
 
   /**
-   * Start health check polling
+   * Start health check polling (T008.1.6)
    */
   private startHealthCheckPolling(): void {
     if (this.healthCheckTimer) {
@@ -794,8 +974,13 @@ export class ProcessManager {
     }
 
     this.healthCheckTimer = setInterval(async () => {
-      // TODO: Implement actual health checks in T008
-      console.log('Health check polling (stub)');
+      // T008.1.6: Perform health checks on running services
+      if (this.aiServiceStatus === ServiceStatus.RUNNING) {
+        await this.performHealthCheck('ai');
+      }
+      if (this.bridgeServiceStatus === ServiceStatus.RUNNING) {
+        await this.performHealthCheck('bridge');
+      }
     }, this.config.healthCheckInterval);
   }
 
