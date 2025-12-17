@@ -642,7 +642,7 @@
 
 ### T008 - Desktop App Process Manager
 
-- [ ] **T008.1** Implement AI service process management
+- [x] **T008.1** Implement AI service process management ✅ *Completed 2025-12-17*
   - [x] T008.1.1 [P] Write test for process start/stop ✅ *Completed 2025-12-17*
     - Created: `desktop-app/tests/main/process-manager.test.ts` (42 tests)
     - Tests: Class structure, start/stop/restart methods, health checks, configuration
@@ -726,14 +726,21 @@
     - Test: 29 new tests (245 total) - all pass
     - Logs: `log_files/T008.2.3_*`, `log_tests/T008.2.3_*`, `log_learn/T008.2.3_*`
 
-- [ ] **T008.3** Implement auto-restart logic
+- [x] **T008.3** Implement auto-restart logic
   - [x] T008.3.1 Create restart counter with max 3 retries
     - Tests: 20 passed (265 total in process-manager.test.ts)
     - Impl: Added maxRestarts config, enableAutoRestart toggle, handleAutoRestart()
     - Logs: `log_files/T008.3.1_*`, `log_tests/T008.3.1_*`, `log_learn/T008.3.1_*`
-  - [ ] T008.3.2 Implement exponential backoff (1s, 2s, 4s)
-  - [ ] T008.3.3 Emit event on max retries exceeded
-  - [ ] T008.3.4 Log all restart attempts
+  - [x] T008.3.2 Implement exponential backoff (1s, 2s, 4s)
+    - Tests: 10 passed (275 total in process-manager.test.ts)
+    - Impl: Added delay calculation, setTimeout for restart, delay field in RestartEvent
+    - Logs: `log_files/T008.3.2_*`, `log_tests/T008.3.2_*`, `log_learn/T008.3.2_*`
+  - [x] T008.3.3 Emit event on max retries exceeded
+    - Note: Already implemented in T008.3.1 (maxRestartsExceeded event)
+  - [x] T008.3.4 Log all restart attempts
+    - Tests: 9 passed (284 total in process-manager.test.ts)
+    - Impl: Already implemented in T008.3.1 (console.log/warn calls)
+    - Logs: `log_files/T008.3.4_*`, `log_tests/T008.3.4_*`, `log_learn/T008.3.4_*`
 
 **Checkpoint**: Desktop app can start/stop/restart AI service
 
@@ -741,19 +748,35 @@
 
 ### T009 - Desktop App Database Layer
 
-- [ ] **T009.1** Implement SQLite connection
-  - [ ] T009.1.1 [P] Write test for database initialization
-  - [ ] T009.1.2 Create `database.ts` service
-  - [ ] T009.1.3 Implement database initialization with migration
-  - [ ] T009.1.4 Configure database path in user data directory
+- [x] **T009.1** Implement SQLite connection ✅ *Completed 2025-12-17*
+  - [x] T009.1.1 [P] Write test for database initialization ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/tests/main/database.test.ts` (30 tests)
+    - Tests: Class structure, lifecycle, migrations, foreign keys, error handling
+    - Logs: `log_files/T009.1.1_*`, `log_tests/T009.1.1_*`, `log_learn/T009.1.1_*`
+  - [x] T009.1.2 Create `database.ts` service ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/src/main/database.ts`
+    - DatabaseService class with initialize/close/getConnection methods
+  - [x] T009.1.3 Implement database initialization with migration ✅ *Completed 2025-12-17*
+    - Runs `database/migrations/001_initial_schema.sql` on init
+    - Enables WAL mode and foreign keys
+  - [x] T009.1.4 Configure database path in user data directory ✅ *Completed 2025-12-17*
+    - Helper: `getDefaultDatabasePath(userDataPath)` returns path in user data
 
-- [ ] **T009.2** Implement invoice repository
-  - [ ] T009.2.1 [P] Write tests for CRUD operations
-  - [ ] T009.2.2 Implement `createInvoice()` method
-  - [ ] T009.2.3 Implement `getInvoiceById()` method
-  - [ ] T009.2.4 Implement `updateInvoice()` method
-  - [ ] T009.2.5 Implement `listInvoices()` with filtering by state
-  - [ ] T009.2.6 Implement `checkDuplicate()` by hash
+- [x] **T009.2** Implement invoice repository ✅ *Completed 2025-12-17*
+  - [x] T009.2.1 [P] Write tests for CRUD operations ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/tests/main/invoice-repository.test.ts` (40 tests)
+    - Tests: Class structure, create, get, update, list, delete, duplicate check
+    - Logs: `log_files/T009.2.1_*`, `log_tests/T009.2.1_*`, `log_learn/T009.2.1_*`
+  - [x] T009.2.2 Implement `createInvoice()` method ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/src/main/invoice-repository.ts`
+    - UUID generation, auto-timestamps, foreign key validation
+  - [x] T009.2.3 Implement `getInvoiceById()` method ✅ *Completed 2025-12-17*
+  - [x] T009.2.4 Implement `updateInvoice()` method ✅ *Completed 2025-12-17*
+    - Dynamic field updates, auto updated_at timestamp
+  - [x] T009.2.5 Implement `listInvoices()` with filtering by state ✅ *Completed 2025-12-17*
+    - Single/multiple state filter, pagination (limit/offset), order by created_at DESC
+  - [x] T009.2.6 Implement `checkDuplicate()` by hash ✅ *Completed 2025-12-17*
+    - Returns isDuplicate flag and existing invoice if found
 
 - [ ] **T009.3** Implement vendor repository
   - [ ] T009.3.1 [P] Write tests for vendor operations
