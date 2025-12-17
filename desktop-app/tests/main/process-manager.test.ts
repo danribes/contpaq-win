@@ -4518,3 +4518,321 @@ describe('ProcessManager Exponential Backoff (T008.3.2)', () => {
     });
   });
 });
+
+// ===========================================
+// T008.3.4 - Restart Logging Tests
+// ===========================================
+
+describe('ProcessManager Restart Logging (T008.3.4)', () => {
+  let manager: ProcessManager;
+  const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
+  let consoleLogSpy: jest.SpyInstance;
+  let consoleWarnSpy: jest.SpyInstance;
+  let consoleErrorSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    consoleLogSpy.mockRestore();
+    consoleWarnSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
+
+  // ===========================================
+  // T008.3.4.1 - Log Restart Attempts
+  // ===========================================
+
+  describe('Log Restart Attempts', () => {
+    it('should log when auto-restart is triggered', async () => {
+      manager = new ProcessManager({
+        enableAutoRestart: true,
+        restartBackoffMs: 10,
+      });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      const startPromise = manager.startAIService();
+      jest.advanceTimersByTime(10);
+      await startPromise;
+
+      // Clear logs from startup
+      consoleLogSpy.mockClear();
+
+      // Crash service
+      processes[0].emit('exit', 1, null);
+
+      // Should log restart attempt
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Auto-restarting')
+      );
+    });
+
+    it('should include attempt number in log', async () => {
+      manager = new ProcessManager({
+        enableAutoRestart: true,
+        restartBackoffMs: 10,
+        maxRestarts: 5,
+      });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      const startPromise = manager.startAIService();
+      jest.advanceTimersByTime(10);
+      await startPromise;
+
+      consoleLogSpy.mockClear();
+      processes[0].emit('exit', 1, null);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('attempt 1')
+      );
+    });
+
+    it('should include max restarts in log', async () => {
+      manager = new ProcessManager({
+        enableAutoRestart: true,
+        restartBackoffMs: 10,
+        maxRestarts: 3,
+      });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      const startPromise = manager.startAIService();
+      jest.advanceTimersByTime(10);
+      await startPromise;
+
+      consoleLogSpy.mockClear();
+      processes[0].emit('exit', 1, null);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('/3')
+      );
+    });
+
+    it('should include delay in log', async () => {
+      manager = new ProcessManager({
+        enableAutoRestart: true,
+        restartBackoffMs: 1000,
+      });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      const startPromise = manager.startAIService();
+      jest.advanceTimersByTime(10);
+      await startPromise;
+
+      consoleLogSpy.mockClear();
+      processes[0].emit('exit', 1, null);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('1000ms')
+      );
+    });
+
+    it('should include service name in log', async () => {
+      manager = new ProcessManager({
+        enableAutoRestart: true,
+        restartBackoffMs: 10,
+      });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      const startPromise = manager.startAIService();
+      jest.advanceTimersByTime(10);
+      await startPromise;
+
+      consoleLogSpy.mockClear();
+      processes[0].emit('exit', 1, null);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[ai]')
+      );
+    });
+  });
+
+  // ===========================================
+  // T008.3.4.2 - Log Max Restarts Exceeded
+  // ===========================================
+
+  describe('Log Max Restarts Exceeded', () => {
+    it('should warn when max restarts exceeded', async () => {
+      manager = new ProcessManager({
+        enableAutoRestart: true,
+        restartBackoffMs: 10,
+        maxRestarts: 1,
+      });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      const startPromise = manager.startAIService();
+      jest.advanceTimersByTime(10);
+      await startPromise;
+
+      // First crash - restarts
+      processes[0].emit('exit', 1, null);
+      jest.advanceTimersByTime(20);
+      jest.advanceTimersByTime(10);
+
+      consoleWarnSpy.mockClear();
+
+      // Second crash - exceeds max
+      processes[1].emit('exit', 1, null);
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Max restarts')
+      );
+    });
+
+    it('should include max count in warning', async () => {
+      manager = new ProcessManager({
+        enableAutoRestart: true,
+        restartBackoffMs: 10,
+        maxRestarts: 2,
+      });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      const startPromise = manager.startAIService();
+      jest.advanceTimersByTime(10);
+      await startPromise;
+
+      // Exhaust restarts
+      processes[0].emit('exit', 1, null);
+      jest.advanceTimersByTime(30);
+
+      processes[1].emit('exit', 1, null);
+      jest.advanceTimersByTime(50);
+
+      consoleWarnSpy.mockClear();
+
+      // Exceed max
+      processes[2].emit('exit', 1, null);
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('(2)')
+      );
+    });
+  });
+
+  // ===========================================
+  // T008.3.4.3 - Log Auto-Restart Disabled
+  // ===========================================
+
+  describe('Log Auto-Restart Disabled', () => {
+    it('should log when auto-restart is disabled', async () => {
+      manager = new ProcessManager({
+        enableAutoRestart: false,
+      });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      const startPromise = manager.startAIService();
+      jest.advanceTimersByTime(10);
+      await startPromise;
+
+      consoleLogSpy.mockClear();
+
+      processes[0].emit('exit', 1, null);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Auto-restart disabled')
+      );
+    });
+  });
+
+  // ===========================================
+  // T008.3.4.4 - Bridge Service Logging
+  // ===========================================
+
+  describe('Bridge Service Logging', () => {
+    it('should log Bridge service restart attempts', async () => {
+      manager = new ProcessManager({
+        enableAutoRestart: true,
+        restartBackoffMs: 10,
+      });
+
+      const processes: ReturnType<typeof createMockChildProcess>[] = [];
+
+      mockSpawn.mockImplementation(() => {
+        const proc = createMockChildProcess();
+        processes.push(proc);
+        setTimeout(() => proc.emit('spawn'), 10);
+        return proc as never;
+      });
+
+      const startPromise = manager.startBridgeService();
+      jest.advanceTimersByTime(10);
+      await startPromise;
+
+      consoleLogSpy.mockClear();
+      processes[0].emit('exit', 1, null);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[bridge]')
+      );
+    });
+  });
+});

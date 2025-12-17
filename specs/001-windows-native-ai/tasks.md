@@ -726,7 +726,7 @@
     - Test: 29 new tests (245 total) - all pass
     - Logs: `log_files/T008.2.3_*`, `log_tests/T008.2.3_*`, `log_learn/T008.2.3_*`
 
-- [ ] **T008.3** Implement auto-restart logic
+- [x] **T008.3** Implement auto-restart logic
   - [x] T008.3.1 Create restart counter with max 3 retries
     - Tests: 20 passed (265 total in process-manager.test.ts)
     - Impl: Added maxRestarts config, enableAutoRestart toggle, handleAutoRestart()
@@ -735,8 +735,12 @@
     - Tests: 10 passed (275 total in process-manager.test.ts)
     - Impl: Added delay calculation, setTimeout for restart, delay field in RestartEvent
     - Logs: `log_files/T008.3.2_*`, `log_tests/T008.3.2_*`, `log_learn/T008.3.2_*`
-  - [ ] T008.3.3 Emit event on max retries exceeded
-  - [ ] T008.3.4 Log all restart attempts
+  - [x] T008.3.3 Emit event on max retries exceeded
+    - Note: Already implemented in T008.3.1 (maxRestartsExceeded event)
+  - [x] T008.3.4 Log all restart attempts
+    - Tests: 9 passed (284 total in process-manager.test.ts)
+    - Impl: Already implemented in T008.3.1 (console.log/warn calls)
+    - Logs: `log_files/T008.3.4_*`, `log_tests/T008.3.4_*`, `log_learn/T008.3.4_*`
 
 **Checkpoint**: Desktop app can start/stop/restart AI service
 
