@@ -778,13 +778,20 @@
   - [x] T009.2.6 Implement `checkDuplicate()` by hash ✅ *Completed 2025-12-17*
     - Returns isDuplicate flag and existing invoice if found
 
-- [ ] **T009.3** Implement vendor repository
-  - [ ] T009.3.1 [P] Write tests for vendor operations
-  - [ ] T009.3.2 Implement `createVendor()` method
-  - [ ] T009.3.3 Implement `getVendorByRfc()` method
-  - [ ] T009.3.4 Implement `upsertVendor()` method
+- [x] **T009.3** Implement vendor repository ✅ *Completed 2025-12-17*
+  - [x] T009.3.1 [P] Write tests for vendor operations ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/tests/main/vendor-repository.test.ts` (35 tests)
+    - Tests: Class structure, create, getByRfc, getById, upsert, list, delete
+    - Logs: `log_files/T009.3.1_*`, `log_tests/T009.3.1_*`, `log_learn/T009.3.1_*`
+  - [x] T009.3.2 Implement `createVendor()` method ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/src/main/vendor-repository.ts`
+    - UUID generation, RFC uniqueness enforcement
+  - [x] T009.3.3 Implement `getVendorByRfc()` method ✅ *Completed 2025-12-17*
+    - Case-sensitive RFC lookup
+  - [x] T009.3.4 Implement `upsertVendor()` method ✅ *Completed 2025-12-17*
+    - Create or update by RFC, preserves existing optional fields
 
-**Checkpoint**: Database operations work correctly
+**Checkpoint**: Database operations work correctly ✅
 
 ---
 
