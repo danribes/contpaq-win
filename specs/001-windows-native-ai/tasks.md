@@ -797,12 +797,21 @@
 
 ### T010 - Status Bar Component
 
-- [ ] **T010.1** Create StatusBar UI component
-  - [ ] T010.1.1 [P] Write test for status display
-  - [ ] T010.1.2 Create `StatusBar.tsx` component
-  - [ ] T010.1.3 Display AI service status (icon + text)
-  - [ ] T010.1.4 Display Windows Bridge status (icon + text)
-  - [ ] T010.1.5 Display current company name if connected
+- [x] **T010.1** Create StatusBar UI component ✅ *Completed 2025-12-17*
+  - [x] T010.1.1 [P] Write test for status display ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/tests/renderer/components/StatusBar.test.tsx` (27 tests)
+    - Tests: Component structure, status display, color indicators, company name, Tailwind
+    - Logs: `log_files/T010.1.1_*`, `log_tests/T010.1.1_*`, `log_learn/T010.1.1_*`
+  - [x] T010.1.2 Create `StatusBar.tsx` component ✅ *Completed 2025-12-17*
+    - Created: `desktop-app/src/renderer/components/StatusBar.tsx`
+    - Uses Tailwind CSS for styling
+  - [x] T010.1.3 Display AI service status (icon + text) ✅ *Completed 2025-12-17*
+    - Colored dot indicator (green/yellow/red/gray)
+    - Spanish text: Activo, Iniciando, Deteniendo, Detenido, Error
+  - [x] T010.1.4 Display Windows Bridge status (icon + text) ✅ *Completed 2025-12-17*
+    - Same indicator pattern as AI service
+  - [x] T010.1.5 Display current company name if connected ✅ *Completed 2025-12-17*
+    - Conditionally rendered when companyName prop is provided
 
 - [ ] **T010.2** Implement status polling hook
   - [ ] T010.2.1 Create `useServiceStatus.ts` hook
