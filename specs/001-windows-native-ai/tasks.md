@@ -813,13 +813,20 @@
   - [x] T010.1.5 Display current company name if connected ✅ *Completed 2025-12-17*
     - Conditionally rendered when companyName prop is provided
 
-- [ ] **T010.2** Implement status polling hook
-  - [ ] T010.2.1 Create `useServiceStatus.ts` hook
-  - [ ] T010.2.2 Poll both services every 5 seconds
-  - [ ] T010.2.3 Update status on service events
-  - [ ] T010.2.4 Show "Iniciando..." during startup
+- [x] **T010.2** Implement status polling hook ✅ *Completed 2025-12-17*
+  - [x] T010.2.1 Create `useServiceStatus.ts` hook ✅ *Completed 2025-12-17*
+    - Returns aiStatus, bridgeStatus, companyName, isLoading, refresh
+    - Initial state: 'starting' for both services
+  - [x] T010.2.2 Poll both services every 5 seconds ✅ *Completed 2025-12-17*
+    - Uses setInterval with 5000ms interval
+    - Fetches via electronAPI.invoke
+  - [x] T010.2.3 Update status on service events ✅ *Completed 2025-12-17*
+    - Subscribes to ai:status-changed and bridge:status-changed
+    - Proper cleanup on unmount
+  - [x] T010.2.4 Show "Iniciando..." during startup ✅ *Completed 2025-12-17*
+    - isLoading starts true, becomes false after first fetch
 
-**Checkpoint**: Status bar shows service health
+**Checkpoint**: Status bar shows service health ✅ *T010 Complete*
 
 ---
 
