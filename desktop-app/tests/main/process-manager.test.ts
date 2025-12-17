@@ -1565,3 +1565,292 @@ describe('ProcessManager stopAIService Graceful Shutdown (T008.1.4)', () => {
     });
   });
 });
+
+// ===========================================
+// T008.1.5 - restartAIService Enhanced Tests
+// ===========================================
+
+describe('ProcessManager restartAIService Enhanced (T008.1.5)', () => {
+  let manager: ProcessManager;
+  let mockProcess: ReturnType<typeof createMockChildProcess>;
+  const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
+
+  beforeEach(() => {
+    manager = new ProcessManager();
+    mockProcess = createMockChildProcess();
+    mockSpawn.mockImplementation(() => {
+      setTimeout(() => mockProcess.emit('spawn'), 10);
+      return mockProcess as never;
+    });
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+  });
+
+  // Helper to start the service
+  async function startService(): Promise<void> {
+    await manager.startAIService();
+    expect(manager.getAIServiceStatus()).toBe(ServiceStatus.RUNNING);
+  }
+
+  // Helper to setup kill mock for graceful stop
+  function setupGracefulStop(): void {
+    mockProcess.kill.mockImplementation(() => {
+      mockProcess.emit('exit', 0, 'SIGTERM');
+      return true;
+    });
+  }
+
+  // ===========================================
+  // T008.1.5.1 - Restart Counter
+  // ===========================================
+
+  describe('Restart Counter', () => {
+    it('should increment restart counter when restarting', async () => {
+      await startService();
+      setupGracefulStop();
+
+      expect(manager.getRestartCount('ai')).toBe(0);
+
+      await manager.restartAIService();
+
+      expect(manager.getRestartCount('ai')).toBe(1);
+    });
+
+    it('should increment restart counter multiple times', async () => {
+      await startService();
+      setupGracefulStop();
+
+      await manager.restartAIService();
+      expect(manager.getRestartCount('ai')).toBe(1);
+
+      // Need new mock process for second restart
+      const secondMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => secondMockProcess.emit('spawn'), 10);
+        return secondMockProcess as never;
+      });
+      secondMockProcess.kill.mockImplementation(() => {
+        secondMockProcess.emit('exit', 0, 'SIGTERM');
+        return true;
+      });
+
+      await manager.restartAIService();
+      expect(manager.getRestartCount('ai')).toBe(2);
+
+      // Third restart
+      const thirdMockProcess = createMockChildProcess();
+      mockSpawn.mockImplementation(() => {
+        setTimeout(() => thirdMockProcess.emit('spawn'), 10);
+        return thirdMockProcess as never;
+      });
+      thirdMockProcess.kill.mockImplementation(() => {
+        thirdMockProcess.emit('exit', 0, 'SIGTERM');
+        return true;
+      });
+
+      await manager.restartAIService();
+      expect(manager.getRestartCount('ai')).toBe(3);
+    });
+
+    it('should not increment restart counter if service was not running', async () => {
+      // Service is stopped, restart should just start it (not count as restart)
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
+      expect(manager.getRestartCount('ai')).toBe(0);
+
+      await manager.restartAIService();
+
+      // Should not increment counter for initial start
+      expect(manager.getRestartCount('ai')).toBe(0);
+    });
+
+    it('should be reset by resetRestartCount', async () => {
+      await startService();
+      setupGracefulStop();
+
+      await manager.restartAIService();
+      expect(manager.getRestartCount('ai')).toBe(1);
+
+      manager.resetRestartCount('ai');
+      expect(manager.getRestartCount('ai')).toBe(0);
+    });
+  });
+
+  // ===========================================
+  // T008.1.5.2 - Restart Event Emission
+  // ===========================================
+
+  describe('Restart Event', () => {
+    it('should emit restart event when restarting a running service', async () => {
+      await startService();
+      setupGracefulStop();
+
+      const restartListener = jest.fn();
+      manager.on('restart', restartListener);
+
+      await manager.restartAIService();
+
+      expect(restartListener).toHaveBeenCalled();
+      expect(restartListener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'ai',
+        })
+      );
+    });
+
+    it('should not emit restart event for initial start', async () => {
+      const restartListener = jest.fn();
+      manager.on('restart', restartListener);
+
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.STOPPED);
+      await manager.restartAIService();
+
+      // Should not emit restart for initial start
+      expect(restartListener).not.toHaveBeenCalled();
+    });
+
+    it('should include restart count in event', async () => {
+      await startService();
+      setupGracefulStop();
+
+      const restartListener = jest.fn();
+      manager.on('restart', restartListener);
+
+      await manager.restartAIService();
+
+      expect(restartListener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'ai',
+          restartCount: 1,
+        })
+      );
+    });
+  });
+
+  // ===========================================
+  // T008.1.5.3 - Uptime Reset
+  // ===========================================
+
+  describe('Uptime Reset', () => {
+    it('should reset uptime after restart', async () => {
+      await startService();
+
+      // Wait a bit to accumulate uptime
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      const healthBefore = await manager.checkHealth('ai');
+      const uptimeBefore = healthBefore.uptime;
+      expect(uptimeBefore).toBeGreaterThan(0);
+
+      setupGracefulStop();
+      await manager.restartAIService();
+
+      // Uptime should be reset (close to 0)
+      const healthAfter = await manager.checkHealth('ai');
+      expect(healthAfter.uptime).toBeDefined();
+      expect(healthAfter.uptime).toBeLessThanOrEqual(100); // Small margin for test timing
+    });
+  });
+
+  // ===========================================
+  // T008.1.5.4 - Error Handling
+  // ===========================================
+
+  describe('Error Handling', () => {
+    it('should propagate error if start fails during restart', async () => {
+      await startService();
+      setupGracefulStop();
+
+      // Setup start to fail on next call
+      mockSpawn.mockImplementation(() => {
+        const failProcess = createMockChildProcess();
+        setTimeout(() => failProcess.emit('error', new Error('Start failed')), 10);
+        return failProcess as never;
+      });
+
+      await expect(manager.restartAIService()).rejects.toThrow('Start failed');
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.ERROR);
+    });
+
+    it('should still increment restart counter if start fails', async () => {
+      await startService();
+      setupGracefulStop();
+
+      expect(manager.getRestartCount('ai')).toBe(0);
+
+      // Setup start to fail
+      mockSpawn.mockImplementation(() => {
+        const failProcess = createMockChildProcess();
+        setTimeout(() => failProcess.emit('error', new Error('Start failed')), 10);
+        return failProcess as never;
+      });
+
+      try {
+        await manager.restartAIService();
+      } catch {
+        // Expected
+      }
+
+      // Counter should still be incremented
+      expect(manager.getRestartCount('ai')).toBe(1);
+    });
+
+    it('should set lastError if restart fails', async () => {
+      await startService();
+      setupGracefulStop();
+
+      mockSpawn.mockImplementation(() => {
+        const failProcess = createMockChildProcess();
+        setTimeout(() => failProcess.emit('error', new Error('Restart start failed')), 10);
+        return failProcess as never;
+      });
+
+      try {
+        await manager.restartAIService();
+      } catch {
+        // Expected
+      }
+
+      const error = manager.getLastError('ai');
+      expect(error).toContain('Restart start failed');
+    });
+  });
+
+  // ===========================================
+  // T008.1.5.5 - Status Transitions
+  // ===========================================
+
+  describe('Status Transitions', () => {
+    it('should transition through correct states during restart', async () => {
+      await startService();
+
+      const statusTransitions: ServiceStatus[] = [];
+      manager.on('statusChange', (event) => {
+        if (event.service === 'ai') {
+          statusTransitions.push(event.status);
+        }
+      });
+
+      setupGracefulStop();
+      await manager.restartAIService();
+
+      // Should transition: RUNNING -> STOPPING -> STOPPED -> STARTING -> RUNNING
+      expect(statusTransitions).toContain(ServiceStatus.STOPPING);
+      expect(statusTransitions).toContain(ServiceStatus.STOPPED);
+      expect(statusTransitions).toContain(ServiceStatus.STARTING);
+      expect(statusTransitions).toContain(ServiceStatus.RUNNING);
+    });
+
+    it('should end in RUNNING state after successful restart', async () => {
+      await startService();
+      setupGracefulStop();
+
+      await manager.restartAIService();
+
+      expect(manager.getAIServiceStatus()).toBe(ServiceStatus.RUNNING);
+      expect(manager.isAIServiceRunning()).toBe(true);
+    });
+  });
+});

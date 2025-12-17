@@ -681,7 +681,15 @@
     - Added: Error handling for already-dead processes
     - Test: 23 new tests (124 total) - all pass
     - Logs: `log_files/T008.1.4_*`, `log_tests/T008.1.4_*`, `log_learn/T008.1.4_*`
-  - [ ] T008.1.5 Implement `restartAIService()` method
+  - [x] T008.1.5 Implement `restartAIService()` method ✅ *Completed 2025-12-17*
+    - [x] T008.1.5.1 Track true restart vs initial start
+    - [x] T008.1.5.2 Increment restart counter for true restarts
+    - [x] T008.1.5.3 Emit 'restart' event with count information
+    - Added: RestartEvent interface with service, restartCount, timestamp
+    - Added: emitRestart() helper method
+    - Enhanced: restartAIService() with wasRunning check
+    - Test: 13 new tests (137 total) - all pass
+    - Logs: `log_files/T008.1.5_*`, `log_tests/T008.1.5_*`, `log_learn/T008.1.5_*`
   - [ ] T008.1.6 Implement health check polling with retry
 
 - [ ] **T008.2** Implement Windows Bridge process management
