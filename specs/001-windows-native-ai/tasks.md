@@ -919,15 +919,15 @@
     - [x] T013.2.5.4 Map invoice_date field
     - [x] T013.2.5.5 Map subtotal, iva_amount, total fields
 
-- [ ] **T013.3** Implement line item extraction
-  - [ ] T013.3.1 [P] Write test `test_line_item_extraction.py`
-  - [ ] T013.3.2 Detect table region in document
-  - [ ] T013.3.3 Extract line items from table
-    - [ ] T013.3.3.1 Parse description column
-    - [ ] T013.3.3.2 Parse quantity column
-    - [ ] T013.3.3.3 Parse unit_price column
-    - [ ] T013.3.3.4 Parse amount column
-  - [ ] T013.3.4 Validate line item totals
+- [x] **T013.3** Implement line item extraction ✅ 2025-12-17
+  - [x] T013.3.1 [P] Write test `test_line_item_extraction.py`
+  - [x] T013.3.2 Detect table region in document
+  - [x] T013.3.3 Extract line items from table
+    - [x] T013.3.3.1 Parse description column
+    - [x] T013.3.3.2 Parse quantity column
+    - [x] T013.3.3.3 Parse unit_price column
+    - [x] T013.3.3.4 Parse amount column
+  - [x] T013.3.4 Validate line item totals
 
 **Checkpoint**: AI extracts all invoice fields with confidence
 
