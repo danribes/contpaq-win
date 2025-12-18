@@ -1067,12 +1067,12 @@
 
 ### T018 - Confidence Indicator Component
 
-- [ ] **T018.1** Create confidence indicator
-  - [ ] T018.1.1 [P] Write test for confidence display
-  - [ ] T018.1.2 Create `ConfidenceIndicator.tsx` component
-  - [ ] T018.1.3 Display colored dot (green/orange/red)
-  - [ ] T018.1.4 Show percentage on hover
-  - [ ] T018.1.5 Add tooltip with confidence explanation
+- [x] **T018.1** Create confidence indicator ✅ 2025-12-18
+  - [x] T018.1.1 [P] Write test for confidence display
+  - [x] T018.1.2 Create `ConfidenceIndicator.tsx` component
+  - [x] T018.1.3 Display colored dot (green/orange/red)
+  - [x] T018.1.4 Show percentage on hover
+  - [x] T018.1.5 Add tooltip with confidence explanation
 
 - [ ] **T018.2** Define confidence utilities
   - [ ] T018.2.1 Create `confidence.py` utils in AI service
