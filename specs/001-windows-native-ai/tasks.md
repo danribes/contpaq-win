@@ -960,13 +960,24 @@
 
 ### T015 - Desktop App AI Service Client
 
-- [ ] **T015.1** Create AI service API client
-  - [ ] T015.1.1 [P] Write test for API client
-  - [ ] T015.1.2 Create `ai-service.ts` in services/
-  - [ ] T015.1.3 Implement `extractInvoice(file: File)` method
-  - [ ] T015.1.4 Implement `checkHealth()` method
-  - [ ] T015.1.5 Handle network errors with retry
-  - [ ] T015.1.6 Parse response to TypeScript types
+- [x] **T015.1** Create AI service API client ✅ 2025-12-18
+  - [x] T015.1.1 [P] Write test for API client (35 tests)
+  - [x] T015.1.2 Create `ai-service.ts` in services/
+  - [x] T015.1.3 Implement `extractInvoice(file: File)` method
+  - [x] T015.1.4 Implement `checkHealth()` method
+  - [x] T015.1.5 Handle network errors with retry
+  - [x] T015.1.6 Parse response to TypeScript types
+
+  **Implementation Details:**
+  - Created `AIServiceClient` class in `desktop-app/src/renderer/services/ai-service.ts`
+  - `extractInvoice()`: POST /extract with FormData file upload
+  - `extractBatch()`: POST /extract/batch for batch processing
+  - `checkHealth()`: GET /health with graceful error handling
+  - Retry logic with exponential backoff (200ms, 400ms, 800ms)
+  - Converts snake_case API responses to camelCase TypeScript types
+  - Converts confidence from 0-1 decimal to 0-100 percentage
+  - Custom `AIServiceError` class for typed error handling
+  - 35 tests covering all methods, error handling, retries, timeouts
 
 - [ ] **T015.2** Implement file upload UI
   - [ ] T015.2.1 [P] Write test for file upload
