@@ -90,8 +90,8 @@ Source: "..\ai-service\dist\*"; DestDir: "{app}\ai-service"; Flags: ignoreversio
 ; Windows Bridge
 Source: "..\windows-bridge\src\ContPAQWinBridge\bin\publish\win-x64\*"; DestDir: "{app}\windows-bridge"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-; Tesseract OCR
-Source: "..\desktop-app\resources\tesseract\*"; DestDir: "{app}\tesseract"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Tesseract OCR (optional - may not be present in all builds)
+Source: "..\desktop-app\resources\tesseract\*"; DestDir: "{app}\tesseract"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 
 ; NSSM for AI service
 Source: "tools\nssm.exe"; DestDir: "{app}\tools"; Flags: ignoreversion
