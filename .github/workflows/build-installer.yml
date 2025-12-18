@@ -181,6 +181,12 @@ jobs:
           Write-Host "Building application..."
           npm run build
 
+          Write-Host "Removing canvas from node_modules (not needed in Electron, causes rebuild issues)..."
+          if (Test-Path "node_modules/canvas") {
+            Remove-Item -Recurse -Force "node_modules/canvas"
+            Write-Host "canvas removed successfully"
+          }
+
           Write-Host "Packaging with Electron Builder..."
           npm run package
 
