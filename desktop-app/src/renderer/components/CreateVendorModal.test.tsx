@@ -5,8 +5,7 @@
  * is not found in ContPAQi during the posting flow.
  */
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { CreateVendorModal, type CreateVendorModalProps } from './CreateVendorModal';
 

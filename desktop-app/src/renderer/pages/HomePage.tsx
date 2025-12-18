@@ -10,7 +10,7 @@
  * Uses Tailwind CSS for styling.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Invoice, InvoiceState } from '../types';
 
@@ -189,7 +189,7 @@ interface InvoiceRowProps {
   index: number;
 }
 
-function InvoiceRow({ invoice, index }: InvoiceRowProps): JSX.Element {
+function InvoiceRow({ invoice, index: _index }: InvoiceRowProps): JSX.Element {
   const statusConfig = STATUS_CONFIG[invoice.state];
   const vendorName = invoice.vendor?.businessName || 'Proveedor desconocido';
 

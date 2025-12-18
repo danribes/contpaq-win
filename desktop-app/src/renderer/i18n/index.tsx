@@ -5,7 +5,7 @@
  * Supports nested key access (e.g., 'buttons.save') and fallback handling.
  */
 
-import React, { createContext, useContext, ReactNode, useMemo } from 'react';
+import { createContext, useContext, type ReactNode, useMemo } from 'react';
 
 import esTranslations from './es.json';
 

@@ -5,7 +5,7 @@
  * It bootstraps the React application and mounts it to the DOM.
  */
 
-import React, { StrictMode } from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App';

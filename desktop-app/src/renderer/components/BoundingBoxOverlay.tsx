@@ -10,7 +10,7 @@
  * Uses Tailwind CSS for styling.
  */
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { ExtractionField } from '../types';
 
 /**

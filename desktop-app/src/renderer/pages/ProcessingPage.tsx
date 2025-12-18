@@ -7,11 +7,9 @@
  * Uses Tailwind CSS for styling.
  */
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { FileUpload } from '../components/FileUpload';
 import { PDFViewer } from '../components/PDFViewer';
-import { BoundingBoxOverlay } from '../components/BoundingBoxOverlay';
-import type { InvoiceState } from '../types';
 
 /**
  * Status configuration for display
@@ -89,7 +87,8 @@ export function ProcessingPage(): JSX.Element {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<string>('none');
-  const [scale, setScale] = useState<number>(1);
+  // Scale state for future zoom controls
+  const [_scale, _setScale] = useState<number>(1);
 
   /**
    * Handle file selection from FileUpload
@@ -115,7 +114,8 @@ export function ProcessingPage(): JSX.Element {
   /**
    * Get current status configuration
    */
-  const statusConfig = STATUS_CONFIG[status] || STATUS_CONFIG.none;
+  const noneConfig = STATUS_CONFIG.none!;
+  const statusConfig = STATUS_CONFIG[status] ?? noneConfig;
 
   return (
     <div data-testid="processing-page" className="h-full flex flex-col bg-gray-50">

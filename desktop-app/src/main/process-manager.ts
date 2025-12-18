@@ -592,11 +592,12 @@ export class ProcessManager {
       const spawnOptions = {
         cwd: srcPath,
         shell: false,
-        stdio: ['ignore', 'pipe', 'pipe'] as const,
+        stdio: ['ignore', 'pipe', 'pipe'] as ['ignore', 'pipe', 'pipe'],
       };
 
       // Spawn the process
-      this.aiServiceProcess = spawn(pythonPath, args, spawnOptions);
+      const proc = spawn(pythonPath, args, spawnOptions);
+      this.aiServiceProcess = proc;
 
       // Setup timeout
       const timeoutId = setTimeout(() => {
@@ -610,15 +611,15 @@ export class ProcessManager {
       }, this.config.startupTimeoutMs);
 
       // Handle spawn event (process started successfully)
-      this.aiServiceProcess.on('spawn', () => {
+      proc.on('spawn', () => {
         clearTimeout(timeoutId);
         this.updateStatus('ai', ServiceStatus.RUNNING);
-        console.log(`AI Service started (PID: ${this.aiServiceProcess?.pid})`);
+        console.log(`AI Service started (PID: ${proc.pid})`);
         resolve();
       });
 
       // Handle error event (failed to spawn)
-      this.aiServiceProcess.on('error', (error: Error) => {
+      proc.on('error', (error: Error) => {
         clearTimeout(timeoutId);
         this.setError('ai', error.message);
         this.updateStatus('ai', ServiceStatus.ERROR);
@@ -627,7 +628,7 @@ export class ProcessManager {
       });
 
       // Handle exit event (process terminated)
-      this.aiServiceProcess.on('exit', (code: number | null, signal: string | null) => {
+      proc.on('exit', (code: number | null, signal: string | null) => {
         clearTimeout(timeoutId);
 
         if (this.aiServiceStatus === ServiceStatus.STOPPING) {
@@ -651,8 +652,8 @@ export class ProcessManager {
       });
 
       // Capture stdout
-      if (this.aiServiceProcess.stdout) {
-        this.aiServiceProcess.stdout.on('data', (data: Buffer) => {
+      if (proc.stdout) {
+        proc.stdout.on('data', (data: Buffer) => {
           const message = data.toString().trim();
           if (message) {
             this.addLog('ai', 'stdout', message);
@@ -661,8 +662,8 @@ export class ProcessManager {
       }
 
       // Capture stderr
-      if (this.aiServiceProcess.stderr) {
-        this.aiServiceProcess.stderr.on('data', (data: Buffer) => {
+      if (proc.stderr) {
+        proc.stderr.on('data', (data: Buffer) => {
           const message = data.toString().trim();
           if (message) {
             this.addLog('ai', 'stderr', message);
@@ -675,9 +676,9 @@ export class ProcessManager {
   /**
    * Emit error event
    * @param service - Service that errored
-   * @param error - Error object
+   * @param _error - Error object (unused, but kept for API consistency)
    */
-  private emitError(service: 'ai' | 'bridge', error: Error): void {
+  private emitError(service: 'ai' | 'bridge', _error: Error): void {
     this.emit('error', {
       service,
       status: ServiceStatus.ERROR,
@@ -743,7 +744,7 @@ export class ProcessManager {
       try {
         process.kill('SIGTERM');
         console.log('Sent SIGTERM to AI Service');
-      } catch (error) {
+      } catch {
         // Process may already be dead
         console.log('Failed to send SIGTERM (process may have already exited)');
         onExit();
@@ -831,11 +832,12 @@ export class ProcessManager {
       const spawnOptions = {
         cwd: bridgeServicePath,
         shell: false,
-        stdio: ['ignore', 'pipe', 'pipe'] as const,
+        stdio: ['ignore', 'pipe', 'pipe'] as ['ignore', 'pipe', 'pipe'],
       };
 
       // Spawn the process
-      this.bridgeServiceProcess = spawn(dotnetPath, args, spawnOptions);
+      const proc = spawn(dotnetPath, args, spawnOptions);
+      this.bridgeServiceProcess = proc;
 
       // Setup timeout
       const timeoutId = setTimeout(() => {
@@ -849,15 +851,15 @@ export class ProcessManager {
       }, this.config.startupTimeoutMs);
 
       // Handle spawn event (process started successfully)
-      this.bridgeServiceProcess.on('spawn', () => {
+      proc.on('spawn', () => {
         clearTimeout(timeoutId);
         this.updateStatus('bridge', ServiceStatus.RUNNING);
-        console.log(`Bridge Service started (PID: ${this.bridgeServiceProcess?.pid})`);
+        console.log(`Bridge Service started (PID: ${proc.pid})`);
         resolve();
       });
 
       // Handle error event (failed to spawn)
-      this.bridgeServiceProcess.on('error', (error: Error) => {
+      proc.on('error', (error: Error) => {
         clearTimeout(timeoutId);
         this.setError('bridge', error.message);
         this.updateStatus('bridge', ServiceStatus.ERROR);
@@ -866,7 +868,7 @@ export class ProcessManager {
       });
 
       // Handle exit event (process terminated)
-      this.bridgeServiceProcess.on('exit', (code: number | null, signal: string | null) => {
+      proc.on('exit', (code: number | null, signal: string | null) => {
         clearTimeout(timeoutId);
 
         if (this.bridgeServiceStatus === ServiceStatus.STOPPING) {
@@ -890,8 +892,8 @@ export class ProcessManager {
       });
 
       // Capture stdout
-      if (this.bridgeServiceProcess.stdout) {
-        this.bridgeServiceProcess.stdout.on('data', (data: Buffer) => {
+      if (proc.stdout) {
+        proc.stdout.on('data', (data: Buffer) => {
           const message = data.toString().trim();
           if (message) {
             this.addBridgeLog('stdout', message);
@@ -900,8 +902,8 @@ export class ProcessManager {
       }
 
       // Capture stderr
-      if (this.bridgeServiceProcess.stderr) {
-        this.bridgeServiceProcess.stderr.on('data', (data: Buffer) => {
+      if (proc.stderr) {
+        proc.stderr.on('data', (data: Buffer) => {
           const message = data.toString().trim();
           if (message) {
             this.addBridgeLog('stderr', message);
@@ -940,9 +942,9 @@ export class ProcessManager {
 
   /**
    * Emit error event for bridge service (T008.2.1)
-   * @param error - Error object
+   * @param _error - Error object (unused, but kept for API consistency)
    */
-  private emitBridgeError(error: Error): void {
+  private emitBridgeError(_error: Error): void {
     this.emit('error', {
       service: 'bridge',
       status: ServiceStatus.ERROR,
@@ -1008,7 +1010,7 @@ export class ProcessManager {
       try {
         process.kill('SIGTERM');
         console.log('Sent SIGTERM to Bridge Service');
-      } catch (error) {
+      } catch {
         // Process may already be dead
         console.log('Failed to send SIGTERM (process may have already exited)');
         onExit();

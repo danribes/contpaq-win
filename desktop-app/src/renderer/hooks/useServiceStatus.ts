@@ -130,8 +130,9 @@ export function useServiceStatus(): UseServiceStatusResult {
   /**
    * Handle AI status change event
    */
-  const handleAiStatusChange = useCallback((data: StatusChangeEvent) => {
-    if (isMountedRef.current) {
+  const handleAiStatusChange = useCallback((...args: unknown[]) => {
+    const data = args[0] as StatusChangeEvent;
+    if (isMountedRef.current && data?.status) {
       setAiStatus(data.status);
     }
   }, []);
@@ -139,8 +140,9 @@ export function useServiceStatus(): UseServiceStatusResult {
   /**
    * Handle Bridge status change event
    */
-  const handleBridgeStatusChange = useCallback((data: StatusChangeEvent) => {
-    if (isMountedRef.current) {
+  const handleBridgeStatusChange = useCallback((...args: unknown[]) => {
+    const data = args[0] as StatusChangeEvent;
+    if (isMountedRef.current && data?.status) {
       setBridgeStatus(data.status);
     }
   }, []);

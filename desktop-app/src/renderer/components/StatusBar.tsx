@@ -7,7 +7,6 @@
  * Uses Tailwind CSS for styling.
  */
 
-import React from 'react';
 import type { ServiceStatus } from '../types';
 
 /**

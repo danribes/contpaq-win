@@ -9,8 +9,8 @@
  * Uses Tailwind CSS for styling.
  */
 
-import React, { useState, useCallback } from 'react';
-import { CONFIDENCE_THRESHOLDS, getConfidenceLevel, type ConfidenceLevel } from '../types';
+import { useState, useCallback } from 'react';
+import { getConfidenceLevel, type ConfidenceLevel } from '../types';
 
 // =============================================================================
 // Types
