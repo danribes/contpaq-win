@@ -1151,14 +1151,25 @@
 
 ### T021 - Validate Button and State Transition
 
-- [ ] **T021.1** Implement validate action
-  - [ ] T021.1.1 [P] Write test for validate action
-  - [ ] T021.1.2 Add "Validar" button to form
-  - [ ] T021.1.3 Run all validations on click
-  - [ ] T021.1.4 Update invoice state to VALIDATED
-  - [ ] T021.1.5 Save updated data to database
-  - [ ] T021.1.6 Update extraction_results with user edits
-  - [ ] T021.1.7 Show success message in Spanish
+- [x] **T021.1** Implement validate action ✓ 2025-12-18
+  - [x] T021.1.1 [P] Write test for validate action
+  - [x] T021.1.2 Add "Validar" button to form
+  - [x] T021.1.3 Run all validations on click
+  - [x] T021.1.4 Update invoice state to VALIDATED
+  - [x] T021.1.5 Save updated data to database
+  - [x] T021.1.6 Update extraction_results with user edits
+  - [x] T021.1.7 Show success message in Spanish
+
+  **Implementation Details (T021.1)**:
+  - Created `useValidateAction` hook in `desktop-app/src/renderer/hooks/useValidateAction.ts`
+  - Hook manages validation workflow: idle → validating → validated/error
+  - Validates RFC format (12-13 alphanumeric characters)
+  - Validates totals (subtotal + IVA = total with 16% rate)
+  - Supports async `onSave` callback for persistence
+  - Calls `onValidated` callback on success with extraction data
+  - Uses `useRef` with microtask delay to prevent double-click race conditions
+  - All messages in Spanish for Mexican users
+  - 36 tests covering all functionality
 
 **Checkpoint**: Invoice can be validated and state updated
 
