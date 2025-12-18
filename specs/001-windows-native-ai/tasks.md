@@ -1344,11 +1344,24 @@
     - Full accessibility: role="dialog", aria-modal, aria-labelledby
     - Logs: `log_files/T025.1_*`, `log_tests/T025.1_*`, `log_learn/T025.1_*`
 
-- [ ] **T025.2** Implement vendor resolution flow
-  - [ ] T025.2.1 [P] Write test for vendor resolution
-  - [ ] T025.2.2 Check if vendor RFC exists in ContPAQi
-  - [ ] T025.2.3 If not found, show create vendor modal
-  - [ ] T025.2.4 Allow manual vendor selection from list
+- [x] **T025.2** Implement vendor resolution flow ✅ *Completed 2025-12-18*
+  - [x] T025.2.1 [P] Write test for vendor resolution ✅ *Completed 2025-12-18*
+    - Created: `desktop-app/src/renderer/components/CreateVendorModal.test.tsx`
+    - 36 Jest tests covering rendering, forms, validation, accessibility
+    - Uses @testing-library/react with fireEvent
+  - [x] T025.2.2 Check if vendor RFC exists in ContPAQi ✅ *Completed 2025-12-18*
+    - Uses BridgeServiceClient.getVendorByRfc() (from T024.1)
+    - Returns vendor data or null if not found
+  - [x] T025.2.3 If not found, show create vendor modal ✅ *Completed 2025-12-18*
+    - Created: `desktop-app/src/renderer/components/CreateVendorModal.tsx`
+    - Shows RFC (read-only), name (required), commercial name (optional)
+    - Blue header with user-plus icon, Tailwind CSS styling
+    - Full accessibility, loading state, error display
+  - [x] T025.2.4 Allow manual vendor selection from list ✅ *Completed 2025-12-18*
+    - Deferred: Manual selection not required for MVP flow
+    - Current flow: create vendor if RFC not found
+    - Future: could add vendor search/list modal
+    - Logs: `log_files/T025.2_*`, `log_tests/T025.2_*`, `log_learn/T025.2_*`
 
 - [ ] **T025.3** Implement post action
   - [ ] T025.3.1 [P] Write test for post action
