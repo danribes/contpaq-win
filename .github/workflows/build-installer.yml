@@ -1,0 +1,294 @@
+# GitHub Actions workflow for building ContPaq-proPDF installer
+# Triggers on release tags (v*) and creates Windows installer
+# Uploads installer to GitHub Releases automatically
+
+name: Build Installer
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v0.1.0, v1.0.0, etc.
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+    inputs:
+      version:
+        description: 'Version number (e.g., 0.1.0)'
+        required: false
+        default: '0.1.0'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '20'
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  build:
+    name: Build Windows Installer
+    runs-on: windows-latest
+
+    steps:
+      # =========================================
+      # Setup
+      # =========================================
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for version detection
+
+      - name: Get version from tag
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ github.event.inputs.version }}"
+          } else {
+            $version = "${{ github.ref_name }}" -replace '^v', ''
+          }
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "Building version: $version"
+
+      # =========================================
+      # Install Dependencies
+      # =========================================
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: 'ai-service/requirements.txt'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'desktop-app/package-lock.json'
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          # Download Inno Setup
+          $innoUrl = "https://jrsoftware.org/download.php/is.exe"
+          $innoInstaller = "$env:TEMP\innosetup.exe"
+
+          Write-Host "Downloading Inno Setup..."
+          Invoke-WebRequest -Uri $innoUrl -OutFile $innoInstaller -UseBasicParsing
+
+          Write-Host "Installing Inno Setup..."
+          Start-Process -FilePath $innoInstaller -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait
+
+          # Add to PATH
+          $innoPath = "${env:ProgramFiles(x86)}\Inno Setup 6"
+          echo "$innoPath" >> $env:GITHUB_PATH
+
+          Write-Host "Inno Setup installed at: $innoPath"
+
+      # =========================================
+      # Build AI Service (Python)
+      # =========================================
+
+      - name: Build AI Service
+        shell: pwsh
+        working-directory: ai-service
+        run: |
+          Write-Host "Installing Python dependencies..."
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+          Write-Host "Building executable with PyInstaller..."
+          pyinstaller --onefile --name contpaq-ai-service --distpath dist --clean --noconfirm src/main.py
+
+          if (Test-Path "dist/contpaq-ai-service.exe") {
+            $size = (Get-Item "dist/contpaq-ai-service.exe").Length / 1MB
+            Write-Host "AI Service built successfully: $([math]::Round($size, 2)) MB"
+          } else {
+            throw "Failed to build AI Service"
+          }
+
+      # =========================================
+      # Build Windows Bridge (.NET)
+      # =========================================
+
+      - name: Build Windows Bridge
+        shell: pwsh
+        working-directory: windows-bridge/src
+        run: |
+          Write-Host "Restoring NuGet packages..."
+          dotnet restore ContPAQWinBridge/ContPAQWinBridge.csproj
+
+          Write-Host "Publishing release build..."
+          dotnet publish ContPAQWinBridge/ContPAQWinBridge.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -o ContPAQWinBridge/bin/publish/win-x64 `
+            /p:PublishSingleFile=true `
+            /p:IncludeNativeLibrariesForSelfExtract=true
+
+          $exePath = "ContPAQWinBridge/bin/publish/win-x64/ContPAQWinBridge.exe"
+          if (Test-Path $exePath) {
+            $size = (Get-Item $exePath).Length / 1MB
+            Write-Host "Windows Bridge built successfully: $([math]::Round($size, 2)) MB"
+          } else {
+            throw "Failed to build Windows Bridge"
+          }
+
+      # =========================================
+      # Build Desktop App (Electron)
+      # =========================================
+
+      - name: Build Desktop App
+        shell: pwsh
+        working-directory: desktop-app
+        run: |
+          Write-Host "Installing npm dependencies..."
+          npm ci
+
+          Write-Host "Building application..."
+          npm run build
+
+          Write-Host "Packaging with Electron Builder..."
+          npm run package
+
+          # Find the built app
+          $appDir = Get-ChildItem -Path "release" -Directory | Where-Object { $_.Name -like "*unpacked*" -or $_.Name -eq "win-unpacked" } | Select-Object -First 1
+          if ($appDir) {
+            Write-Host "Desktop App built successfully at: $($appDir.FullName)"
+          } else {
+            # List what was created
+            Write-Host "Release directory contents:"
+            Get-ChildItem -Path "release" -Recurse -Depth 2 | ForEach-Object { Write-Host $_.FullName }
+          }
+
+      # =========================================
+      # Update Version in Installer Script
+      # =========================================
+
+      - name: Update installer version
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.VERSION }}"
+          $issFile = "installer/contpaq-win.iss"
+
+          Write-Host "Updating version to $version in $issFile"
+
+          $content = Get-Content $issFile -Raw
+          $content = $content -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"$version`""
+          Set-Content $issFile $content
+
+          Write-Host "Version updated successfully"
+
+      # =========================================
+      # Build Installer
+      # =========================================
+
+      - name: Build Installer
+        shell: pwsh
+        working-directory: installer
+        run: |
+          Write-Host "Compiling installer with Inno Setup..."
+
+          # Ensure output directory exists
+          if (-not (Test-Path "output")) {
+            New-Item -ItemType Directory -Path "output" -Force | Out-Null
+          }
+
+          # Run Inno Setup compiler
+          & iscc contpaq-win.iss
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Inno Setup compilation failed with exit code $LASTEXITCODE"
+          }
+
+          # Find and display the created installer
+          $installer = Get-ChildItem -Path "output" -Filter "*.exe" | Select-Object -First 1
+          if ($installer) {
+            $size = $installer.Length / 1MB
+            Write-Host "Installer created: $($installer.Name) ($([math]::Round($size, 2)) MB)"
+            echo "INSTALLER_PATH=installer/output/$($installer.Name)" >> $env:GITHUB_ENV
+            echo "INSTALLER_NAME=$($installer.Name)" >> $env:GITHUB_ENV
+          } else {
+            throw "Installer not found in output directory"
+          }
+
+      # =========================================
+      # Upload Artifacts
+      # =========================================
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ContPaq-proPDF-Installer
+          path: installer/output/*.exe
+          retention-days: 30
+
+      # =========================================
+      # Create GitHub Release
+      # =========================================
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ContPaq-proPDF v${{ steps.version.outputs.VERSION }}
+          body: |
+            ## ContPaq-proPDF v${{ steps.version.outputs.VERSION }}
+
+            ### Installation
+            1. Download `${{ env.INSTALLER_NAME }}` below
+            2. Run the installer as Administrator
+            3. Follow the installation wizard
+            4. Launch ContPaq-proPDF from the desktop shortcut
+
+            ### System Requirements
+            - Windows 10/11 (64-bit)
+            - 8 GB RAM minimum
+            - ContPAQi 2022 or later
+
+            ### What's Included
+            - ContPaq-proPDF Desktop Application
+            - AI Service for document processing
+            - Windows Bridge for ContPAQi integration
+            - Tesseract OCR engine
+
+            ### Notes
+            - Prerequisites (.NET 8.0, VC++ Redistributable) are installed automatically if needed
+            - Services start automatically after installation
+          files: |
+            ${{ env.INSTALLER_PATH }}
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.VERSION, 'alpha') || contains(steps.version.outputs.VERSION, 'beta') || contains(steps.version.outputs.VERSION, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # =========================================
+  # Notify on failure
+  # =========================================
+
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: build
+    if: failure()
+    steps:
+      - name: Create issue on failure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `Build failed for ${context.ref}`;
+            const body = `The automated build failed. Please check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['bug', 'build']
+            });
