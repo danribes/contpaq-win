@@ -1294,14 +1294,27 @@
 
 ### T024 - Desktop App Bridge Client
 
-- [ ] **T024.1** Create bridge service client
-  - [ ] T024.1.1 [P] Write test for bridge client
-  - [ ] T024.1.2 Create `bridge-service.ts`
-  - [ ] T024.1.3 Implement `checkDuplicate()` method
-  - [ ] T024.1.4 Implement `createEntry()` method
-  - [ ] T024.1.5 Implement `getVendorByRfc()` method
-  - [ ] T024.1.6 Implement `createVendor()` method
-  - [ ] T024.1.7 Handle errors with Spanish messages
+- [x] **T024.1** Create bridge service client ✓ 2025-12-18
+  - [x] T024.1.1 [P] Write test for bridge client
+  - [x] T024.1.2 Create `bridge-service.ts`
+  - [x] T024.1.3 Implement `checkDuplicate()` method
+  - [x] T024.1.4 Implement `createEntry()` method
+  - [x] T024.1.5 Implement `getVendorByRfc()` method
+  - [x] T024.1.6 Implement `createVendor()` method
+  - [x] T024.1.7 Handle errors with Spanish messages
+
+  **Implementation Details (T024.1)**:
+  - Created `BridgeServiceClient` TypeScript class
+  - HTTP client for Windows Bridge (default: http://localhost:5000)
+  - `checkDuplicate()`: POST /api/entries/check-duplicate
+  - `createEntry()`: POST /api/entries with folio return
+  - `getVendorByRfc()`: GET /api/vendors/{rfc} (returns null for 404)
+  - `createVendor()`: POST /api/vendors
+  - `checkHealth()`: GET /health for service status
+  - BridgeServiceError class with statusCode and detail
+  - AbortController for request timeout
+  - All error messages in Spanish
+  - 27 Jest tests
 
 **Checkpoint**: Desktop app can communicate with Windows Bridge
 
