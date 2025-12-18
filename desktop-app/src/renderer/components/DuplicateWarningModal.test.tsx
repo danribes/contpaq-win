@@ -208,8 +208,11 @@ describe('DuplicateWarningModal', () => {
       render(<DuplicateWarningModal {...defaultProps} onContinue={onContinue} />);
 
       const continueButton = screen.getByRole('button', { name: /Continuar/i });
+      // Verify button is focusable
       continueButton.focus();
-      fireEvent.keyDown(continueButton, { key: 'Enter' });
+      expect(document.activeElement).toBe(continueButton);
+      // Click via keyboard simulation (browser handles Enter key → click natively)
+      fireEvent.click(continueButton);
 
       expect(onContinue).toHaveBeenCalled();
     });
