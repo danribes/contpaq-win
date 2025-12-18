@@ -14,6 +14,24 @@
     <Copyright>Copyright © 2025</Copyright>
   </PropertyGroup>
 
+  <!-- T027.1 - Publishing Configuration -->
+  <PropertyGroup>
+    <!-- Self-contained deployment includes .NET runtime -->
+    <SelfContained>true</SelfContained>
+    <!-- Publish as single executable file -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <!-- Include native libraries in single file -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- Enable compression for smaller output -->
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <!-- Target Windows x64 -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- Trim unused code for smaller size -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <!-- Ready to run compilation for faster startup -->
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- Logging -->
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
