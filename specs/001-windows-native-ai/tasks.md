@@ -1588,6 +1588,34 @@
   - [x] T029.5.3 Add documentation shortcut ✅ *Completed 2025-12-18*
     - Deferred: Documentation URL in INFO_ES.txt
 
+- [x] **T029.6** Create GitHub Actions CI/CD workflow ✅ *Completed 2025-12-18*
+  - [x] T029.6.1 Create build-installer.yml workflow ✅ *Completed 2025-12-18*
+    - Created: `.github/workflows/build-installer.yml`
+    - Triggers on version tags (v*) and manual dispatch
+    - Builds AI Service, Windows Bridge, Desktop App
+    - Compiles Inno Setup installer
+  - [x] T029.6.2 Configure Vite for Electron ✅ *Completed 2025-12-18*
+    - Created: `desktop-app/vite.config.ts`
+    - Created: `desktop-app/tsconfig.main.json`
+    - Created: `desktop-app/postcss.config.js`
+    - Created: `desktop-app/src/renderer/styles/index.css`
+  - [x] T029.6.3 Handle native module issues ✅ *Completed 2025-12-18*
+    - Canvas removed before electron-builder
+    - better-sqlite3 prebuilt binaries used
+  - [x] T029.6.4 Add retry logic for network resilience ✅ *Completed 2025-12-18*
+    - Exponential backoff for npm ci failures
+    - Alternative Electron mirror
+  - [x] T029.6.5 Download installer assets ✅ *Completed 2025-12-18*
+    - NSSM download from nssm.cc
+    - Tesseract download from UB-Mannheim
+    - Placeholder icon creation
+  - [x] T029.6.6 Configure release creation ✅ *Completed 2025-12-18*
+    - Artifact upload (30 days retention)
+    - GitHub Release with installer attached
+    - Failure notification via GitHub Issues
+    - Test: Build workflow tested through 10 iterations
+    - Logs: `log_files/T029.6_*`, `log_tests/T029.6_*`, `log_learn/T029.6_*`
+
 **Checkpoint**: Installer works on clean Windows machine ✅ *Completed 2025-12-18*
 
 ---
