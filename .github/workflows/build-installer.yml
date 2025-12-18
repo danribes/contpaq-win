@@ -241,14 +241,53 @@ jobs:
           New-Item -ItemType Directory -Path "installer/tools" -Force | Out-Null
           New-Item -ItemType Directory -Path "installer/assets" -Force | Out-Null
 
-          # Download NSSM (Non-Sucking Service Manager)
+          # Download NSSM (Non-Sucking Service Manager) with retry and fallback
           Write-Host "Downloading NSSM..."
-          $nssmUrl = "https://nssm.cc/release/nssm-2.24.zip"
+          $nssmUrls = @(
+            "https://nssm.cc/release/nssm-2.24.zip",
+            "https://github.com/kirillkovalenko/nssm/releases/download/v2.24-101/nssm-2.24-101.zip"
+          )
           $nssmZip = "$env:TEMP\nssm.zip"
-          Invoke-WebRequest -Uri $nssmUrl -OutFile $nssmZip -UseBasicParsing
+          $nssmDownloaded = $false
+
+          foreach ($nssmUrl in $nssmUrls) {
+            Write-Host "Trying NSSM from: $nssmUrl"
+            $maxRetries = 3
+            for ($i = 1; $i -le $maxRetries; $i++) {
+              try {
+                Write-Host "  Attempt $i of $maxRetries..."
+                Invoke-WebRequest -Uri $nssmUrl -OutFile $nssmZip -UseBasicParsing -TimeoutSec 60
+                Write-Host "  Download succeeded"
+                $nssmDownloaded = $true
+                break
+              } catch {
+                Write-Host "  Failed: $_"
+                if ($i -lt $maxRetries) {
+                  $waitTime = [math]::Pow(2, $i)
+                  Write-Host "  Retrying in $waitTime seconds..."
+                  Start-Sleep -Seconds $waitTime
+                }
+              }
+            }
+            if ($nssmDownloaded) { break }
+          }
+
+          if (-not $nssmDownloaded) {
+            throw "Failed to download NSSM from any source"
+          }
+
           Expand-Archive -Path $nssmZip -DestinationPath "$env:TEMP\nssm" -Force
-          Copy-Item "$env:TEMP\nssm\nssm-2.24\win64\nssm.exe" "installer/tools/nssm.exe"
-          Write-Host "NSSM downloaded successfully"
+          # Find nssm.exe (path varies by source)
+          $nssmExe = Get-ChildItem -Path "$env:TEMP\nssm" -Recurse -Filter "nssm.exe" | Where-Object { $_.FullName -like "*win64*" -or $_.FullName -like "*64*" } | Select-Object -First 1
+          if (-not $nssmExe) {
+            $nssmExe = Get-ChildItem -Path "$env:TEMP\nssm" -Recurse -Filter "nssm.exe" | Select-Object -First 1
+          }
+          if ($nssmExe) {
+            Copy-Item $nssmExe.FullName "installer/tools/nssm.exe"
+            Write-Host "NSSM installed successfully"
+          } else {
+            throw "Could not find nssm.exe in downloaded archive"
+          }
 
           # Create a simple icon file (use a system icon or create placeholder)
           # For now, copy from Electron build if available, otherwise create minimal ICO
@@ -282,7 +321,7 @@ jobs:
             Write-Host "Created placeholder icon"
           }
 
-          # Download Tesseract OCR
+          # Download Tesseract OCR with retry
           Write-Host "Downloading Tesseract OCR..."
           $tesseractDir = "desktop-app/resources/tesseract"
           New-Item -ItemType Directory -Path $tesseractDir -Force | Out-Null
@@ -291,19 +330,40 @@ jobs:
           $tesseractUrl = "https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-5.3.3.20231005.exe"
           $tesseractInstaller = "$env:TEMP\tesseract-installer.exe"
 
-          Write-Host "Downloading Tesseract installer..."
-          Invoke-WebRequest -Uri $tesseractUrl -OutFile $tesseractInstaller -UseBasicParsing
+          $maxRetries = 3
+          $tesseractDownloaded = $false
+          for ($i = 1; $i -le $maxRetries; $i++) {
+            Write-Host "Downloading Tesseract installer (attempt $i of $maxRetries)..."
+            try {
+              Invoke-WebRequest -Uri $tesseractUrl -OutFile $tesseractInstaller -UseBasicParsing -TimeoutSec 120
+              $tesseractDownloaded = $true
+              Write-Host "Tesseract download succeeded"
+              break
+            } catch {
+              Write-Host "Download failed: $_"
+              if ($i -lt $maxRetries) {
+                $waitTime = [math]::Pow(2, $i)
+                Write-Host "Retrying in $waitTime seconds..."
+                Start-Sleep -Seconds $waitTime
+              }
+            }
+          }
 
-          Write-Host "Extracting Tesseract (silent install to temp)..."
-          $tesseractInstallDir = "$env:TEMP\tesseract"
-          Start-Process -FilePath $tesseractInstaller -ArgumentList "/S", "/D=$tesseractInstallDir" -Wait
+          if ($tesseractDownloaded) {
+            Write-Host "Extracting Tesseract (silent install to temp)..."
+            $tesseractInstallDir = "$env:TEMP\tesseract"
+            Start-Process -FilePath $tesseractInstaller -ArgumentList "/S", "/D=$tesseractInstallDir" -Wait
 
-          Write-Host "Copying Tesseract files..."
-          if (Test-Path $tesseractInstallDir) {
-            Copy-Item "$tesseractInstallDir\*" $tesseractDir -Recurse -Force
-            Write-Host "Tesseract copied successfully"
+            Write-Host "Copying Tesseract files..."
+            if (Test-Path $tesseractInstallDir) {
+              Copy-Item "$tesseractInstallDir\*" $tesseractDir -Recurse -Force
+              Write-Host "Tesseract copied successfully"
+            } else {
+              Write-Host "Warning: Tesseract extraction failed, creating placeholder"
+              New-Item -ItemType File -Path "$tesseractDir/placeholder.txt" -Force | Out-Null
+            }
           } else {
-            Write-Host "Warning: Tesseract extraction failed, creating placeholder"
+            Write-Host "Warning: Could not download Tesseract, creating placeholder"
             New-Item -ItemType File -Path "$tesseractDir/placeholder.txt" -Force | Out-Null
           }
 
