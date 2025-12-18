@@ -15,11 +15,11 @@ Modules:
         - validate_cfdi() - Validates CFDI amounts and required fields
         - Support for persona física (13 chars) and persona moral (12 chars)
 
-Planned utilities:
-    - File handling helpers
-    - Date/time formatting for Mexican locale
-    - Number formatting for currency amounts
-    - Logging configuration helpers
+    logging_config: JSON structured logging configuration
+        - JSONFormatter - Formats logs as JSON
+        - setup_logging() - Configure logging system
+        - get_logger() - Get configured logger instance
+        - Log rotation and file logging support
 
 All utilities are designed to be:
     - Pure functions where possible (no side effects)
@@ -47,6 +47,13 @@ from .validation import (
     validate_rfc,
     validate_cfdi,
 )
+from .logging_config import (
+    JSONFormatter,
+    get_log_directory,
+    setup_logging,
+    get_logger,
+    log_with_context,
+)
 
 __all__ = [
     # Confidence utilities
@@ -67,4 +74,10 @@ __all__ = [
     # Validation utilities
     "validate_rfc",
     "validate_cfdi",
+    # Logging utilities
+    "JSONFormatter",
+    "get_log_directory",
+    "setup_logging",
+    "get_logger",
+    "log_with_context",
 ]

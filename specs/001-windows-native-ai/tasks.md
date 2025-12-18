@@ -1638,7 +1638,12 @@
 ### T031 - Error Handling & Logging
 
 - [ ] **T031.1** Implement structured logging
-  - [ ] T031.1.1 Configure Python logging with JSON format
+  - [x] T031.1.1 Configure Python logging with JSON format ✅ *Completed 2025-12-18*
+    - Created `ai-service/src/utils/logging_config.py` with JSONFormatter
+    - Implements get_log_directory(), setup_logging(), get_logger()
+    - File logging with RotatingFileHandler (10MB max, 5 backups)
+    - Logs to %LOCALAPPDATA%/ContPAQ-Win/Logs on Windows
+    - 25 tests passing
   - [ ] T031.1.2 Configure Serilog in .NET with JSON
   - [ ] T031.1.3 Configure Electron main process logging
   - [ ] T031.1.4 Log to files in AppData/Logs
