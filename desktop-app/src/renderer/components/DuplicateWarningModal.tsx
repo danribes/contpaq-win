@@ -8,7 +8,7 @@
  * Uses Tailwind CSS for styling.
  */
 
-import React, { useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 
 // =============================================================================
 // Types
@@ -109,12 +109,11 @@ export function DuplicateWarningModal({
 
   // Add escape key listener
   useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => {
-        document.removeEventListener('keydown', handleKeyDown);
-      };
-    }
+    if (!isOpen) return;
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, handleKeyDown]);
 
   // Don't render if not open

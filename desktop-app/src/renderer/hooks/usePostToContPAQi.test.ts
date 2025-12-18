@@ -5,8 +5,8 @@
  * Handles duplicate check, vendor resolution, entry creation, and state updates.
  */
 
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { usePostToContPAQi, type PostToContPAQiInput, type PostToContPAQiState } from './usePostToContPAQi';
+import { renderHook, act } from '@testing-library/react';
+import { usePostToContPAQi, type PostToContPAQiInput } from './usePostToContPAQi';
 import { BridgeServiceClient, BridgeServiceError } from '../services/bridge-service';
 
 // Mock only the BridgeServiceClient class, not the entire module

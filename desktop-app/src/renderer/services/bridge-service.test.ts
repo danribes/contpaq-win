@@ -7,9 +7,6 @@
 
 import { BridgeServiceClient, BridgeServiceError } from './bridge-service';
 import type {
-  DuplicateCheckResult,
-  EntryResult,
-  VendorResult,
   CreateEntryRequest,
   CreateVendorRequest,
 } from './bridge-service';

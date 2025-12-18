@@ -5,7 +5,6 @@
  * with the folio number.
  */
 
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { PostSuccessModal, type PostSuccessModalProps } from './PostSuccessModal';

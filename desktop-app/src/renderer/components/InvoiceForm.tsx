@@ -8,7 +8,7 @@
  * Uses Tailwind CSS for styling.
  */
 
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { FieldInput } from './FieldInput';
 import type { InvoiceExtraction, ExtractionField } from '../types';
 

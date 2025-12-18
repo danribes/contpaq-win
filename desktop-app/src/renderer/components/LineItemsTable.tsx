@@ -128,6 +128,7 @@ export function LineItemsTable({
       if (readOnly) return;
 
       const item = items[index];
+      if (!item) return;
       setEditingIndex(index);
       setEditingItem({
         description: item.description,
@@ -153,13 +154,16 @@ export function LineItemsTable({
   const saveEditing = useCallback(() => {
     if (editingIndex === null || editingItem === null) return;
 
+    const existingItem = items[editingIndex];
+    if (!existingItem) return;
+
     const updatedItems = [...items];
     updatedItems[editingIndex] = {
-      ...updatedItems[editingIndex],
       description: editingItem.description,
       quantity: parseNumber(editingItem.quantity),
       unitPrice: parseNumber(editingItem.unitPrice),
       amount: parseNumber(editingItem.amount),
+      confidence: existingItem.confidence,
     };
 
     onChange(updatedItems);

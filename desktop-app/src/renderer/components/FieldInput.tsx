@@ -74,7 +74,10 @@ function validateDate(value: string): boolean {
   }
 
   if (mxRegex.test(value)) {
-    const [day, month, year] = value.split('/').map(Number);
+    const parts = value.split('/').map(Number);
+    const day = parts[0] ?? 0;
+    const month = parts[1] ?? 0;
+    const year = parts[2] ?? 0;
     const date = new Date(year, month - 1, day);
     return !isNaN(date.getTime()) && date.getDate() === day;
   }

@@ -6,8 +6,9 @@
  * and sets up secure communication with the renderer process.
  */
 
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
+import { registerHandlers } from './ipc-handlers';
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow: BrowserWindow | null = null;
@@ -65,6 +66,8 @@ function createWindow(): void {
 
 // This method will be called when Electron has finished initialization
 app.whenReady().then(() => {
+  // Register IPC handlers before creating window
+  registerHandlers();
   createWindow();
 
   // On macOS, re-create window when dock icon is clicked and no windows are open

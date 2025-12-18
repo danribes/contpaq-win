@@ -8,7 +8,7 @@
  * Uses Tailwind CSS for styling.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 // =============================================================================
 // Types
@@ -135,12 +135,11 @@ export function CreateVendorModal({
 
   // Add escape key listener
   useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => {
-        document.removeEventListener('keydown', handleKeyDown);
-      };
-    }
+    if (!isOpen) return;
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, handleKeyDown]);
 
   // Don't render if not open
