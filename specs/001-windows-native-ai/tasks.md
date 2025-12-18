@@ -1049,15 +1049,15 @@
   - [x] T017.1.3 Add responsive breakpoints
   - [x] T017.1.4 Add page header with invoice status
 
-- [ ] **T017.2** Implement processing workflow
-  - [ ] T017.2.1 [P] Write test for processing flow
-  - [ ] T017.2.2 Create `useInvoice.ts` hook
-  - [ ] T017.2.3 Implement file selection → extraction flow
-  - [ ] T017.2.4 Show loading state during extraction
-  - [ ] T017.2.5 Display extraction results
-  - [ ] T017.2.6 Save invoice to database with UPLOADED→EXTRACTED state
+- [x] **T017.2** Implement processing workflow ✅ 2025-12-18
+  - [x] T017.2.1 [P] Write test for processing flow
+  - [x] T017.2.2 Create `useInvoice.ts` hook
+  - [x] T017.2.3 Implement file selection → extraction flow
+  - [x] T017.2.4 Show loading state during extraction
+  - [x] T017.2.5 Display extraction results
+  - [x] T017.2.6 Save invoice to database with UPLOADED→EXTRACTED state
 
-**Checkpoint**: User can process PDF and see results
+**Checkpoint**: User can process PDF and see results ✅
 
 ---
 
