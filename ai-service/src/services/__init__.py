@@ -23,6 +23,13 @@ from .ocr_service import OCRService, OCRResult, DEFAULT_DPI, DEFAULT_LANGUAGE
 from .image_preprocessor import ImagePreprocessor
 from .ai_extractor import AIExtractor, FieldLabel, LAYOUTLM_MODEL_NAME, BIO_LABELS
 from .line_item_extractor import LineItemExtractor, TableRegion, TextBlock
+from .extraction_service import (
+    ExtractionService,
+    ExtractionError,
+    InvalidPDFError,
+    FileTooLargeError,
+    MAX_FILE_SIZE,
+)
 
 __all__ = [
     "PDFExtractor",
@@ -40,4 +47,9 @@ __all__ = [
     "LineItemExtractor",
     "TableRegion",
     "TextBlock",
+    "ExtractionService",
+    "ExtractionError",
+    "InvalidPDFError",
+    "FileTooLargeError",
+    "MAX_FILE_SIZE",
 ]
