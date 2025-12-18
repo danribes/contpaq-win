@@ -1197,12 +1197,20 @@
   - Error responses in Spanish
   - 27 tests in VendorsControllerTests.cs
 
-- [ ] **T022.2** Implement vendor creation
-  - [ ] T022.2.1 [P] Write test for vendor creation
-  - [ ] T022.2.2 Implement POST /vendors
-  - [ ] T022.2.3 Validate RFC format
-  - [ ] T022.2.4 Create vendor via SDK
-  - [ ] T022.2.5 Return created vendor data
+- [x] **T022.2** Implement vendor creation ✓ 2025-12-18
+  - [x] T022.2.1 [P] Write test for vendor creation
+  - [x] T022.2.2 Implement POST /vendors
+  - [x] T022.2.3 Validate RFC format
+  - [x] T022.2.4 Create vendor via SDK
+  - [x] T022.2.5 Return created vendor data
+
+  **Implementation Details (T022.2)**:
+  - Added CreateVendor method to VendorsController
+  - POST /api/vendors with JSON body (RFC, Name, CommercialName)
+  - Returns 201 Created with CreatedAtAction pointing to GET endpoint
+  - Validates RFC (12-13 chars), normalizes to uppercase
+  - Checks for duplicate RFC (returns 409 Conflict)
+  - 16 new tests (total 43 in VendorsControllerTests.cs)
 
 - [ ] **T022.3** Implement vendor service
   - [ ] T022.3.1 Create `IVendorService.cs` interface

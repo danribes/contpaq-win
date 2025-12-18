@@ -11,6 +11,7 @@ namespace ContPAQWinBridge.Tests.Controllers;
 /// <summary>
 /// Tests for VendorsController functionality.
 /// T022.1.1 - T022.1.5: Vendor list endpoint implementation.
+/// T022.2.1 - T022.2.5: Vendor creation endpoint implementation.
 /// </summary>
 public class VendorsControllerTests
 {
@@ -519,6 +520,444 @@ public class VendorsControllerTests
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
+    }
+
+    #endregion
+
+    #region T022.2.1 - POST /vendors Endpoint Tests
+
+    /// <summary>
+    /// T022.2.2: CreateVendor should return CreatedResult on success.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Return_CreatedResult_On_Success()
+    {
+        // Arrange
+        var request = new CreateVendorRequest
+        {
+            Rfc = "XAXX010101000",
+            Name = "Test Vendor SA de CV"
+        };
+        var createdVendor = new VendorDto
+        {
+            Code = "PROV001",
+            Rfc = request.Rfc,
+            Name = request.Name
+        };
+        _mockVendorService
+            .Setup(s => s.ExistsAsync(It.IsAny<string>()))
+            .ReturnsAsync(false);
+        _mockVendorService
+            .Setup(s => s.CreateAsync(It.IsAny<CreateVendorRequest>()))
+            .ReturnsAsync(createdVendor);
+
+        // Act
+        var result = await _controller.CreateVendor(request);
+
+        // Assert
+        result.Should().BeOfType<CreatedAtActionResult>();
+    }
+
+    /// <summary>
+    /// T022.2.2: CreateVendor should return created vendor data.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Return_Created_Vendor_Data()
+    {
+        // Arrange
+        var request = new CreateVendorRequest
+        {
+            Rfc = "XAXX010101000",
+            Name = "Test Vendor SA de CV",
+            CommercialName = "Test Commercial"
+        };
+        var createdVendor = new VendorDto
+        {
+            Code = "PROV001",
+            Rfc = request.Rfc,
+            Name = request.Name,
+            CommercialName = request.CommercialName
+        };
+        _mockVendorService
+            .Setup(s => s.ExistsAsync(It.IsAny<string>()))
+            .ReturnsAsync(false);
+        _mockVendorService
+            .Setup(s => s.CreateAsync(It.IsAny<CreateVendorRequest>()))
+            .ReturnsAsync(createdVendor);
+
+        // Act
+        var result = await _controller.CreateVendor(request);
+        var createdResult = result as CreatedAtActionResult;
+
+        // Assert
+        createdResult.Should().NotBeNull();
+        createdResult!.Value.Should().NotBeNull();
+    }
+
+    #endregion
+
+    #region T022.2.3 - RFC Validation for Creation
+
+    /// <summary>
+    /// T022.2.3: CreateVendor should validate RFC format.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Validate_RFC_Format()
+    {
+        // Arrange
+        var request = new CreateVendorRequest
+        {
+            Rfc = "INVALID",
+            Name = "Test Vendor"
+        };
+
+        // Act
+        var result = await _controller.CreateVendor(request);
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    /// <summary>
+    /// T022.2.3: CreateVendor should reject RFC that is too short.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Reject_RFC_Too_Short()
+    {
+        // Arrange
+        var request = new CreateVendorRequest
+        {
+            Rfc = "ABC123",
+            Name = "Test Vendor"
+        };
+
+        // Act
+        var result = await _controller.CreateVendor(request);
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    /// <summary>
+    /// T022.2.3: CreateVendor should reject RFC that is too long.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Reject_RFC_Too_Long()
+    {
+        // Arrange
+        var request = new CreateVendorRequest
+        {
+            Rfc = "ABCD123456789012345",
+            Name = "Test Vendor"
+        };
+
+        // Act
+        var result = await _controller.CreateVendor(request);
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    /// <summary>
+    /// T022.2.3: CreateVendor should normalize RFC to uppercase.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Normalize_RFC_To_Uppercase()
+    {
+        // Arrange
+        var lowercaseRfc = "xaxx010101000";
+        var uppercaseRfc = "XAXX010101000";
+        var request = new CreateVendorRequest
+        {
+            Rfc = lowercaseRfc,
+            Name = "Test Vendor"
+        };
+        var createdVendor = new VendorDto
+        {
+            Code = "PROV001",
+            Rfc = uppercaseRfc,
+            Name = request.Name
+        };
+        _mockVendorService
+            .Setup(s => s.ExistsAsync(uppercaseRfc))
+            .ReturnsAsync(false);
+        _mockVendorService
+            .Setup(s => s.CreateAsync(It.Is<CreateVendorRequest>(r => r.Rfc == uppercaseRfc)))
+            .ReturnsAsync(createdVendor);
+
+        // Act
+        await _controller.CreateVendor(request);
+
+        // Assert
+        _mockVendorService.Verify(
+            s => s.CreateAsync(It.Is<CreateVendorRequest>(r => r.Rfc == uppercaseRfc)),
+            Times.Once);
+    }
+
+    /// <summary>
+    /// T022.2.3: CreateVendor should require name.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Require_Name()
+    {
+        // Arrange
+        var request = new CreateVendorRequest
+        {
+            Rfc = "XAXX010101000",
+            Name = ""
+        };
+
+        // Act
+        var result = await _controller.CreateVendor(request);
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    /// <summary>
+    /// T022.2.3: CreateVendor should reject duplicate RFC.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Reject_Duplicate_RFC()
+    {
+        // Arrange
+        var request = new CreateVendorRequest
+        {
+            Rfc = "XAXX010101000",
+            Name = "Test Vendor"
+        };
+        _mockVendorService
+            .Setup(s => s.ExistsAsync("XAXX010101000"))
+            .ReturnsAsync(true);
+
+        // Act
+        var result = await _controller.CreateVendor(request);
+
+        // Assert
+        result.Should().BeOfType<ConflictObjectResult>();
+    }
+
+    #endregion
+
+    #region T022.2.4 - Create Vendor via SDK
+
+    /// <summary>
+    /// T022.2.4: CreateVendor should call IVendorService.CreateAsync.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Call_VendorService_CreateAsync()
+    {
+        // Arrange
+        var request = new CreateVendorRequest
+        {
+            Rfc = "XAXX010101000",
+            Name = "Test Vendor"
+        };
+        var createdVendor = new VendorDto
+        {
+            Code = "PROV001",
+            Rfc = request.Rfc,
+            Name = request.Name
+        };
+        _mockVendorService
+            .Setup(s => s.ExistsAsync(It.IsAny<string>()))
+            .ReturnsAsync(false);
+        _mockVendorService
+            .Setup(s => s.CreateAsync(It.IsAny<CreateVendorRequest>()))
+            .ReturnsAsync(createdVendor);
+
+        // Act
+        await _controller.CreateVendor(request);
+
+        // Assert
+        _mockVendorService.Verify(s => s.CreateAsync(It.IsAny<CreateVendorRequest>()), Times.Once);
+    }
+
+    /// <summary>
+    /// T022.2.4: CreateVendor should check if vendor exists first.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Check_If_Vendor_Exists_First()
+    {
+        // Arrange
+        var rfc = "XAXX010101000";
+        var request = new CreateVendorRequest
+        {
+            Rfc = rfc,
+            Name = "Test Vendor"
+        };
+        _mockVendorService
+            .Setup(s => s.ExistsAsync(rfc))
+            .ReturnsAsync(false);
+        _mockVendorService
+            .Setup(s => s.CreateAsync(It.IsAny<CreateVendorRequest>()))
+            .ReturnsAsync(new VendorDto { Rfc = rfc });
+
+        // Act
+        await _controller.CreateVendor(request);
+
+        // Assert
+        _mockVendorService.Verify(s => s.ExistsAsync(rfc), Times.Once);
+    }
+
+    #endregion
+
+    #region T022.2.5 - Return Created Vendor Data
+
+    /// <summary>
+    /// T022.2.5: CreateVendor response should include assigned vendor code.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Response_Should_Include_Assigned_Code()
+    {
+        // Arrange
+        var request = new CreateVendorRequest
+        {
+            Rfc = "XAXX010101000",
+            Name = "Test Vendor"
+        };
+        var createdVendor = new VendorDto
+        {
+            Code = "PROV001",
+            Rfc = request.Rfc,
+            Name = request.Name
+        };
+        _mockVendorService
+            .Setup(s => s.ExistsAsync(It.IsAny<string>()))
+            .ReturnsAsync(false);
+        _mockVendorService
+            .Setup(s => s.CreateAsync(It.IsAny<CreateVendorRequest>()))
+            .ReturnsAsync(createdVendor);
+
+        // Act
+        var result = await _controller.CreateVendor(request);
+        var createdResult = result as CreatedAtActionResult;
+
+        // Assert
+        createdResult.Should().NotBeNull();
+    }
+
+    /// <summary>
+    /// T022.2.5: CreateVendor should return location header.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Return_Location_Header()
+    {
+        // Arrange
+        var request = new CreateVendorRequest
+        {
+            Rfc = "XAXX010101000",
+            Name = "Test Vendor"
+        };
+        var createdVendor = new VendorDto
+        {
+            Code = "PROV001",
+            Rfc = request.Rfc,
+            Name = request.Name
+        };
+        _mockVendorService
+            .Setup(s => s.ExistsAsync(It.IsAny<string>()))
+            .ReturnsAsync(false);
+        _mockVendorService
+            .Setup(s => s.CreateAsync(It.IsAny<CreateVendorRequest>()))
+            .ReturnsAsync(createdVendor);
+
+        // Act
+        var result = await _controller.CreateVendor(request);
+        var createdResult = result as CreatedAtActionResult;
+
+        // Assert
+        createdResult.Should().NotBeNull();
+        createdResult!.ActionName.Should().Be(nameof(VendorsController.GetVendorByRfc));
+    }
+
+    /// <summary>
+    /// T022.2.5: CreateVendor should include commercial name if provided.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Include_Commercial_Name_If_Provided()
+    {
+        // Arrange
+        var commercialName = "Test Commercial Name";
+        var request = new CreateVendorRequest
+        {
+            Rfc = "XAXX010101000",
+            Name = "Test Vendor SA de CV",
+            CommercialName = commercialName
+        };
+        var createdVendor = new VendorDto
+        {
+            Code = "PROV001",
+            Rfc = request.Rfc,
+            Name = request.Name,
+            CommercialName = commercialName
+        };
+        _mockVendorService
+            .Setup(s => s.ExistsAsync(It.IsAny<string>()))
+            .ReturnsAsync(false);
+        _mockVendorService
+            .Setup(s => s.CreateAsync(It.Is<CreateVendorRequest>(r => r.CommercialName == commercialName)))
+            .ReturnsAsync(createdVendor);
+
+        // Act
+        await _controller.CreateVendor(request);
+
+        // Assert
+        _mockVendorService.Verify(
+            s => s.CreateAsync(It.Is<CreateVendorRequest>(r => r.CommercialName == commercialName)),
+            Times.Once);
+    }
+
+    #endregion
+
+    #region Vendor Creation Error Handling
+
+    /// <summary>
+    /// CreateVendor should handle service exceptions gracefully.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Should_Handle_Service_Exceptions_Gracefully()
+    {
+        // Arrange
+        var request = new CreateVendorRequest
+        {
+            Rfc = "XAXX010101000",
+            Name = "Test Vendor"
+        };
+        _mockVendorService
+            .Setup(s => s.ExistsAsync(It.IsAny<string>()))
+            .ReturnsAsync(false);
+        _mockVendorService
+            .Setup(s => s.CreateAsync(It.IsAny<CreateVendorRequest>()))
+            .ThrowsAsync(new Exception("SDK error"));
+
+        // Act
+        var result = await _controller.CreateVendor(request);
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>();
+        var objectResult = result as ObjectResult;
+        objectResult!.StatusCode.Should().Be(500);
+    }
+
+    /// <summary>
+    /// CreateVendor error response should be in Spanish.
+    /// </summary>
+    [Fact]
+    public async Task CreateVendor_Error_Response_Should_Be_In_Spanish()
+    {
+        // Arrange
+        var request = new CreateVendorRequest
+        {
+            Rfc = "INVALID",
+            Name = "Test Vendor"
+        };
+
+        // Act
+        var result = await _controller.CreateVendor(request);
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
     }
 
     #endregion
