@@ -960,22 +960,42 @@
 
 ### T015 - Desktop App AI Service Client
 
-- [ ] **T015.1** Create AI service API client
-  - [ ] T015.1.1 [P] Write test for API client
-  - [ ] T015.1.2 Create `ai-service.ts` in services/
-  - [ ] T015.1.3 Implement `extractInvoice(file: File)` method
-  - [ ] T015.1.4 Implement `checkHealth()` method
-  - [ ] T015.1.5 Handle network errors with retry
-  - [ ] T015.1.6 Parse response to TypeScript types
+- [x] **T015.1** Create AI service API client ✅ 2025-12-18
+  - [x] T015.1.1 [P] Write test for API client (35 tests)
+  - [x] T015.1.2 Create `ai-service.ts` in services/
+  - [x] T015.1.3 Implement `extractInvoice(file: File)` method
+  - [x] T015.1.4 Implement `checkHealth()` method
+  - [x] T015.1.5 Handle network errors with retry
+  - [x] T015.1.6 Parse response to TypeScript types
 
-- [ ] **T015.2** Implement file upload UI
-  - [ ] T015.2.1 [P] Write test for file upload
-  - [ ] T015.2.2 Create file picker with PDF filter
-  - [ ] T015.2.3 Implement drag-and-drop zone
-  - [ ] T015.2.4 Show upload progress indicator
-  - [ ] T015.2.5 Display error messages in Spanish
+  **Implementation Details:**
+  - Created `AIServiceClient` class in `desktop-app/src/renderer/services/ai-service.ts`
+  - `extractInvoice()`: POST /extract with FormData file upload
+  - `extractBatch()`: POST /extract/batch for batch processing
+  - `checkHealth()`: GET /health with graceful error handling
+  - Retry logic with exponential backoff (200ms, 400ms, 800ms)
+  - Converts snake_case API responses to camelCase TypeScript types
+  - Converts confidence from 0-1 decimal to 0-100 percentage
+  - Custom `AIServiceError` class for typed error handling
+  - 35 tests covering all methods, error handling, retries, timeouts
 
-**Checkpoint**: Desktop app can send PDF to AI service
+- [x] **T015.2** Implement file upload UI ✅ 2025-12-18
+  - [x] T015.2.1 [P] Write test for file upload (32 tests)
+  - [x] T015.2.2 Create file picker with PDF filter
+  - [x] T015.2.3 Implement drag-and-drop zone
+  - [x] T015.2.4 Show upload progress indicator
+  - [x] T015.2.5 Display error messages in Spanish
+
+  **Implementation Details:**
+  - Created `FileUpload` component in `desktop-app/src/renderer/components/FileUpload.tsx`
+  - Hidden file input with PDF filter (`accept=".pdf,application/pdf"`)
+  - Drag-and-drop zone with visual feedback on drag enter/leave
+  - Progress bar with percentage display during upload
+  - Spanish error messages: "Solo se permiten archivos PDF", "El archivo excede el tamaño máximo"
+  - Disabled state support for blocking interactions during upload
+  - 32 tests covering all features and Tailwind styling
+
+**Checkpoint**: Desktop app can send PDF to AI service ✅
 
 ---
 
