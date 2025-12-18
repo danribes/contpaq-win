@@ -1121,14 +1121,14 @@
 
 ### T020 - Validation Logic
 
-- [ ] **T020.1** Implement RFC validation endpoint
-  - [ ] T020.1.1 [P] Write test `test_rfc_validation.py`
-  - [ ] T020.1.2 Create POST /validate/rfc endpoint
-  - [ ] T020.1.3 Implement RFC format validation
-    - [ ] T020.1.3.1 Check length (12 or 13)
-    - [ ] T020.1.3.2 Validate pattern for persona física
-    - [ ] T020.1.3.3 Validate pattern for persona moral
-  - [ ] T020.1.4 Return validation result with type
+- [x] **T020.1** Implement RFC validation endpoint ✅ 2025-12-18
+  - [x] T020.1.1 [P] Write test `test_rfc_validation.py`
+  - [x] T020.1.2 Create POST /validate/rfc endpoint
+  - [x] T020.1.3 Implement RFC format validation
+    - [x] T020.1.3.1 Check length (12 or 13)
+    - [x] T020.1.3.2 Validate pattern for persona física
+    - [x] T020.1.3.3 Validate pattern for persona moral
+  - [x] T020.1.4 Return validation result with type
 
 - [ ] **T020.2** Implement CFDI validation endpoint
   - [ ] T020.2.1 [P] Write test `test_cfdi_validation.py`

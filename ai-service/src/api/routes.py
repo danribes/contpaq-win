@@ -24,6 +24,11 @@ from ..models.extraction import (
     BatchResultItem,
     BatchExtractionResponse,
 )
+from ..models.validation import (
+    RfcValidationRequest,
+    RfcValidationResponse,
+)
+from ..utils.validation import validate_rfc
 
 # Maximum number of files in a batch
 MAX_BATCH_FILES = 20
@@ -477,4 +482,45 @@ async def extract_batch(
         successful=successful,
         failed=failed,
         total_processing_time_ms=total_processing_time_ms,
+    )
+
+
+@router.post("/validate/rfc", response_model=RfcValidationResponse)
+async def validate_rfc_endpoint(
+    request: RfcValidationRequest,
+) -> RfcValidationResponse:
+    """
+    Validate a Mexican RFC (Registro Federal de Contribuyentes).
+
+    Validates the format of an RFC and determines whether it corresponds to:
+    - Persona Física (individual): 13 characters
+    - Persona Moral (company): 12 characters
+
+    Validation includes:
+    - Length check (12 or 13 characters)
+    - Pattern validation for name prefix
+    - Date portion validation (valid month and day)
+    - Alphanumeric homoclave check
+
+    Args:
+        request: RfcValidationRequest containing the RFC to validate
+
+    Returns:
+        RfcValidationResponse with validation result:
+        - valid: Whether the RFC is valid
+        - rfc_type: "persona_fisica" or "persona_moral" if valid
+        - normalized_rfc: Uppercase, trimmed version of the RFC
+        - error: Error message in Spanish if invalid
+
+    Note:
+        This endpoint always returns 200. The validation result is in the response body.
+        A 422 error indicates a malformed request (missing RFC field).
+    """
+    result = validate_rfc(request.rfc)
+
+    return RfcValidationResponse(
+        valid=result["valid"],
+        rfc_type=result.get("rfc_type"),
+        normalized_rfc=result.get("normalized_rfc"),
+        error=result.get("error"),
     )

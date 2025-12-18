@@ -10,6 +10,10 @@ Modules:
         - get_confidence_level() - Maps score to level (high/medium/low)
         - Color mapping for UI indicators
 
+    validation: RFC and CFDI validation utilities
+        - validate_rfc() - Validates Mexican RFC format
+        - Support for persona física (13 chars) and persona moral (12 chars)
+
 Planned utilities:
     - File handling helpers
     - Date/time formatting for Mexican locale
@@ -38,6 +42,9 @@ from .confidence import (
     decimal_to_percentage,
     percentage_to_decimal,
 )
+from .validation import (
+    validate_rfc,
+)
 
 __all__ = [
     # Confidence utilities
@@ -55,4 +62,6 @@ __all__ = [
     "normalize_confidence",
     "decimal_to_percentage",
     "percentage_to_decimal",
+    # Validation utilities
+    "validate_rfc",
 ]

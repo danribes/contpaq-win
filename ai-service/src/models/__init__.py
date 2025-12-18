@@ -23,6 +23,10 @@ from .extraction import (
     BatchResultItem,
     BatchExtractionResponse,
 )
+from .validation import (
+    RfcValidationRequest,
+    RfcValidationResponse,
+)
 
 __all__ = [
     "BoundingBox",
@@ -31,4 +35,6 @@ __all__ = [
     "InvoiceExtraction",
     "BatchResultItem",
     "BatchExtractionResponse",
+    "RfcValidationRequest",
+    "RfcValidationResponse",
 ]
