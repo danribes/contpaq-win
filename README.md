@@ -196,12 +196,32 @@ npm run package
 
 ### Building the Installer
 
-To build the Windows installer locally:
+#### Option 1: Automated Build Script (Recommended)
+
+Run the PowerShell build script from the repository root:
+
+```powershell
+.\build.ps1
+```
+
+The script will:
+- Check for all required tools
+- Build all components (AI Service, Windows Bridge, Desktop App)
+- Compile the Inno Setup installer
+
+Options:
+```powershell
+.\build.ps1 -Clean              # Clean rebuild
+.\build.ps1 -SkipAIService      # Skip AI Service build
+.\build.ps1 -SkipInstaller      # Only build components, not installer
+```
+
+#### Option 2: Manual Build
 
 1. **Install Inno Setup 6.x** from [jrsoftware.org](https://jrsoftware.org/isinfo.php)
-2. **Build all components** (see above)
+2. **Build all components** (see Building for Production above)
 3. **Run the Inno Setup compiler**:
-   ```bash
+   ```powershell
    cd installer
    iscc contpaq-win.iss
    ```
