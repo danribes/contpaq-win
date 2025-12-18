@@ -1248,19 +1248,29 @@
   - Error messages in Spanish
   - 27 tests in EntriesControllerTests.cs
 
-- [ ] **T023.2** Implement entry creation
-  - [ ] T023.2.1 [P] Write test for entry creation
-  - [ ] T023.2.2 Implement POST /entries
-  - [ ] T023.2.3 Validate request data
-  - [ ] T023.2.4 Check for duplicates (unless force_duplicate=true)
-  - [ ] T023.2.5 Create entry via SDK
-    - [ ] T023.2.5.1 Set document type
-    - [ ] T023.2.5.2 Set vendor reference
-    - [ ] T023.2.5.3 Set amounts
-    - [ ] T023.2.5.4 Add line items
-    - [ ] T023.2.5.5 Commit entry
-  - [ ] T023.2.6 Return folio number on success
-  - [ ] T023.2.7 Return detailed error on failure
+- [x] **T023.2** Implement entry creation ✓ 2025-12-18
+  - [x] T023.2.1 [P] Write test for entry creation
+  - [x] T023.2.2 Implement POST /entries
+  - [x] T023.2.3 Validate request data
+  - [x] T023.2.4 Check for duplicates (unless force_duplicate=true)
+  - [x] T023.2.5 Create entry via SDK
+    - [x] T023.2.5.1 Set document type
+    - [x] T023.2.5.2 Set vendor reference
+    - [x] T023.2.5.3 Set amounts
+    - [x] T023.2.5.4 Add line items
+    - [x] T023.2.5.5 Commit entry
+  - [x] T023.2.6 Return folio number on success
+  - [x] T023.2.7 Return detailed error on failure
+
+  **Implementation Details (T023.2)**:
+  - Added POST /api/entries endpoint to EntriesController
+  - Validates RFC (required, 12-13 chars), invoice number, total > 0
+  - Automatic duplicate check (can bypass with ForceDuplicate=true)
+  - Returns 409 Conflict if duplicate found
+  - Returns 201 Created with folio on success
+  - Added GET /api/entries/{folio} for CreatedAtAction reference
+  - Uses record `with` expression for immutable request normalization
+  - 24 new tests (51 total in EntriesControllerTests)
 
 - [ ] **T023.3** Implement entry service
   - [ ] T023.3.1 Create `IEntryService.cs` interface
