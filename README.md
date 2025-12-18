@@ -68,14 +68,37 @@ ContPAQ-Win uses a multi-process architecture:
 
 ## Installation
 
-> **Note**: ContPAQ-Win is currently in development. Pre-built installers will be available on the [Releases](https://github.com/danribes/contpaq-win/releases) page once the first stable version is ready. For now, you can build the installer locally (see [Building the Installer](#building-the-installer) below).
+> **Note**: ContPAQ-Win is currently in development. Pre-built installers will be available on the [Releases](https://github.com/danribes/contpaq-win/releases) page once the first stable version is ready. For now, you can build and install locally following the instructions below.
 
-### Quick Install (When Available)
+### Install from Source (Current Method)
+
+Since pre-built releases are not yet available, follow these steps to build and install:
+
+1. **Clone the repository** and ensure you have all [Development Prerequisites](#prerequisites)
+2. **Build the installer** by running from the repository root:
+   ```powershell
+   .\build.ps1
+   ```
+3. **Run the generated installer**:
+   ```powershell
+   # The installer will be at:
+   installer\output\ContPAQ-Win-0.1.0-Setup.exe
+   ```
+4. **Run the installer as Administrator** and follow the installation wizard
+5. **Launch ContPAQ-Win** from the desktop shortcut or Start Menu
+
+For detailed build options, see [Building the Installer](#building-the-installer) below.
+
+### Quick Install (When Releases Available)
+
+Once stable releases are published:
 
 1. Download `ContPAQ-Win-X.X.X-Setup.exe` from the [Releases](https://github.com/danribes/contpaq-win/releases) page
 2. Run the installer as Administrator
 3. Follow the installation wizard
 4. Launch ContPAQ-Win from the desktop shortcut or Start Menu
+
+### What the Installer Does
 
 The installer will:
 - Install prerequisites (.NET 8.0, VC++ Redistributable) if needed
