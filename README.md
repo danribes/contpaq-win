@@ -48,36 +48,93 @@ ContPAQ-Win uses a multi-process architecture:
 |-----------|------------|---------|
 | Desktop App | Electron + React + TypeScript | User interface |
 | AI Service | Python + FastAPI | Invoice processing & AI |
-| Windows Bridge | C# + .NET | ContPAQi SDK integration |
+| Windows Bridge | C# + .NET 8 | ContPAQi SDK integration |
 | Database | SQLite | Local data storage |
-| Installer | NSSM + PowerShell | Service management |
+| Installer | Inno Setup | Windows installer |
 
-## Prerequisites
+## System Requirements
 
-### System Requirements
+### Minimum Requirements
 
 - **OS**: Windows 10/11 (64-bit)
 - **RAM**: 8 GB minimum, 16 GB recommended
 - **Storage**: 2 GB for application + space for invoices
 - **ContPAQi**: Version 2022 or later installed
 
-### Development Requirements
+### Prerequisites (Auto-installed)
+
+- .NET 8.0 Desktop Runtime
+- Visual C++ Redistributable 2022
+
+## Installation
+
+### Quick Install (Recommended)
+
+1. Download `ContPAQ-Win-X.X.X-Setup.exe` from the [Releases](https://github.com/danribes/contpaq-win/releases) page
+2. Run the installer as Administrator
+3. Follow the installation wizard
+4. Launch ContPAQ-Win from the desktop shortcut or Start Menu
+
+The installer will:
+- Install prerequisites (.NET 8.0, VC++ Redistributable) if needed
+- Install the Electron desktop application
+- Install AI Service and Windows Bridge as Windows services
+- Install Tesseract OCR for scanned document support
+- Create desktop and Start Menu shortcuts
+
+### Installation Directory
+
+Default: `C:\Program Files\ContPAQ-Win`
+
+```
+ContPAQ-Win/
+├── ContPAQ Win.exe      # Main desktop application
+├── ai-service/          # AI document processing service
+├── windows-bridge/      # ContPAQi SDK bridge
+├── tesseract/           # OCR engine
+├── tools/               # NSSM service manager
+├── scripts/             # Service management scripts
+└── logs/                # Application logs
+```
+
+### Windows Services
+
+Two services are installed and started automatically:
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| ContPAQWinAIService | 8000 | AI-powered document processing |
+| ContPAQWinBridge | 5000 | ContPAQi SDK integration |
+
+Both services:
+- Start automatically with Windows
+- Auto-restart on failure
+- Listen only on localhost (127.0.0.1)
+
+### Log Files
+
+Logs are stored in:
+- `%LOCALAPPDATA%\ContPAQ-Win\Logs\` - Application logs (JSON format)
+- `%PROGRAMDATA%\ContPAQ-Win\logs\` - Service stdout/stderr logs
+
+### Uninstallation
+
+1. Use Windows Settings > Apps > ContPAQ-Win > Uninstall, or
+2. Run the uninstaller from Start Menu > ContPAQ-Win > Uninstall
+
+The uninstaller will stop and remove both Windows services.
+
+## Development Setup
+
+### Prerequisites
 
 - **Python**: 3.11+
 - **Node.js**: 20 LTS+
 - **.NET**: 8.0 SDK
 - **Git**: 2.40+
+- **Inno Setup**: 6.x (for building installer)
 
-## Installation
-
-### For Users
-
-1. Download the latest release from the Releases page
-2. Extract to your preferred location (e.g., `C:\ContPAQWin`)
-3. Run `install.ps1` as Administrator
-4. Launch ContPAQ-Win from the desktop shortcut
-
-### For Developers
+### Clone and Setup
 
 ```bash
 # Clone the repository
@@ -96,10 +153,50 @@ cd ../desktop-app
 npm install
 
 # Set up Windows Bridge (.NET)
-cd ../windows-bridge
+cd ../windows-bridge/src
 dotnet restore
 dotnet build
 ```
+
+### Running in Development
+
+```bash
+# Terminal 1: AI Service
+cd ai-service
+.venv\Scripts\activate
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
+
+# Terminal 2: Windows Bridge
+cd windows-bridge/src/ContPAQWinBridge
+dotnet run
+
+# Terminal 3: Desktop App
+cd desktop-app
+npm run dev
+```
+
+### Building for Production
+
+```bash
+# Build AI Service executable
+cd ai-service
+pyinstaller --onefile --name contpaq-ai-service src/main.py
+
+# Build Windows Bridge
+cd windows-bridge/src
+dotnet publish -c Release -r win-x64 --self-contained true
+
+# Build Electron app
+cd desktop-app
+npm run build
+npm run package
+
+# Build installer (requires Inno Setup)
+cd installer
+iscc contpaq-win.iss
+```
+
+The installer will be created at `installer/output/ContPAQ-Win-X.X.X-Setup.exe`
 
 ## Project Structure
 
@@ -107,37 +204,90 @@ dotnet build
 contpaq-win/
 ├── ai-service/          # Python AI service
 │   ├── src/             # Source code
+│   │   ├── api/         # FastAPI routes
+│   │   ├── services/    # Business logic
+│   │   └── utils/       # Utilities (logging, validation)
 │   └── tests/           # Test files
 ├── desktop-app/         # Electron/React application
 │   └── src/
 │       ├── main/        # Electron main process
-│       └── renderer/    # React UI
+│       └── renderer/    # React UI components
 ├── windows-bridge/      # C#/.NET ContPAQi bridge
 │   └── src/
+│       ├── ContPAQWinBridge/        # Main project
+│       └── ContPAQWinBridge.Tests/  # Tests
 ├── database/            # SQLite database
 │   ├── migrations/      # Schema migrations
 │   └── seed/            # Test data
-├── installer/           # Installation scripts
-│   ├── scripts/         # PowerShell scripts
-│   └── assets/          # NSSM, icons, etc.
+├── installer/           # Installation files
+│   ├── contpaq-win.iss  # Inno Setup script
+│   └── scripts/         # Service install scripts
 ├── specs/               # Feature specifications
 └── tests/               # Cross-component tests
 ```
 
-## Development
+## Testing
 
-### Running Tests
+### Run All Tests
 
 ```bash
-# All tests
+# Python tests
+cd ai-service
 pytest
 
-# Specific component
-pytest tests/structure/
-pytest ai-service/tests/
+# Node.js tests
+cd desktop-app
+npm test
+
+# .NET tests
+cd windows-bridge/src
+dotnet test
 ```
 
-### Code Style
+### Run Specific Tests
+
+```bash
+# Python - specific module
+pytest tests/ai_service/test_T031_1_1_json_logging.py -v
+
+# Node.js - specific test file
+npm test -- --testPathPattern="HomePage"
+
+# .NET - specific test class
+dotnet test --filter "FullyQualifiedName~LoggingConfigurationTests"
+```
+
+## Troubleshooting
+
+### Services Not Starting
+
+1. Check service status:
+   ```powershell
+   Get-Service ContPAQWinAIService, ContPAQWinBridge
+   ```
+
+2. Check logs:
+   - `%PROGRAMDATA%\ContPAQ-Win\logs\ai-service-stderr.log`
+   - `%LOCALAPPDATA%\ContPAQ-Win\Logs\windows-bridge-*.log`
+
+3. Restart services:
+   ```powershell
+   Restart-Service ContPAQWinAIService, ContPAQWinBridge
+   ```
+
+### ContPAQi Not Detected
+
+- Ensure ContPAQi is installed (version 2022+)
+- Check installation path: `C:\Program Files (x86)\Compac` or `C:\Program Files\Compac`
+- The application will work but posting to ContPAQi will be unavailable
+
+### Port Conflicts
+
+If ports 5000 or 8000 are in use:
+1. Stop conflicting services
+2. Or modify ports in service configuration
+
+## Code Style
 
 - **Python**: Black + Ruff (PEP 8)
 - **TypeScript**: ESLint + Prettier
@@ -151,4 +301,4 @@ Proprietary - All rights reserved.
 
 ## Support
 
-For issues and feature requests, please use the GitHub Issues page.
+For issues and feature requests, please use the [GitHub Issues](https://github.com/danribes/contpaq-win/issues) page.
