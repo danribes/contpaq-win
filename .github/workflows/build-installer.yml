@@ -78,12 +78,28 @@ jobs:
       - name: Install Inno Setup
         shell: pwsh
         run: |
-          # Download Inno Setup
+          # Download Inno Setup with retry logic
           $innoUrl = "https://jrsoftware.org/download.php/is.exe"
           $innoInstaller = "$env:TEMP\innosetup.exe"
 
-          Write-Host "Downloading Inno Setup..."
-          Invoke-WebRequest -Uri $innoUrl -OutFile $innoInstaller -UseBasicParsing
+          $maxRetries = 4
+          for ($i = 1; $i -le $maxRetries; $i++) {
+            Write-Host "Downloading Inno Setup (attempt $i of $maxRetries)..."
+            try {
+              Invoke-WebRequest -Uri $innoUrl -OutFile $innoInstaller -UseBasicParsing -TimeoutSec 120
+              Write-Host "Download succeeded"
+              break
+            } catch {
+              Write-Host "Download failed: $_"
+              if ($i -lt $maxRetries) {
+                $waitTime = [math]::Pow(2, $i)
+                Write-Host "Retrying in $waitTime seconds..."
+                Start-Sleep -Seconds $waitTime
+              } else {
+                throw "Failed to download Inno Setup after $maxRetries attempts"
+              }
+            }
+          }
 
           Write-Host "Installing Inno Setup..."
           Start-Process -FilePath $innoInstaller -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait
