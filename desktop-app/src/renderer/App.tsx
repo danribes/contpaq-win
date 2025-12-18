@@ -7,30 +7,8 @@
 
 import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-
-// Page components (will be implemented in later tasks)
-// For now, using placeholder components
-const HomePage: React.FC = () => (
-  <div className="flex flex-col items-center justify-center min-h-[60vh]">
-    <h1 className="text-3xl font-bold text-gray-800 mb-4">
-      ContPAQ Win
-    </h1>
-    <p className="text-gray-600 text-center max-w-md">
-      Sistema de gestión de facturas con extracción automática mediante IA
-    </p>
-  </div>
-);
-
-const ProcessingPage: React.FC = () => (
-  <div className="p-4">
-    <h1 className="text-2xl font-bold text-gray-800 mb-4">
-      Procesar Factura
-    </h1>
-    <p className="text-gray-600">
-      Página de procesamiento de facturas (por implementar)
-    </p>
-  </div>
-);
+import { HomePage } from './pages/HomePage';
+import { ProcessingPage } from './pages/ProcessingPage';
 
 const SettingsPage: React.FC = () => (
   <div className="p-4">

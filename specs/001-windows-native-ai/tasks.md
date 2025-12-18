@@ -1598,12 +1598,22 @@
 
 ### T030 - Home Page and Navigation
 
-- [ ] **T030.1** Create home page
-  - [ ] T030.1.1 Create `HomePage.tsx`
-  - [ ] T030.1.2 Show recent invoices list
-  - [ ] T030.1.3 Filter by state (tabs or dropdown)
-  - [ ] T030.1.4 Add "Nueva Factura" button
-  - [ ] T030.1.5 Show empty state with instructions
+- [x] **T030.1** Create home page ✅ *Completed 2025-12-18*
+  - [x] T030.1.1 Create `HomePage.tsx` ✅ *Completed 2025-12-18*
+    - Created HomePage React component with Tailwind CSS
+    - Integrated with App.tsx routing
+  - [x] T030.1.2 Show recent invoices list ✅ *Completed 2025-12-18*
+    - Fetches invoices via IPC (db:get-invoices)
+    - Displays vendor name, date, total, and status badge
+  - [x] T030.1.3 Filter by state (tabs or dropdown) ✅ *Completed 2025-12-18*
+    - Tab-based filtering: Todas, Cargadas, Extraídas, Validadas, Enviadas
+    - Shows count for each state
+  - [x] T030.1.4 Add "Nueva Factura" button ✅ *Completed 2025-12-18*
+    - Primary action button with plus icon
+    - Links to /processing page
+  - [x] T030.1.5 Show empty state with instructions ✅ *Completed 2025-12-18*
+    - Shows when no invoices or filter has no results
+    - Displays instructional message and action button
 
 - [ ] **T030.2** [P] Create settings page
   - [ ] T030.2.1 Create `SettingsPage.tsx`

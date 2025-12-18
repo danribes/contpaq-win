@@ -22,7 +22,7 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Mock window.electron API for Electron IPC
+// Mock window.electron API for Electron IPC (legacy)
 Object.defineProperty(window, 'electron', {
   writable: true,
   value: {
@@ -30,6 +30,18 @@ Object.defineProperty(window, 'electron', {
     send: jest.fn(),
     on: jest.fn(),
     removeListener: jest.fn(),
+  },
+});
+
+// Mock window.electronAPI for Electron IPC (via preload script)
+Object.defineProperty(window, 'electronAPI', {
+  writable: true,
+  value: {
+    invoke: jest.fn().mockResolvedValue({ success: true, invoices: [] }),
+    send: jest.fn(),
+    on: jest.fn(),
+    removeListener: jest.fn(),
+    removeAllListeners: jest.fn(),
   },
 });
 
