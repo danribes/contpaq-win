@@ -1644,7 +1644,13 @@
     - File logging with RotatingFileHandler (10MB max, 5 backups)
     - Logs to %LOCALAPPDATA%/ContPAQ-Win/Logs on Windows
     - 25 tests passing
-  - [ ] T031.1.2 Configure Serilog in .NET with JSON
+  - [x] T031.1.2 Configure Serilog in .NET with JSON ✅ *Completed 2025-12-18*
+    - Created `windows-bridge/src/ContPAQWinBridge/Configuration/LoggingConfiguration.cs`
+    - Uses Serilog.Formatting.Compact for JSON output
+    - Added enrichers: MachineName, ProcessId, ThreadId, ServiceName
+    - File logging with daily rotation (10MB limit, 5 backups)
+    - Logs to %LOCALAPPDATA%/ContPAQ-Win/Logs on Windows
+    - 22 tests created
   - [ ] T031.1.3 Configure Electron main process logging
   - [ ] T031.1.4 Log to files in AppData/Logs
 

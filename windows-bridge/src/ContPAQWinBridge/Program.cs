@@ -1,9 +1,11 @@
 using Serilog;
+using Serilog.Formatting.Compact;
 using ContPAQWinBridge.Configuration;
 using ContPAQWinBridge.Services;
 
+// Bootstrap logger for startup messages (before full configuration)
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
+    .WriteTo.Console(new CompactJsonFormatter())
     .CreateBootstrapLogger();
 
 Log.Information("Starting ContPAQ Win Bridge service...");
@@ -19,16 +21,10 @@ try
         options.ListenLocalhost(5000); // HTTP only - localhost service
     });
 
-    // Configure Serilog
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .WriteTo.Console()
-        .WriteTo.File(
-            path: "logs/bridge-.log",
-            rollingInterval: RollingInterval.Day,
-            retainedFileCountLimit: 30));
+    // Configure Serilog with JSON format (T031.1.2)
+    builder.Host.UseSerilog((context, services, configuration) =>
+        LoggingConfiguration.ConfigureLogger(configuration, context.Configuration)
+            .ReadFrom.Services(services));
 
     // ===========================================
     // Dependency Injection Container Configuration
