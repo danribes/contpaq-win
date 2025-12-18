@@ -12,6 +12,7 @@ Modules:
 
     validation: RFC and CFDI validation utilities
         - validate_rfc() - Validates Mexican RFC format
+        - validate_cfdi() - Validates CFDI amounts and required fields
         - Support for persona física (13 chars) and persona moral (12 chars)
 
 Planned utilities:
@@ -44,6 +45,7 @@ from .confidence import (
 )
 from .validation import (
     validate_rfc,
+    validate_cfdi,
 )
 
 __all__ = [
@@ -64,4 +66,5 @@ __all__ = [
     "percentage_to_decimal",
     # Validation utilities
     "validate_rfc",
+    "validate_cfdi",
 ]

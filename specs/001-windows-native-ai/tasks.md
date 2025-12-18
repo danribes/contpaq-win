@@ -1130,13 +1130,13 @@
     - [x] T020.1.3.3 Validate pattern for persona moral
   - [x] T020.1.4 Return validation result with type
 
-- [ ] **T020.2** Implement CFDI validation endpoint
-  - [ ] T020.2.1 [P] Write test `test_cfdi_validation.py`
-  - [ ] T020.2.2 Create POST /validate/cfdi endpoint
-  - [ ] T020.2.3 Validate required fields present
-  - [ ] T020.2.4 Validate IVA calculation (subtotal * 0.16 = iva)
-  - [ ] T020.2.5 Validate total (subtotal + iva = total)
-  - [ ] T020.2.6 Return validation errors/warnings
+- [x] **T020.2** Implement CFDI validation endpoint ✅ 2025-12-18
+  - [x] T020.2.1 [P] Write test `test_cfdi_validation.py`
+  - [x] T020.2.2 Create POST /validate/cfdi endpoint
+  - [x] T020.2.3 Validate required fields present
+  - [x] T020.2.4 Validate IVA calculation (subtotal * 0.16 = iva)
+  - [x] T020.2.5 Validate total (subtotal + iva = total)
+  - [x] T020.2.6 Return validation errors/warnings
 
 - [ ] **T020.3** Implement form validation in desktop app
   - [ ] T020.3.1 [P] Write test for form validation

@@ -26,6 +26,8 @@ from .extraction import (
 from .validation import (
     RfcValidationRequest,
     RfcValidationResponse,
+    CfdiValidationRequest,
+    CfdiValidationResponse,
 )
 
 __all__ = [
@@ -37,4 +39,6 @@ __all__ = [
     "BatchExtractionResponse",
     "RfcValidationRequest",
     "RfcValidationResponse",
+    "CfdiValidationRequest",
+    "CfdiValidationResponse",
 ]

@@ -15,7 +15,7 @@ RFC (Registro Federal de Contribuyentes) format:
 """
 
 import re
-from typing import TypedDict, Optional
+from typing import TypedDict, Optional, List
 
 
 class RfcValidationResult(TypedDict):
@@ -184,3 +184,156 @@ def validate_rfc(rfc: str) -> RfcValidationResult:
             normalized_rfc=normalized,
             error=None,
         )
+
+
+# =============================================================================
+# CFDI Validation
+# =============================================================================
+
+# Default IVA rate in Mexico
+DEFAULT_IVA_RATE = 0.16
+
+# Tolerance for rounding differences in amounts
+AMOUNT_TOLERANCE = 0.02  # Allow ±0.02 for rounding
+
+
+class CfdiValidationResult(TypedDict):
+    """Result of CFDI validation."""
+
+    valid: bool
+    errors: List[str]
+    warnings: List[str]
+
+
+def validate_cfdi(
+    vendor_rfc: str,
+    invoice_number: str,
+    invoice_date: str,
+    subtotal: float,
+    iva_amount: float,
+    total: float,
+    iva_rate: float = DEFAULT_IVA_RATE,
+) -> CfdiValidationResult:
+    """
+    Validate a Mexican CFDI (Comprobante Fiscal Digital por Internet).
+
+    Validates:
+    - Required fields are present
+    - IVA calculation (subtotal * iva_rate = iva_amount)
+    - Total calculation (subtotal + iva_amount = total)
+    - Non-negative amounts
+
+    Args:
+        vendor_rfc: Vendor's RFC
+        invoice_number: Invoice number/folio
+        invoice_date: Invoice date
+        subtotal: Subtotal amount before IVA
+        iva_amount: IVA (VAT) amount
+        total: Total amount
+        iva_rate: IVA rate (default 0.16 = 16%)
+
+    Returns:
+        CfdiValidationResult with validation status, errors, and warnings
+
+    Examples:
+        >>> validate_cfdi("XAXX010101000", "A-001", "2024-01-15", 1000.00, 160.00, 1160.00)
+        {'valid': True, 'errors': [], 'warnings': []}
+    """
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    # ==========================================================================
+    # Required fields validation
+    # ==========================================================================
+
+    if not vendor_rfc or not vendor_rfc.strip():
+        errors.append("El RFC del proveedor es requerido")
+
+    if not invoice_number or not invoice_number.strip():
+        errors.append("El número de factura es requerido")
+
+    if not invoice_date or not invoice_date.strip():
+        errors.append("La fecha de la factura es requerida")
+
+    # ==========================================================================
+    # Amount validation
+    # ==========================================================================
+
+    # Check for negative values
+    if subtotal < 0:
+        errors.append("El subtotal no puede ser negativo")
+
+    if iva_amount < 0:
+        errors.append("El IVA no puede ser negativo")
+
+    if total < 0:
+        errors.append("El total no puede ser negativo")
+
+    # Skip calculation validation if we have negative values
+    if subtotal < 0 or iva_amount < 0 or total < 0:
+        return CfdiValidationResult(
+            valid=False,
+            errors=errors,
+            warnings=warnings,
+        )
+
+    # ==========================================================================
+    # IVA calculation validation
+    # ==========================================================================
+
+    expected_iva = subtotal * iva_rate
+    iva_difference = abs(iva_amount - expected_iva)
+
+    if iva_difference > AMOUNT_TOLERANCE:
+        # Check if it's a different rate scenario
+        if subtotal > 0:
+            actual_rate = iva_amount / subtotal
+            expected_rate_str = f"{iva_rate * 100:.0f}%"
+
+            # If IVA is 0, check if subtotal is also 0 or it's exempt
+            if iva_amount == 0 and iva_rate > 0 and subtotal > 0:
+                warnings.append(
+                    f"El IVA es $0.00 pero el subtotal es ${subtotal:,.2f}. "
+                    "Si la factura está exenta de IVA, esto es correcto."
+                )
+            else:
+                errors.append(
+                    f"El IVA calculado (${expected_iva:,.2f}) no coincide con el IVA proporcionado "
+                    f"(${iva_amount:,.2f}). Diferencia: ${iva_difference:,.2f}. "
+                    f"Tasa IVA esperada: {expected_rate_str}"
+                )
+
+    # ==========================================================================
+    # Total calculation validation
+    # ==========================================================================
+
+    expected_total = subtotal + iva_amount
+    total_difference = abs(total - expected_total)
+
+    if total_difference > AMOUNT_TOLERANCE:
+        errors.append(
+            f"El total calculado (${expected_total:,.2f}) no coincide con el total proporcionado "
+            f"(${total:,.2f}). Diferencia: ${total_difference:,.2f}"
+        )
+
+    # ==========================================================================
+    # Warnings for unusual values
+    # ==========================================================================
+
+    # Very high IVA rate warning
+    if iva_rate > 0.16 and subtotal > 0:
+        actual_rate = iva_amount / subtotal if subtotal > 0 else 0
+        if actual_rate > 0.17:  # More than 17%
+            warnings.append(
+                f"La tasa de IVA ({actual_rate * 100:.1f}%) es mayor que la tasa estándar (16%)"
+            )
+
+    # ==========================================================================
+    # Return result
+    # ==========================================================================
+
+    return CfdiValidationResult(
+        valid=len(errors) == 0,
+        errors=errors,
+        warnings=warnings,
+    )
