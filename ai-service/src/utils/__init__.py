@@ -22,4 +22,37 @@ All utilities are designed to be:
     - Thoroughly tested
 """
 
-__all__ = []
+from .confidence import (
+    CONFIDENCE_HIGH,
+    CONFIDENCE_MEDIUM,
+    CONFIDENCE_HIGH_DECIMAL,
+    CONFIDENCE_MEDIUM_DECIMAL,
+    CONFIDENCE_COLORS,
+    CONFIDENCE_LABELS,
+    ConfidenceLevel,
+    get_confidence_level,
+    get_confidence_level_decimal,
+    get_confidence_color,
+    get_confidence_label,
+    normalize_confidence,
+    decimal_to_percentage,
+    percentage_to_decimal,
+)
+
+__all__ = [
+    # Confidence utilities
+    "CONFIDENCE_HIGH",
+    "CONFIDENCE_MEDIUM",
+    "CONFIDENCE_HIGH_DECIMAL",
+    "CONFIDENCE_MEDIUM_DECIMAL",
+    "CONFIDENCE_COLORS",
+    "CONFIDENCE_LABELS",
+    "ConfidenceLevel",
+    "get_confidence_level",
+    "get_confidence_level_decimal",
+    "get_confidence_color",
+    "get_confidence_label",
+    "normalize_confidence",
+    "decimal_to_percentage",
+    "percentage_to_decimal",
+]

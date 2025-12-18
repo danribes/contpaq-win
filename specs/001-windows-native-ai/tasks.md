@@ -1074,13 +1074,13 @@
   - [x] T018.1.4 Show percentage on hover
   - [x] T018.1.5 Add tooltip with confidence explanation
 
-- [ ] **T018.2** Define confidence utilities
-  - [ ] T018.2.1 Create `confidence.py` utils in AI service
-  - [ ] T018.2.2 Define threshold constants (90, 70)
-  - [ ] T018.2.3 Implement `get_confidence_level()` function
-  - [ ] T018.2.4 Mirror in TypeScript for UI
+- [x] **T018.2** Define confidence utilities ✅ 2025-12-18
+  - [x] T018.2.1 Create `confidence.py` utils in AI service
+  - [x] T018.2.2 Define threshold constants (90, 70)
+  - [x] T018.2.3 Implement `get_confidence_level()` function
+  - [x] T018.2.4 Mirror in TypeScript for UI
 
-**Checkpoint**: Confidence colors display correctly
+**Checkpoint**: Confidence colors display correctly ✅
 
 ---
 
