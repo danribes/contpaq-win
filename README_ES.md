@@ -69,11 +69,19 @@ ContPaq-proPDF utiliza una arquitectura multi-proceso:
 
 ## Instalación
 
-> **Nota**: ContPaq-proPDF está actualmente en desarrollo. Los instaladores pre-compilados estarán disponibles en la página de [Releases](https://github.com/danribes/contpaq-win/releases) cuando la primera versión estable esté lista. Por ahora, puede compilar e instalar localmente siguiendo las instrucciones a continuación.
+### Instalación Rápida (Recomendado)
 
-### Instalar desde Código Fuente (Método Actual)
+1. Ir a la página de [Releases](https://github.com/danribes/contpaq-win/releases)
+2. Descargar el último `ContPaq-proPDF-X.X.X-Setup.exe`
+3. Ejecutar el instalador como Administrador
+4. Seguir el asistente de instalación
+5. Iniciar ContPaq-proPDF desde el acceso directo del escritorio o Menú Inicio
 
-Ya que los releases pre-compilados aún no están disponibles, siga estos pasos para compilar e instalar:
+> **Nota**: Los releases se compilan automáticamente vía GitHub Actions cuando se crean etiquetas de versión.
+
+### Compilar desde Código Fuente
+
+Si prefiere compilar localmente o desea contribuir:
 
 1. **Clonar el repositorio** y asegurarse de tener todos los [Prerrequisitos de Desarrollo](#prerrequisitos)
 2. **Compilar el instalador** ejecutando desde la raíz del repositorio:
@@ -89,15 +97,6 @@ Ya que los releases pre-compilados aún no están disponibles, siga estos pasos 
 5. **Iniciar ContPaq-proPDF** desde el acceso directo del escritorio o Menú Inicio
 
 Para opciones detalladas de compilación, ver [Compilar el Instalador](#compilar-el-instalador) más abajo.
-
-### Instalación Rápida (Cuando Haya Releases Disponibles)
-
-Una vez que se publiquen releases estables:
-
-1. Descargar `ContPaq-proPDF-X.X.X-Setup.exe` desde la página de [Releases](https://github.com/danribes/contpaq-win/releases)
-2. Ejecutar el instalador como Administrador
-3. Seguir el asistente de instalación
-4. Iniciar ContPaq-proPDF desde el acceso directo del escritorio o Menú Inicio
 
 ### Qué Hace el Instalador
 
