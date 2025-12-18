@@ -10,13 +10,16 @@
   ],
   "compression": "maximum",
   "npmRebuild": true,
+  "buildDependenciesFromSource": false,
   "directories": {
     "output": "release",
     "buildResources": "build"
   },
   "files": [
     "dist/**/*",
-    "package.json"
+    "package.json",
+    "!**/canvas/**",
+    "!**/canvas"
   ],
   "extraResources": [
     {
