@@ -1,12 +1,12 @@
 ACUERDO DE LICENCIA DE SOFTWARE
-ContPAQ-Win
+ContPaq-proPDF
 
 Versión 0.1.0
 
 =============================================================================
 
 Por favor, lea atentamente este Acuerdo de Licencia de Software ("Licencia")
-antes de instalar o utilizar ContPAQ-Win ("Software").
+antes de instalar o utilizar ContPaq-proPDF ("Software").
 
 Al instalar o usar el Software, usted acepta los términos de esta Licencia.
 Si no está de acuerdo con los términos, no instale ni use el Software.
@@ -31,7 +31,7 @@ Usted NO puede:
 3. PROPIEDAD INTELECTUAL
 
 El Software y toda la documentación relacionada son propiedad exclusiva
-de ContPAQ-Win Team y están protegidos por las leyes de derechos de autor
+de ContPaq-proPDF Team y están protegidos por las leyes de derechos de autor
 y propiedad intelectual aplicables.
 
 4. COMPONENTES DE TERCEROS
@@ -87,4 +87,4 @@ Para preguntas sobre esta Licencia:
 Al hacer clic en "Acepto" o instalar el Software, usted reconoce que ha
 leído y comprendido este Acuerdo y acepta quedar vinculado por sus términos.
 
-© 2024 ContPAQ-Win Team. Todos los derechos reservados.
+© 2024 ContPaq-proPDF Team. Todos los derechos reservados.

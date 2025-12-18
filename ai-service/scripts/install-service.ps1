@@ -1,7 +1,7 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    Installs the ContPAQ-Win AI Service as a Windows Service using NSSM.
+    Installs the ContPaq-proPDF AI Service as a Windows Service using NSSM.
 
 .DESCRIPTION
     This script uses NSSM (Non-Sucking Service Manager) to install the
@@ -20,7 +20,7 @@
     .\install-service.ps1
 
 .EXAMPLE
-    .\install-service.ps1 -ServicePath "C:\Program Files\ContPAQ-Win\ai-service\contpaq-ai-service.exe"
+    .\install-service.ps1 -ServicePath "C:\Program Files\ContPaq-proPDF\ai-service\contpaq-ai-service.exe"
 
 .NOTES
     Requires Administrator privileges.
@@ -39,14 +39,14 @@ param(
 # Configuration
 # =============================================================================
 
-$ServiceName = "ContPAQWinAIService"
-$DisplayName = "ContPAQ-Win AI Service"
-$Description = "AI-powered invoice processing service for ContPAQ-Win. Provides PDF extraction, OCR, and intelligent field recognition for Mexican invoices."
+$ServiceName = "ContPaqProPDFAIService"
+$DisplayName = "ContPaq-proPDF AI Service"
+$Description = "AI-powered invoice processing service for ContPaq-proPDF. Provides PDF extraction, OCR, and intelligent field recognition for Mexican invoices."
 $Host = "127.0.0.1"
 $Port = "8000"
 
 # Log directory
-$LogDirectory = "$env:PROGRAMDATA\ContPAQ-Win\logs"
+$LogDirectory = "$env:PROGRAMDATA\ContPaq-proPDF\logs"
 
 # Restart configuration
 $RestartDelay = 5000  # 5 seconds in milliseconds
@@ -105,7 +105,7 @@ function Stop-ExistingService {
 # Main Script
 # =============================================================================
 
-Write-Log "ContPAQ-Win AI Service Installer"
+Write-Log "ContPaq-proPDF AI Service Installer"
 Write-Log "================================="
 
 # Find NSSM

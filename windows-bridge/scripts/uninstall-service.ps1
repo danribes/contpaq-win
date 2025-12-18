@@ -1,7 +1,7 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    Uninstalls the ContPAQ-Win Windows Bridge Windows Service.
+    Uninstalls the ContPaq-proPDF Windows Bridge Windows Service.
 
 .DESCRIPTION
     This script stops and removes the Windows Bridge service from Windows.
@@ -32,8 +32,8 @@ param(
 # Configuration
 # =============================================================================
 
-$ServiceName = "ContPAQWinBridge"
-$LogDirectory = "$env:PROGRAMDATA\ContPAQ-Win\logs"
+$ServiceName = "ContPaqProPDFBridge"
+$LogDirectory = "$env:PROGRAMDATA\ContPaq-proPDF\logs"
 
 # =============================================================================
 # Functions
@@ -61,7 +61,7 @@ function Test-ServiceExists {
 # Main Script
 # =============================================================================
 
-Write-Log "ContPAQ-Win Windows Bridge Service Uninstaller"
+Write-Log "ContPaq-proPDF Windows Bridge Service Uninstaller"
 Write-Log "==============================================="
 Write-Log ""
 

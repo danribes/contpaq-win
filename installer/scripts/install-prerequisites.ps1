@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Installs prerequisites for ContPAQ-Win application.
+    Installs prerequisites for ContPaq-proPDF application.
 
 .DESCRIPTION
     This script checks for and installs required prerequisites:
@@ -218,7 +218,7 @@ function Install-VCRedist {
 # Main Script
 # =============================================================================
 
-Write-Log "ContPAQ-Win Prerequisites Installer"
+Write-Log "ContPaq-proPDF Prerequisites Installer"
 Write-Log "===================================="
 Write-Log ""
 

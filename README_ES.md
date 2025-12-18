@@ -1,10 +1,10 @@
-# ContPAQ-Win
+# ContPaq-proPDF
 
 Procesamiento de facturas con inteligencia artificial para ContPAQi, nativo de Windows.
 
 ## Descripción General
 
-ContPAQ-Win es una aplicación de escritorio que automatiza la extracción de datos de facturas usando IA y publica documentos directamente en ContPAQi. A diferencia de soluciones en la nube, se ejecuta completamente en Windows sin requerir Docker o WSL.
+ContPaq-proPDF es una aplicación de escritorio que automatiza la extracción de datos de facturas usando IA y publica documentos directamente en ContPAQi. A diferencia de soluciones en la nube, se ejecuta completamente en Windows sin requerir Docker o WSL.
 
 ### Características Principales
 
@@ -17,7 +17,7 @@ ContPAQ-Win es una aplicación de escritorio que automatiza la extracción de da
 
 ## Arquitectura
 
-ContPAQ-Win utiliza una arquitectura multi-proceso:
+ContPaq-proPDF utiliza una arquitectura multi-proceso:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -69,7 +69,7 @@ ContPAQ-Win utiliza una arquitectura multi-proceso:
 
 ## Instalación
 
-> **Nota**: ContPAQ-Win está actualmente en desarrollo. Los instaladores pre-compilados estarán disponibles en la página de [Releases](https://github.com/danribes/contpaq-win/releases) cuando la primera versión estable esté lista. Por ahora, puede compilar e instalar localmente siguiendo las instrucciones a continuación.
+> **Nota**: ContPaq-proPDF está actualmente en desarrollo. Los instaladores pre-compilados estarán disponibles en la página de [Releases](https://github.com/danribes/contpaq-win/releases) cuando la primera versión estable esté lista. Por ahora, puede compilar e instalar localmente siguiendo las instrucciones a continuación.
 
 ### Instalar desde Código Fuente (Método Actual)
 
@@ -83,10 +83,10 @@ Ya que los releases pre-compilados aún no están disponibles, siga estos pasos 
 3. **Ejecutar el instalador generado**:
    ```powershell
    # El instalador estará en:
-   installer\output\ContPAQ-Win-0.1.0-Setup.exe
+   installer\output\ContPaq-proPDF-0.1.0-Setup.exe
    ```
 4. **Ejecutar el instalador como Administrador** y seguir el asistente de instalación
-5. **Iniciar ContPAQ-Win** desde el acceso directo del escritorio o Menú Inicio
+5. **Iniciar ContPaq-proPDF** desde el acceso directo del escritorio o Menú Inicio
 
 Para opciones detalladas de compilación, ver [Compilar el Instalador](#compilar-el-instalador) más abajo.
 
@@ -94,10 +94,10 @@ Para opciones detalladas de compilación, ver [Compilar el Instalador](#compilar
 
 Una vez que se publiquen releases estables:
 
-1. Descargar `ContPAQ-Win-X.X.X-Setup.exe` desde la página de [Releases](https://github.com/danribes/contpaq-win/releases)
+1. Descargar `ContPaq-proPDF-X.X.X-Setup.exe` desde la página de [Releases](https://github.com/danribes/contpaq-win/releases)
 2. Ejecutar el instalador como Administrador
 3. Seguir el asistente de instalación
-4. Iniciar ContPAQ-Win desde el acceso directo del escritorio o Menú Inicio
+4. Iniciar ContPaq-proPDF desde el acceso directo del escritorio o Menú Inicio
 
 ### Qué Hace el Instalador
 
@@ -110,11 +110,11 @@ El instalador:
 
 ### Directorio de Instalación
 
-Por defecto: `C:\Program Files\ContPAQ-Win`
+Por defecto: `C:\Program Files\ContPaq-proPDF`
 
 ```
-ContPAQ-Win/
-├── ContPAQ Win.exe      # Aplicación principal
+ContPaq-proPDF/
+├── ContPaq proPDF.exe      # Aplicación principal
 ├── ai-service/          # Servicio de procesamiento de documentos con IA
 ├── windows-bridge/      # Bridge para SDK de ContPAQi
 ├── tesseract/           # Motor OCR
@@ -129,8 +129,8 @@ Se instalan e inician automáticamente dos servicios:
 
 | Servicio | Puerto | Propósito |
 |----------|--------|-----------|
-| ContPAQWinAIService | 8000 | Procesamiento de documentos con IA |
-| ContPAQWinBridge | 5000 | Integración con SDK de ContPAQi |
+| ContPaqProPDFAIService | 8000 | Procesamiento de documentos con IA |
+| ContPaqProPDFBridge | 5000 | Integración con SDK de ContPAQi |
 
 Ambos servicios:
 - Inician automáticamente con Windows
@@ -140,13 +140,13 @@ Ambos servicios:
 ### Archivos de Registro (Logs)
 
 Los registros se almacenan en:
-- `%LOCALAPPDATA%\ContPAQ-Win\Logs\` - Registros de la aplicación (formato JSON)
-- `%PROGRAMDATA%\ContPAQ-Win\logs\` - Registros stdout/stderr de servicios
+- `%LOCALAPPDATA%\ContPaq-proPDF\Logs\` - Registros de la aplicación (formato JSON)
+- `%PROGRAMDATA%\ContPaq-proPDF\logs\` - Registros stdout/stderr de servicios
 
 ### Desinstalación
 
-1. Usar Configuración de Windows > Aplicaciones > ContPAQ-Win > Desinstalar, o
-2. Ejecutar el desinstalador desde Menú Inicio > ContPAQ-Win > Desinstalar
+1. Usar Configuración de Windows > Aplicaciones > ContPaq-proPDF > Desinstalar, o
+2. Ejecutar el desinstalador desde Menú Inicio > ContPaq-proPDF > Desinstalar
 
 El desinstalador detendrá y eliminará ambos servicios de Windows.
 
@@ -193,7 +193,7 @@ cd ai-service
 uvicorn main:app --reload --host 127.0.0.1 --port 8000
 
 # Terminal 2: Windows Bridge
-cd windows-bridge/src/ContPAQWinBridge
+cd windows-bridge/src/ContPaqProPDFBridge
 dotnet run
 
 # Terminal 3: App de Escritorio
@@ -250,7 +250,7 @@ Opciones:
    iscc contpaq-win.iss
    ```
 
-El instalador se creará en `installer/output/ContPAQ-Win-X.X.X-Setup.exe`
+El instalador se creará en `installer/output/ContPaq-proPDF-X.X.X-Setup.exe`
 
 ## Estructura del Proyecto
 
@@ -268,8 +268,8 @@ contpaq-win/
 │       └── renderer/    # Componentes de UI en React
 ├── windows-bridge/      # Bridge C#/.NET para ContPAQi
 │   └── src/
-│       ├── ContPAQWinBridge/        # Proyecto principal
-│       └── ContPAQWinBridge.Tests/  # Pruebas
+│       ├── ContPaqProPDFBridge/        # Proyecto principal
+│       └── ContPaqProPDFBridge.Tests/  # Pruebas
 ├── database/            # Base de datos SQLite
 │   ├── migrations/      # Migraciones de esquema
 │   └── seed/            # Datos de prueba
@@ -317,16 +317,16 @@ dotnet test --filter "FullyQualifiedName~LoggingConfigurationTests"
 
 1. Verificar el estado de los servicios:
    ```powershell
-   Get-Service ContPAQWinAIService, ContPAQWinBridge
+   Get-Service ContPaqProPDFAIService, ContPaqProPDFBridge
    ```
 
 2. Revisar los registros:
-   - `%PROGRAMDATA%\ContPAQ-Win\logs\ai-service-stderr.log`
-   - `%LOCALAPPDATA%\ContPAQ-Win\Logs\windows-bridge-*.log`
+   - `%PROGRAMDATA%\ContPaq-proPDF\logs\ai-service-stderr.log`
+   - `%LOCALAPPDATA%\ContPaq-proPDF\Logs\windows-bridge-*.log`
 
 3. Reiniciar los servicios:
    ```powershell
-   Restart-Service ContPAQWinAIService, ContPAQWinBridge
+   Restart-Service ContPaqProPDFAIService, ContPaqProPDFBridge
    ```
 
 ### ContPAQi No Detectado

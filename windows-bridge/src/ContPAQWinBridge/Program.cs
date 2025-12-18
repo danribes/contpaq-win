@@ -8,7 +8,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(new CompactJsonFormatter())
     .CreateBootstrapLogger();
 
-Log.Information("Starting ContPAQ Win Bridge service...");
+Log.Information("Starting ContPaq proPDF Bridge service...");
 
 try
 {
@@ -49,7 +49,7 @@ try
     {
         options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
         {
-            Title = "ContPAQ Win Bridge API",
+            Title = "ContPaq proPDF Bridge API",
             Version = "v1",
             Description = "Windows Bridge service for ContPAQi SDK integration"
         });
@@ -65,7 +65,7 @@ try
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "ContPAQ Win Bridge API v1");
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "ContPaq proPDF Bridge API v1");
         options.RoutePrefix = "swagger";
     });
 
@@ -75,12 +75,12 @@ try
     app.MapControllers();
     app.MapHealthChecks("/health");
 
-    Log.Information("ContPAQ Win Bridge service started successfully");
+    Log.Information("ContPaq proPDF Bridge service started successfully");
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "ContPAQ Win Bridge service terminated unexpectedly");
+    Log.Fatal(ex, "ContPaq proPDF Bridge service terminated unexpectedly");
 }
 finally
 {

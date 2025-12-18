@@ -1,7 +1,7 @@
-ContPAQ-Win - Instalación
+ContPaq-proPDF - Instalación
 =========================
 
-Gracias por elegir ContPAQ-Win para la gestión de sus facturas.
+Gracias por elegir ContPaq-proPDF para la gestión de sus facturas.
 
 REQUISITOS DEL SISTEMA
 ----------------------
@@ -16,7 +16,7 @@ COMPONENTES INCLUIDOS
 
 Esta instalación incluye:
 
-1. ContPAQ-Win Desktop
+1. ContPaq-proPDF Desktop
    Aplicación de escritorio para escanear y procesar facturas.
 
 2. Servicio de IA

@@ -1,7 +1,7 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    Uninstalls the ContPAQ-Win AI Service Windows Service.
+    Uninstalls the ContPaq-proPDF AI Service Windows Service.
 
 .DESCRIPTION
     This script stops and removes the AI service from Windows Services
@@ -40,8 +40,8 @@ param(
 # Configuration
 # =============================================================================
 
-$ServiceName = "ContPAQWinAIService"
-$LogDirectory = "$env:PROGRAMDATA\ContPAQ-Win\logs"
+$ServiceName = "ContPaqProPDFAIService"
+$LogDirectory = "$env:PROGRAMDATA\ContPaq-proPDF\logs"
 
 # =============================================================================
 # Functions
@@ -86,7 +86,7 @@ function Test-ServiceExists {
 # Main Script
 # =============================================================================
 
-Write-Log "ContPAQ-Win AI Service Uninstaller"
+Write-Log "ContPaq-proPDF AI Service Uninstaller"
 Write-Log "==================================="
 
 # Check if service exists

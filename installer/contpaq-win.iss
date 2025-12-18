@@ -1,7 +1,7 @@
 ; =============================================================================
-; ContPAQ-Win Installer Script
+; ContPaq-proPDF Installer Script
 ; =============================================================================
-; T029.1 - Inno Setup installer for ContPAQ-Win application
+; T029.1 - Inno Setup installer for ContPaq-proPDF application
 ;
 ; This script creates a Windows installer that:
 ; - Installs the Electron desktop application
@@ -20,11 +20,11 @@
 ;   - Windows Bridge executable in windows-bridge/bin/publish
 ; =============================================================================
 
-#define MyAppName "ContPAQ-Win"
+#define MyAppName "ContPaq-proPDF"
 #define MyAppVersion "0.1.0"
-#define MyAppPublisher "ContPAQ-Win Team"
+#define MyAppPublisher "ContPaq-proPDF Team"
 #define MyAppURL "https://github.com/contpaq-win"
-#define MyAppExeName "ContPAQ Win.exe"
+#define MyAppExeName "ContPaq proPDF.exe"
 #define MyAppId "{{8B9E7A5C-4D3F-2E1B-0A9C-8D7E6F5A4B3C}"
 
 [Setup]
@@ -49,7 +49,7 @@ InfoBeforeFile=INFO_ES.txt
 
 ; Output settings
 OutputDir=output
-OutputBaseFilename=ContPAQ-Win-{#MyAppVersion}-Setup
+OutputBaseFilename=ContPaq-proPDF-{#MyAppVersion}-Setup
 SetupIconFile=assets\icon.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 

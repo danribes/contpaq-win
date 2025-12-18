@@ -1,5 +1,5 @@
 """
-ContPAQ-Win AI Service - JSON Logging Configuration
+ContPaq-proPDF AI Service - JSON Logging Configuration
 
 This module provides structured JSON logging for the AI service.
 All logs are output in JSON format for easy parsing and analysis.
@@ -37,7 +37,7 @@ DEFAULT_LOG_LEVEL = "INFO"
 DEFAULT_LOG_FORMAT = "json"
 LOG_FILE_MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 LOG_FILE_BACKUP_COUNT = 5
-APP_NAME = "ContPAQ-Win"
+APP_NAME = "ContPaq-proPDF"
 SERVICE_NAME = "ai-service"
 
 
@@ -124,7 +124,7 @@ def get_log_directory() -> Path:
     """
     Get the log directory path.
 
-    On Windows, logs are stored in %LOCALAPPDATA%/ContPAQ-Win/Logs
+    On Windows, logs are stored in %LOCALAPPDATA%/ContPaq-proPDF/Logs
     On other platforms, logs are stored in ~/.contpaq-win/logs
 
     Returns:

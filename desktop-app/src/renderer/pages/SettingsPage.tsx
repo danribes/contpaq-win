@@ -424,7 +424,7 @@ export function SettingsPage(): JSX.Element {
           <div className="space-y-4">
             {/* App Name and Version */}
             <div className="text-center pb-4 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900">ContPAQ Win</h3>
+              <h3 className="text-xl font-bold text-gray-900">ContPaq proPDF</h3>
               <p className="text-sm text-gray-500">
                 Sistema de gestión de facturas con IA
               </p>

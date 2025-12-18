@@ -1,5 +1,5 @@
 /**
- * ContPAQ Win - Electron Main Process Entry Point
+ * ContPaq proPDF - Electron Main Process Entry Point
  *
  * This is the main entry point for the Electron application.
  * It creates and manages the browser window, handles lifecycle events,
@@ -25,7 +25,7 @@ function createWindow(): void {
     height: 800,
     minWidth: 800,
     minHeight: 600,
-    title: 'ContPAQ Win',
+    title: 'ContPaq proPDF',
     show: false, // Don't show until ready-to-show
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
