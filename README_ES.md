@@ -197,12 +197,32 @@ npm run package
 
 ### Compilar el Instalador
 
-Para compilar el instalador de Windows localmente:
+#### Opción 1: Script de Compilación Automatizado (Recomendado)
+
+Ejecutar el script de PowerShell desde la raíz del repositorio:
+
+```powershell
+.\build.ps1
+```
+
+El script:
+- Verifica todas las herramientas requeridas
+- Compila todos los componentes (Servicio IA, Windows Bridge, App de Escritorio)
+- Compila el instalador de Inno Setup
+
+Opciones:
+```powershell
+.\build.ps1 -Clean              # Recompilar desde cero
+.\build.ps1 -SkipAIService      # Omitir compilación del Servicio IA
+.\build.ps1 -SkipInstaller      # Solo compilar componentes, no el instalador
+```
+
+#### Opción 2: Compilación Manual
 
 1. **Instalar Inno Setup 6.x** desde [jrsoftware.org](https://jrsoftware.org/isinfo.php)
-2. **Compilar todos los componentes** (ver arriba)
+2. **Compilar todos los componentes** (ver Compilar para Producción arriba)
 3. **Ejecutar el compilador de Inno Setup**:
-   ```bash
+   ```powershell
    cd installer
    iscc contpaq-win.iss
    ```
