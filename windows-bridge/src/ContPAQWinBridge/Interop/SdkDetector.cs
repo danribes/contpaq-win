@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace ContPAQWinBridge.Interop;
 
@@ -16,6 +17,7 @@ namespace ContPAQWinBridge.Interop;
 /// - Registry: HKLM\SOFTWARE\Computación en Acción, SA de CV\ContPAQi
 /// - Files: C:\Program Files (x86)\Compac\
 /// </remarks>
+[SupportedOSPlatform("windows")]
 public static class SdkDetector
 {
     // Registry paths for ContPAQi installation
