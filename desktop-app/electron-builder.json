@@ -4,7 +4,12 @@
   "productName": "ContPAQ Win",
   "copyright": "Copyright © 2024 ContPAQ Win",
   "asar": true,
+  "asarUnpack": [
+    "**/*.node",
+    "**/better-sqlite3/**"
+  ],
   "compression": "maximum",
+  "npmRebuild": true,
   "directories": {
     "output": "release",
     "buildResources": "build"
@@ -23,6 +28,15 @@
         "!**/*.pyc",
         "!**/tests/**",
         "!**/.pytest_cache/**"
+      ]
+    },
+    {
+      "from": "resources/tesseract",
+      "to": "tesseract",
+      "filter": [
+        "**/*",
+        "!**/doc/**",
+        "!**/README*"
       ]
     }
   ],

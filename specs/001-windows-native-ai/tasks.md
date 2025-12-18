@@ -1486,18 +1486,40 @@
 
 ### T028 - Electron Packaging
 
-- [ ] **T028.1** Configure electron-builder
-  - [ ] T028.1.1 Set up code signing (if certificate available)
-  - [ ] T028.1.2 Configure Windows target
-  - [ ] T028.1.3 Include native modules (better-sqlite3)
-  - [ ] T028.1.4 Build NSIS installer component
+- [x] **T028.1** Configure electron-builder ✅ *Completed 2025-12-18*
+  - [x] T028.1.1 Set up code signing (if certificate available) ✅ *Completed 2025-12-18*
+    - publisherName configured for unsigned builds
+    - forceCodeSigning not set (allows dev builds)
+    - Certificate via CSC_LINK/CSC_KEY_PASSWORD env vars
+  - [x] T028.1.2 Configure Windows target ✅ *Completed 2025-12-18*
+    - Target: NSIS installer for x64
+    - Artifact: `${productName}-${version}-Setup.exe`
+  - [x] T028.1.3 Include native modules (better-sqlite3) ✅ *Completed 2025-12-18*
+    - Added: `asarUnpack` for .node files and better-sqlite3
+    - Added: `npmRebuild: true` for Electron ABI compatibility
+  - [x] T028.1.4 Build NSIS installer component ✅ *Completed 2025-12-18*
+    - Spanish language (LCID 1034)
+    - Per-machine installation with elevation
+    - Desktop and Start Menu shortcuts
+    - Test: `tests/desktop_app/test_T028_1_electron_builder.py` (28 tests passed)
+    - Logs: `log_files/T028.1_*`, `log_tests/T028.1_*`, `log_learn/T028.1_*`
 
-- [ ] **T028.2** [P] Bundle Tesseract
-  - [ ] T028.2.1 Download Tesseract Windows binaries
-  - [ ] T028.2.2 Include Spanish language data
-  - [ ] T028.2.3 Configure path in bundled app
+- [x] **T028.2** [P] Bundle Tesseract ✅ *Completed 2025-12-18*
+  - [x] T028.2.1 Download Tesseract Windows binaries ✅ *Completed 2025-12-18*
+    - Created: `desktop-app/scripts/download-tesseract.ps1`
+    - Downloads from UB-Mannheim releases (v5.3.3)
+    - Manual copy required for .exe and DLLs
+  - [x] T028.2.2 Include Spanish language data ✅ *Completed 2025-12-18*
+    - Languages: spa (Spanish), eng (English), osd (script detection)
+    - Uses tessdata_fast for optimal size/performance
+  - [x] T028.2.3 Configure path in bundled app ✅ *Completed 2025-12-18*
+    - Created: `desktop-app/src/main/tesseract-config.ts`
+    - Handles development vs packaged app paths
+    - Uses `process.resourcesPath` in packaged mode
+    - Test: `tests/desktop_app/test_T028_2_tesseract_bundle.py` (13 tests passed)
+    - Logs: `log_files/T028.2_*`, `log_tests/T028.2_*`, `log_learn/T028.2_*`
 
-**Checkpoint**: Electron app builds successfully
+**Checkpoint**: Electron app builds successfully ✅ *Completed 2025-12-18*
 
 ---
 
