@@ -979,14 +979,23 @@
   - Custom `AIServiceError` class for typed error handling
   - 35 tests covering all methods, error handling, retries, timeouts
 
-- [ ] **T015.2** Implement file upload UI
-  - [ ] T015.2.1 [P] Write test for file upload
-  - [ ] T015.2.2 Create file picker with PDF filter
-  - [ ] T015.2.3 Implement drag-and-drop zone
-  - [ ] T015.2.4 Show upload progress indicator
-  - [ ] T015.2.5 Display error messages in Spanish
+- [x] **T015.2** Implement file upload UI ✅ 2025-12-18
+  - [x] T015.2.1 [P] Write test for file upload (32 tests)
+  - [x] T015.2.2 Create file picker with PDF filter
+  - [x] T015.2.3 Implement drag-and-drop zone
+  - [x] T015.2.4 Show upload progress indicator
+  - [x] T015.2.5 Display error messages in Spanish
 
-**Checkpoint**: Desktop app can send PDF to AI service
+  **Implementation Details:**
+  - Created `FileUpload` component in `desktop-app/src/renderer/components/FileUpload.tsx`
+  - Hidden file input with PDF filter (`accept=".pdf,application/pdf"`)
+  - Drag-and-drop zone with visual feedback on drag enter/leave
+  - Progress bar with percentage display during upload
+  - Spanish error messages: "Solo se permiten archivos PDF", "El archivo excede el tamaño máximo"
+  - Disabled state support for blocking interactions during upload
+  - 32 tests covering all features and Tailwind styling
+
+**Checkpoint**: Desktop app can send PDF to AI service ✅
 
 ---
 
