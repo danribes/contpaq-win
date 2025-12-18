@@ -24,6 +24,13 @@ from ..models.extraction import (
     BatchResultItem,
     BatchExtractionResponse,
 )
+from ..models.validation import (
+    RfcValidationRequest,
+    RfcValidationResponse,
+    CfdiValidationRequest,
+    CfdiValidationResponse,
+)
+from ..utils.validation import validate_rfc, validate_cfdi
 
 # Maximum number of files in a batch
 MAX_BATCH_FILES = 20
@@ -477,4 +484,90 @@ async def extract_batch(
         successful=successful,
         failed=failed,
         total_processing_time_ms=total_processing_time_ms,
+    )
+
+
+@router.post("/validate/rfc", response_model=RfcValidationResponse)
+async def validate_rfc_endpoint(
+    request: RfcValidationRequest,
+) -> RfcValidationResponse:
+    """
+    Validate a Mexican RFC (Registro Federal de Contribuyentes).
+
+    Validates the format of an RFC and determines whether it corresponds to:
+    - Persona Física (individual): 13 characters
+    - Persona Moral (company): 12 characters
+
+    Validation includes:
+    - Length check (12 or 13 characters)
+    - Pattern validation for name prefix
+    - Date portion validation (valid month and day)
+    - Alphanumeric homoclave check
+
+    Args:
+        request: RfcValidationRequest containing the RFC to validate
+
+    Returns:
+        RfcValidationResponse with validation result:
+        - valid: Whether the RFC is valid
+        - rfc_type: "persona_fisica" or "persona_moral" if valid
+        - normalized_rfc: Uppercase, trimmed version of the RFC
+        - error: Error message in Spanish if invalid
+
+    Note:
+        This endpoint always returns 200. The validation result is in the response body.
+        A 422 error indicates a malformed request (missing RFC field).
+    """
+    result = validate_rfc(request.rfc)
+
+    return RfcValidationResponse(
+        valid=result["valid"],
+        rfc_type=result.get("rfc_type"),
+        normalized_rfc=result.get("normalized_rfc"),
+        error=result.get("error"),
+    )
+
+
+@router.post("/validate/cfdi", response_model=CfdiValidationResponse)
+async def validate_cfdi_endpoint(
+    request: CfdiValidationRequest,
+) -> CfdiValidationResponse:
+    """
+    Validate a Mexican CFDI (Comprobante Fiscal Digital por Internet).
+
+    Validates the invoice data including:
+    - Required fields are present (vendor RFC, invoice number, date)
+    - IVA calculation (subtotal × 16% = IVA amount)
+    - Total calculation (subtotal + IVA = total)
+    - Non-negative amounts
+
+    Args:
+        request: CfdiValidationRequest containing invoice data to validate
+
+    Returns:
+        CfdiValidationResponse with validation result:
+        - valid: Whether the CFDI is valid
+        - errors: List of validation error messages in Spanish
+        - warnings: List of warning messages in Spanish
+
+    Note:
+        This endpoint always returns 200. The validation result is in the response body.
+        A 422 error indicates a malformed request (missing required fields).
+
+        The default IVA rate is 16%. Use iva_rate=0.0 for exempt invoices.
+    """
+    result = validate_cfdi(
+        vendor_rfc=request.vendor_rfc,
+        invoice_number=request.invoice_number,
+        invoice_date=request.invoice_date,
+        subtotal=request.subtotal,
+        iva_amount=request.iva_amount,
+        total=request.total,
+        iva_rate=request.iva_rate or 0.16,
+    )
+
+    return CfdiValidationResponse(
+        valid=result["valid"],
+        errors=result["errors"],
+        warnings=result["warnings"],
     )
