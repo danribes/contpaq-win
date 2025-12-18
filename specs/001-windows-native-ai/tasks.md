@@ -1525,11 +1525,22 @@
 
 ### T029 - Inno Setup Installer
 
-- [ ] **T029.1** Create installer script
-  - [ ] T029.1.1 Create `contpaq-win.iss` base script
-  - [ ] T029.1.2 Define installation directory structure
-  - [ ] T029.1.3 Add license agreement (Spanish)
-  - [ ] T029.1.4 Configure application icon
+- [x] **T029.1** Create installer script ✅ *Completed 2025-12-18*
+  - [x] T029.1.1 Create `contpaq-win.iss` base script ✅ *Completed 2025-12-18*
+    - Created: `installer/contpaq-win.iss`
+    - Inno Setup 6.x compatible
+    - LZMA2/ultra64 compression
+  - [x] T029.1.2 Define installation directory structure ✅ *Completed 2025-12-18*
+    - Desktop app, AI service, Windows Bridge, Tesseract
+    - Logs directory with user-modify permissions
+  - [x] T029.1.3 Add license agreement (Spanish) ✅ *Completed 2025-12-18*
+    - Created: `installer/LICENSE_ES.txt`
+    - Created: `installer/INFO_ES.txt` (pre-install info)
+    - Includes LFPDPPP data protection notice
+  - [x] T029.1.4 Configure application icon ✅ *Completed 2025-12-18*
+    - SetupIconFile and UninstallDisplayIcon configured
+    - Test: `tests/installer/test_T029_1_inno_setup.py` (20 tests passed)
+    - Logs: `log_files/T029.1_*`, `log_tests/T029.1_*`, `log_learn/T029.1_*`
 
 - [ ] **T029.2** Add prerequisite detection
   - [ ] T029.2.1 Detect .NET 8.0 Runtime
