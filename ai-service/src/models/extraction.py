@@ -290,9 +290,63 @@ class InvoiceExtraction(BaseModel):
         ])
 
 
+class BatchResultItem(BaseModel):
+    """
+    Result for a single file in a batch extraction.
+
+    Contains either the extraction result on success,
+    or an error message on failure.
+
+    Attributes:
+        filename: Original filename
+        success: Whether extraction succeeded
+        extraction: Extraction result (if successful)
+        error: Error message (if failed)
+    """
+    filename: str = Field(..., description="Original filename")
+    success: bool = Field(..., description="Whether extraction succeeded")
+    extraction: Optional[InvoiceExtraction] = Field(
+        default=None,
+        description="Extraction result (if successful)"
+    )
+    error: Optional[str] = Field(
+        default=None,
+        description="Error message (if failed)"
+    )
+
+
+class BatchExtractionResponse(BaseModel):
+    """
+    Response for batch extraction endpoint.
+
+    Contains results for all files in the batch,
+    along with summary statistics.
+
+    Attributes:
+        results: List of per-file results
+        total_files: Total number of files in batch
+        successful: Number of successful extractions
+        failed: Number of failed extractions
+        total_processing_time_ms: Total processing time in milliseconds
+    """
+    results: List[BatchResultItem] = Field(
+        ...,
+        description="Per-file extraction results"
+    )
+    total_files: int = Field(..., description="Total files in batch")
+    successful: int = Field(..., description="Successful extractions")
+    failed: int = Field(..., description="Failed extractions")
+    total_processing_time_ms: int = Field(
+        ...,
+        description="Total processing time in milliseconds"
+    )
+
+
 __all__ = [
     "BoundingBox",
     "ExtractionField",
     "LineItemExtraction",
     "InvoiceExtraction",
+    "BatchResultItem",
+    "BatchExtractionResponse",
 ]
