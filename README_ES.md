@@ -69,14 +69,37 @@ ContPAQ-Win utiliza una arquitectura multi-proceso:
 
 ## Instalación
 
-> **Nota**: ContPAQ-Win está actualmente en desarrollo. Los instaladores pre-compilados estarán disponibles en la página de [Releases](https://github.com/danribes/contpaq-win/releases) cuando la primera versión estable esté lista. Por ahora, puede compilar el instalador localmente (ver [Compilar el Instalador](#compilar-el-instalador) más abajo).
+> **Nota**: ContPAQ-Win está actualmente en desarrollo. Los instaladores pre-compilados estarán disponibles en la página de [Releases](https://github.com/danribes/contpaq-win/releases) cuando la primera versión estable esté lista. Por ahora, puede compilar e instalar localmente siguiendo las instrucciones a continuación.
 
-### Instalación Rápida (Cuando Esté Disponible)
+### Instalar desde Código Fuente (Método Actual)
+
+Ya que los releases pre-compilados aún no están disponibles, siga estos pasos para compilar e instalar:
+
+1. **Clonar el repositorio** y asegurarse de tener todos los [Prerrequisitos de Desarrollo](#prerrequisitos)
+2. **Compilar el instalador** ejecutando desde la raíz del repositorio:
+   ```powershell
+   .\build.ps1
+   ```
+3. **Ejecutar el instalador generado**:
+   ```powershell
+   # El instalador estará en:
+   installer\output\ContPAQ-Win-0.1.0-Setup.exe
+   ```
+4. **Ejecutar el instalador como Administrador** y seguir el asistente de instalación
+5. **Iniciar ContPAQ-Win** desde el acceso directo del escritorio o Menú Inicio
+
+Para opciones detalladas de compilación, ver [Compilar el Instalador](#compilar-el-instalador) más abajo.
+
+### Instalación Rápida (Cuando Haya Releases Disponibles)
+
+Una vez que se publiquen releases estables:
 
 1. Descargar `ContPAQ-Win-X.X.X-Setup.exe` desde la página de [Releases](https://github.com/danribes/contpaq-win/releases)
 2. Ejecutar el instalador como Administrador
 3. Seguir el asistente de instalación
 4. Iniciar ContPAQ-Win desde el acceso directo del escritorio o Menú Inicio
+
+### Qué Hace el Instalador
 
 El instalador:
 - Instala los prerrequisitos (.NET 8.0, VC++ Redistributable) si es necesario
