@@ -1181,12 +1181,21 @@
 
 ### T022 - Windows Bridge Vendor Endpoints
 
-- [ ] **T022.1** Implement vendor list endpoint
-  - [ ] T022.1.1 [P] Write test `VendorsControllerTests.cs`
-  - [ ] T022.1.2 Create `VendorsController.cs`
-  - [ ] T022.1.3 Implement GET /vendors with search
-  - [ ] T022.1.4 Implement GET /vendors/{rfc}
-  - [ ] T022.1.5 Query ContPAQi SDK for vendors
+- [x] **T022.1** Implement vendor list endpoint ✓ 2025-12-18
+  - [x] T022.1.1 [P] Write test `VendorsControllerTests.cs`
+  - [x] T022.1.2 Create `VendorsController.cs`
+  - [x] T022.1.3 Implement GET /vendors with search
+  - [x] T022.1.4 Implement GET /vendors/{rfc}
+  - [x] T022.1.5 Query ContPAQi SDK for vendors
+
+  **Implementation Details (T022.1)**:
+  - Created `VendorsController.cs` extending BaseController
+  - GET /api/vendors with optional `search` and `limit` query params
+  - GET /api/vendors/{rfc} with RFC validation and normalization
+  - RFC validation: 12-13 alphanumeric chars (Ñ and & allowed)
+  - Delegates to IVendorService (interface already existed)
+  - Error responses in Spanish
+  - 27 tests in VendorsControllerTests.cs
 
 - [ ] **T022.2** Implement vendor creation
   - [ ] T022.2.1 [P] Write test for vendor creation
