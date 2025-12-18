@@ -154,12 +154,14 @@ jobs:
         working-directory: desktop-app
         run: |
           Write-Host "Installing npm dependencies..."
-          npm ci
+          # Skip optional dependencies (canvas) which require native compilation
+          npm ci --ignore-optional
 
           Write-Host "Building application..."
           npm run build
 
           Write-Host "Packaging with Electron Builder..."
+          # electron-builder will rebuild native modules (better-sqlite3) for Electron
           npm run package
 
           # Find the built app
