@@ -935,18 +935,18 @@
 
 ### T014 - Extraction API Endpoint
 
-- [ ] **T014.1** Implement POST /extract endpoint
-  - [ ] T014.1.1 [P] Write test `test_extract_endpoint.py`
-  - [ ] T014.1.2 Create endpoint in `routes.py`
-  - [ ] T014.1.3 Handle multipart file upload
-  - [ ] T014.1.4 Validate file is PDF
-  - [ ] T014.1.5 Orchestrate extraction pipeline
-    - [ ] T014.1.5.1 Detect PDF type
-    - [ ] T014.1.5.2 Extract text (PyMuPDF or OCR)
-    - [ ] T014.1.5.3 Run AI extraction
-    - [ ] T014.1.5.4 Return ExtractionResponse
-  - [ ] T014.1.6 Calculate and return processing_time_ms
-  - [ ] T014.1.7 Handle errors with Spanish messages
+- [x] **T014.1** Implement POST /extract endpoint ✅ 2025-12-18
+  - [x] T014.1.1 [P] Write test `test_extract_endpoint.py`
+  - [x] T014.1.2 Create endpoint in `routes.py`
+  - [x] T014.1.3 Handle multipart file upload
+  - [x] T014.1.4 Validate file is PDF
+  - [x] T014.1.5 Orchestrate extraction pipeline
+    - [x] T014.1.5.1 Detect PDF type
+    - [x] T014.1.5.2 Extract text (PyMuPDF or OCR)
+    - [x] T014.1.5.3 Run AI extraction
+    - [x] T014.1.5.4 Return ExtractionResponse
+  - [x] T014.1.6 Calculate and return processing_time_ms
+  - [x] T014.1.7 Handle errors with Spanish messages
 
 - [ ] **T014.2** [P] Implement batch extraction endpoint
   - [ ] T014.2.1 [P] Write test `test_batch_extract_endpoint.py`

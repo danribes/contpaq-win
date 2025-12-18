@@ -5,11 +5,23 @@ This module defines all FastAPI routes for the AI invoice processing service.
 """
 
 from datetime import datetime, timezone
-from typing import Optional
+from typing import List, Optional
 import os
+import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, File, UploadFile, HTTPException
 from pydantic import BaseModel
+
+from ..services.extraction_service import (
+    ExtractionService,
+    ExtractionError,
+    InvalidPDFError,
+    FileTooLargeError,
+    MAX_FILE_SIZE,
+)
+from ..models.extraction import InvoiceExtraction
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()
@@ -262,3 +274,92 @@ async def health_check() -> HealthResponse:
         models_loaded=check_models_loaded(),
         ocr_available=check_ocr_available(),
     )
+
+
+@router.post("/extract", response_model=InvoiceExtraction)
+async def extract_invoice(
+    file: UploadFile = File(..., description="PDF file to extract invoice data from")
+) -> InvoiceExtraction:
+    """
+    Extract invoice data from an uploaded PDF file.
+
+    This endpoint accepts a PDF file (text-based or scanned) and extracts
+    structured invoice data including:
+    - Vendor RFC and name
+    - Invoice number and date
+    - Subtotal, IVA, and total amounts
+    - Line items with description, quantity, unit price, and amount
+
+    The extraction pipeline automatically detects the PDF type and uses
+    the appropriate extraction method (PyMuPDF for text-based, OCR for scanned).
+
+    Args:
+        file: PDF file upload (multipart/form-data)
+
+    Returns:
+        InvoiceExtraction: Structured invoice data with confidence scores
+
+    Raises:
+        HTTPException 400: If the file is not a valid PDF
+        HTTPException 413: If the file exceeds maximum size
+        HTTPException 500: If extraction fails
+    """
+    # Validate content type
+    content_type = file.content_type or ""
+    if not content_type.startswith("application/pdf") and not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(
+            status_code=400,
+            detail="El archivo debe ser un PDF. Por favor, suba un archivo con extensión .pdf",
+        )
+
+    # Read file content
+    try:
+        content = await file.read()
+    except Exception as e:
+        logger.error(f"Failed to read uploaded file: {e}")
+        raise HTTPException(
+            status_code=400,
+            detail="Error al leer el archivo subido",
+        )
+
+    # Check file size
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"El archivo excede el tamaño máximo de {MAX_FILE_SIZE // (1024 * 1024)}MB",
+        )
+
+    # Create extraction service and process
+    service = ExtractionService()
+
+    try:
+        result = service.extract(content, filename=file.filename or "document.pdf")
+        return result
+
+    except InvalidPDFError as e:
+        logger.warning(f"Invalid PDF uploaded: {e}")
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+
+    except FileTooLargeError as e:
+        logger.warning(f"File too large: {e}")
+        raise HTTPException(
+            status_code=413,
+            detail=str(e),
+        )
+
+    except ExtractionError as e:
+        logger.error(f"Extraction failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error en la extracción: {str(e)}",
+        )
+
+    except Exception as e:
+        logger.exception(f"Unexpected error during extraction: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Error interno del servidor durante la extracción",
+        )
