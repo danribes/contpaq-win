@@ -1001,12 +1001,21 @@
 
 ### T016 - PDF Viewer Component
 
-- [ ] **T016.1** Create PDF viewer
-  - [ ] T016.1.1 [P] Write test for PDF rendering
-  - [ ] T016.1.2 Create `PDFViewer.tsx` component
-  - [ ] T016.1.3 Use react-pdf for rendering
-  - [ ] T016.1.4 Implement zoom controls
-  - [ ] T016.1.5 Implement page navigation
+- [x] **T016.1** Create PDF viewer ✅ 2025-12-18
+  - [x] T016.1.1 [P] Write test for PDF rendering (34 tests)
+  - [x] T016.1.2 Create `PDFViewer.tsx` component
+  - [x] T016.1.3 Use react-pdf for rendering
+  - [x] T016.1.4 Implement zoom controls
+  - [x] T016.1.5 Implement page navigation
+
+  **Implementation Details:**
+  - Created `PDFViewer` component in `desktop-app/src/renderer/components/PDFViewer.tsx`
+  - Uses react-pdf Document and Page components with PDF.js worker from CDN
+  - Zoom controls: +/- buttons (25% steps), reset button, range 25%-300%
+  - Page navigation: prev/next buttons, page input, displays "X / Y" format
+  - Loading spinner with "Cargando PDF..." text
+  - Error message display support
+  - 34 tests covering rendering, zoom, navigation, and styling
 
 - [ ] **T016.2** Implement bounding box overlay
   - [ ] T016.2.1 [P] Write test for bbox overlay
