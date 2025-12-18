@@ -1,14 +1,14 @@
 <#
 .SYNOPSIS
-    Installs and starts ContPAQ-Win services.
+    Installs and starts ContPaq-proPDF services.
 
 .DESCRIPTION
     This script registers and starts the AI service and Windows Bridge
     as Windows services. It should be run after the main installation.
 
     Services installed:
-    - ContPAQWinAIService (AI Service via NSSM)
-    - ContPAQWinBridge (Windows Bridge as native service)
+    - ContPaqProPDFAIService (AI Service via NSSM)
+    - ContPaqProPDFBridge (Windows Bridge as native service)
 
 .PARAMETER InstallDir
     Installation directory. Default: Script location's parent.
@@ -36,17 +36,17 @@ if (-not $InstallDir) {
 }
 
 $NssmPath = Join-Path $InstallDir "tools\nssm.exe"
-$LogDir = "$env:PROGRAMDATA\ContPAQ-Win\logs"
+$LogDir = "$env:PROGRAMDATA\ContPaq-proPDF\logs"
 
 # AI Service configuration
-$AIServiceName = "ContPAQWinAIService"
+$AIServiceName = "ContPaqProPDFAIService"
 $AIServiceExe = Join-Path $InstallDir "ai-service\contpaq-ai-service.exe"
 $AIServiceHost = "127.0.0.1"
 $AIServicePort = "8000"
 
 # Windows Bridge configuration
-$BridgeServiceName = "ContPAQWinBridge"
-$BridgeServiceExe = Join-Path $InstallDir "windows-bridge\ContPAQWinBridge.exe"
+$BridgeServiceName = "ContPaqProPDFBridge"
+$BridgeServiceExe = Join-Path $InstallDir "windows-bridge\ContPaqProPDFBridge.exe"
 
 # =============================================================================
 # Functions
@@ -102,8 +102,8 @@ function Install-AIService {
     # Configure service
     & $NssmPath set $AIServiceName AppDirectory (Split-Path -Parent $AIServiceExe)
     & $NssmPath set $AIServiceName AppParameters "--host $AIServiceHost --port $AIServicePort"
-    & $NssmPath set $AIServiceName Description "ContPAQ-Win AI Service - Document processing with LayoutLMv3"
-    & $NssmPath set $AIServiceName DisplayName "ContPAQ-Win AI Service"
+    & $NssmPath set $AIServiceName Description "ContPaq-proPDF AI Service - Document processing with LayoutLMv3"
+    & $NssmPath set $AIServiceName DisplayName "ContPaq-proPDF AI Service"
     & $NssmPath set $AIServiceName Start SERVICE_AUTO_START
 
     # Restart configuration
@@ -149,7 +149,7 @@ function Install-BridgeService {
     $serviceParams = @{
         Name = $BridgeServiceName
         BinaryPathName = $BridgeServiceExe
-        DisplayName = "ContPAQ-Win Windows Bridge"
+        DisplayName = "ContPaq-proPDF Windows Bridge"
         Description = "API bridge for ContPAQi SDK integration"
         StartupType = "Automatic"
     }
@@ -172,7 +172,7 @@ function Install-BridgeService {
 function Start-Services {
     <#
     .SYNOPSIS
-        Start all ContPAQ-Win services.
+        Start all ContPaq-proPDF services.
     #>
     Write-Log "Starting services..."
 
@@ -204,7 +204,7 @@ function Start-Services {
 # Main Script
 # =============================================================================
 
-Write-Log "ContPAQ-Win Service Installer"
+Write-Log "ContPaq-proPDF Service Installer"
 Write-Log "=============================="
 Write-Log ""
 Write-Log "Install directory: $InstallDir"

@@ -8,9 +8,9 @@
     <AssemblyName>ContPAQWinBridge</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Version>1.0.0</Version>
-    <Authors>ContPAQ Win Team</Authors>
+    <Authors>ContPaq proPDF Team</Authors>
     <Description>Windows Bridge service for ContPAQi SDK integration</Description>
-    <Product>ContPAQ Win</Product>
+    <Product>ContPaq proPDF</Product>
     <Copyright>Copyright © 2025</Copyright>
   </PropertyGroup>
 

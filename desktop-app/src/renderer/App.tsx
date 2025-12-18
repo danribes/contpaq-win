@@ -1,5 +1,5 @@
 /**
- * ContPAQ Win - Main Application Component
+ * ContPaq proPDF - Main Application Component
  *
  * This is the root component that sets up routing and the main
  * application layout using React Router and Tailwind CSS.
@@ -37,7 +37,7 @@ function App(): JSX.Element {
           <nav className="flex items-center justify-between max-w-7xl mx-auto">
             <div className="flex items-center space-x-4">
               <h1 className="text-xl font-semibold text-primary-600">
-                ContPAQ Win
+                ContPaq proPDF
               </h1>
             </div>
             <div className="flex items-center space-x-4">

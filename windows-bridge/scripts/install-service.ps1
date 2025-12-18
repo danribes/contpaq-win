@@ -1,7 +1,7 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    Installs the ContPAQ-Win Windows Bridge as a Windows Service.
+    Installs the ContPaq-proPDF Windows Bridge as a Windows Service.
 
 .DESCRIPTION
     This script registers the Windows Bridge .NET application as a Windows
@@ -10,7 +10,7 @@
     ContPAQi SDK.
 
 .PARAMETER ServicePath
-    Path to the ContPAQWinBridge.exe executable.
+    Path to the ContPaqProPDFBridge.exe executable.
     Default: Looks in the publish directory.
 
 .PARAMETER StartupType
@@ -20,7 +20,7 @@
     .\install-service.ps1
 
 .EXAMPLE
-    .\install-service.ps1 -ServicePath "C:\Program Files\ContPAQ-Win\bridge\ContPAQWinBridge.exe"
+    .\install-service.ps1 -ServicePath "C:\Program Files\ContPaq-proPDF\bridge\ContPaqProPDFBridge.exe"
 
 .NOTES
     Requires Administrator privileges.
@@ -40,14 +40,14 @@ param(
 # Configuration
 # =============================================================================
 
-$ServiceName = "ContPAQWinBridge"
-$DisplayName = "ContPAQ-Win Windows Bridge"
-$Description = "Bridge service connecting ContPAQ-Win desktop application to ContPAQi SDK. Provides REST API for vendor management, entry creation, and duplicate checking."
+$ServiceName = "ContPaqProPDFBridge"
+$DisplayName = "ContPaq-proPDF Windows Bridge"
+$Description = "Bridge service connecting ContPaq-proPDF desktop application to ContPAQi SDK. Provides REST API for vendor management, entry creation, and duplicate checking."
 $Host = "127.0.0.1"
 $Port = "5000"
 
 # Log directory
-$LogDirectory = "$env:PROGRAMDATA\ContPAQ-Win\logs"
+$LogDirectory = "$env:PROGRAMDATA\ContPaq-proPDF\logs"
 
 # =============================================================================
 # Functions
@@ -74,9 +74,9 @@ function Find-Executable {
 
     $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
     $locations = @(
-        (Join-Path $ScriptDir "..\src\ContPAQWinBridge\bin\publish\win-x64\ContPAQWinBridge.exe"),
-        (Join-Path $ScriptDir "..\publish\ContPAQWinBridge.exe"),
-        "$env:ProgramFiles\ContPAQ-Win\bridge\ContPAQWinBridge.exe"
+        (Join-Path $ScriptDir "..\src\ContPaqProPDFBridge\bin\publish\win-x64\ContPaqProPDFBridge.exe"),
+        (Join-Path $ScriptDir "..\publish\ContPaqProPDFBridge.exe"),
+        "$env:ProgramFiles\ContPaq-proPDF\bridge\ContPaqProPDFBridge.exe"
     )
 
     foreach ($location in $locations) {
@@ -119,7 +119,7 @@ function Remove-ExistingService {
 # Main Script
 # =============================================================================
 
-Write-Log "ContPAQ-Win Windows Bridge Service Installer"
+Write-Log "ContPaq-proPDF Windows Bridge Service Installer"
 Write-Log "============================================="
 Write-Log ""
 

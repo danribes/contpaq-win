@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Uninstalls ContPAQ-Win services.
+    Uninstalls ContPaq-proPDF services.
 
 .DESCRIPTION
     This script stops and removes the AI service and Windows Bridge
@@ -40,10 +40,10 @@ if (-not $InstallDir) {
 }
 
 $NssmPath = Join-Path $InstallDir "tools\nssm.exe"
-$LogDir = "$env:PROGRAMDATA\ContPAQ-Win\logs"
+$LogDir = "$env:PROGRAMDATA\ContPaq-proPDF\logs"
 
-$AIServiceName = "ContPAQWinAIService"
-$BridgeServiceName = "ContPAQWinBridge"
+$AIServiceName = "ContPaqProPDFAIService"
+$BridgeServiceName = "ContPaqProPDFBridge"
 
 # =============================================================================
 # Functions
@@ -137,7 +137,7 @@ function Remove-BridgeService {
 # Main Script
 # =============================================================================
 
-Write-Log "ContPAQ-Win Service Uninstaller"
+Write-Log "ContPaq-proPDF Service Uninstaller"
 Write-Log "================================"
 Write-Log ""
 

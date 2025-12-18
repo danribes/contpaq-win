@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "contpaq-win-ai-service"
 version = "0.1.0"
-description = "AI-powered invoice processing service for ContPAQ-Win"
+description = "AI-powered invoice processing service for ContPaq-proPDF"
 readme = "README.md"
 license = {text = "Proprietary"}
 requires-python = ">=3.11"
 authors = [
-    {name = "ContPAQ-Win Team"}
+    {name = "ContPaq-proPDF Team"}
 ]
 keywords = ["invoice", "ocr", "ai", "contpaqi", "pdf"]
 classifiers = [

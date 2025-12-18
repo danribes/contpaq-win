@@ -10,14 +10,14 @@ namespace ContPAQWinBridge.Configuration;
 /// Provides centralized logging configuration for the Windows Bridge service
 /// with JSON output format, file rotation, and enrichment.
 ///
-/// Log files are stored in: %LOCALAPPDATA%\ContPAQ-Win\Logs\
+/// Log files are stored in: %LOCALAPPDATA%\ContPaq-proPDF\Logs\
 /// </summary>
 public static class LoggingConfiguration
 {
     /// <summary>
     /// Application name used in log paths.
     /// </summary>
-    public const string AppName = "ContPAQ-Win";
+    public const string AppName = "ContPaq-proPDF";
 
     /// <summary>
     /// Service name for log identification.
@@ -37,7 +37,7 @@ public static class LoggingConfiguration
     /// <summary>
     /// Gets the log directory path.
     ///
-    /// On Windows, logs are stored in %LOCALAPPDATA%\ContPAQ-Win\Logs
+    /// On Windows, logs are stored in %LOCALAPPDATA%\ContPaq-proPDF\Logs
     /// On other platforms, falls back to current directory.
     /// </summary>
     /// <returns>The full path to the log directory.</returns>

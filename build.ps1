@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Build script for ContPAQ-Win installer.
+    Build script for ContPaq-proPDF installer.
 
 .DESCRIPTION
-    This script automates the complete build process for ContPAQ-Win:
+    This script automates the complete build process for ContPaq-proPDF:
     1. Checks for required tools (Python, Node.js, .NET SDK, Inno Setup)
     2. Builds the AI Service executable (PyInstaller)
     3. Builds the Windows Bridge (.NET publish)
@@ -352,7 +352,7 @@ function Build-DesktopApp {
         Write-Log "Packaging with Electron Builder..."
         npm run package
 
-        $appPath = "release\win-unpacked\ContPAQ Win.exe"
+        $appPath = "release\win-unpacked\ContPaq proPDF.exe"
         if (Test-Path $appPath) {
             Write-Log "Desktop App built: release\win-unpacked\" "SUCCESS"
         }
@@ -439,7 +439,7 @@ $startTime = Get-Date
 
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║                    ContPAQ-Win Build Script                          ║" -ForegroundColor Cyan
+Write-Host "║                    ContPaq-proPDF Build Script                          ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
 

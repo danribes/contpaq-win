@@ -1,5 +1,5 @@
 """
-ContPAQ-Win AI Service - Configuration Module
+ContPaq-proPDF AI Service - Configuration Module
 
 This module provides type-safe configuration management using Pydantic Settings.
 Configuration values can be set via:
