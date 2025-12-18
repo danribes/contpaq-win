@@ -68,7 +68,9 @@ ContPAQ-Win uses a multi-process architecture:
 
 ## Installation
 
-### Quick Install (Recommended)
+> **Note**: ContPAQ-Win is currently in development. Pre-built installers will be available on the [Releases](https://github.com/danribes/contpaq-win/releases) page once the first stable version is ready. For now, you can build the installer locally (see [Building the Installer](#building-the-installer) below).
+
+### Quick Install (When Available)
 
 1. Download `ContPAQ-Win-X.X.X-Setup.exe` from the [Releases](https://github.com/danribes/contpaq-win/releases) page
 2. Run the installer as Administrator
@@ -190,11 +192,19 @@ dotnet publish -c Release -r win-x64 --self-contained true
 cd desktop-app
 npm run build
 npm run package
-
-# Build installer (requires Inno Setup)
-cd installer
-iscc contpaq-win.iss
 ```
+
+### Building the Installer
+
+To build the Windows installer locally:
+
+1. **Install Inno Setup 6.x** from [jrsoftware.org](https://jrsoftware.org/isinfo.php)
+2. **Build all components** (see above)
+3. **Run the Inno Setup compiler**:
+   ```bash
+   cd installer
+   iscc contpaq-win.iss
+   ```
 
 The installer will be created at `installer/output/ContPAQ-Win-X.X.X-Setup.exe`
 
