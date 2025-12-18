@@ -1,0 +1,90 @@
+ACUERDO DE LICENCIA DE SOFTWARE
+ContPAQ-Win
+
+Versión 0.1.0
+
+=============================================================================
+
+Por favor, lea atentamente este Acuerdo de Licencia de Software ("Licencia")
+antes de instalar o utilizar ContPAQ-Win ("Software").
+
+Al instalar o usar el Software, usted acepta los términos de esta Licencia.
+Si no está de acuerdo con los términos, no instale ni use el Software.
+
+=============================================================================
+
+1. CONCESIÓN DE LICENCIA
+
+Se le concede una licencia no exclusiva, intransferible y revocable para
+usar el Software únicamente para sus fines comerciales internos, sujeto a
+los términos y condiciones de esta Licencia.
+
+2. RESTRICCIONES
+
+Usted NO puede:
+- Modificar, descompilar, desensamblar o realizar ingeniería inversa del
+  Software, excepto cuando lo permita la ley aplicable.
+- Distribuir, sublicenciar, arrendar o transferir el Software a terceros.
+- Usar el Software para cualquier propósito ilegal o no autorizado.
+- Eliminar o alterar cualquier aviso de propiedad del Software.
+
+3. PROPIEDAD INTELECTUAL
+
+El Software y toda la documentación relacionada son propiedad exclusiva
+de ContPAQ-Win Team y están protegidos por las leyes de derechos de autor
+y propiedad intelectual aplicables.
+
+4. COMPONENTES DE TERCEROS
+
+El Software incluye componentes de código abierto sujetos a sus propias
+licencias, incluyendo pero no limitado a:
+- Electron (MIT License)
+- React (MIT License)
+- Tesseract OCR (Apache License 2.0)
+- FastAPI (MIT License)
+
+5. EXENCIÓN DE GARANTÍAS
+
+EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO,
+EXPRESA O IMPLÍCITA, INCLUYENDO PERO NO LIMITADO A LAS GARANTÍAS DE
+COMERCIABILIDAD, IDONEIDAD PARA UN PROPÓSITO PARTICULAR Y NO INFRACCIÓN.
+
+6. LIMITACIÓN DE RESPONSABILIDAD
+
+EN NINGÚN CASO LOS AUTORES O TITULARES DE LOS DERECHOS DE AUTOR SERÁN
+RESPONSABLES POR CUALQUIER RECLAMACIÓN, DAÑOS U OTRA RESPONSABILIDAD,
+YA SEA EN UNA ACCIÓN DE CONTRATO, AGRAVIO O DE OTRO TIPO, QUE SURJA DE
+O EN CONEXIÓN CON EL SOFTWARE O EL USO U OTROS TRATOS EN EL SOFTWARE.
+
+7. PROTECCIÓN DE DATOS
+
+El Software procesa facturas y documentos fiscales que pueden contener
+información sensible. Usted es responsable de:
+- Cumplir con las leyes de protección de datos aplicables (LFPDPPP).
+- Implementar medidas de seguridad adecuadas.
+- Obtener los consentimientos necesarios para el procesamiento de datos.
+
+8. TERMINACIÓN
+
+Esta Licencia termina automáticamente si usted incumple cualquiera de sus
+términos. Tras la terminación, debe cesar todo uso del Software y destruir
+todas las copias en su posesión.
+
+9. LEY APLICABLE
+
+Esta Licencia se rige por las leyes de los Estados Unidos Mexicanos.
+Cualquier disputa será sometida a la jurisdicción exclusiva de los
+tribunales competentes de la Ciudad de México.
+
+10. CONTACTO
+
+Para preguntas sobre esta Licencia:
+- GitHub: https://github.com/contpaq-win
+- Email: soporte@contpaq-win.com
+
+=============================================================================
+
+Al hacer clic en "Acepto" o instalar el Software, usted reconoce que ha
+leído y comprendido este Acuerdo y acepta quedar vinculado por sus términos.
+
+© 2024 ContPAQ-Win Team. Todos los derechos reservados.

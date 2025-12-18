@@ -1,0 +1,46 @@
+ContPAQ-Win - Instalación
+=========================
+
+Gracias por elegir ContPAQ-Win para la gestión de sus facturas.
+
+REQUISITOS DEL SISTEMA
+----------------------
+
+• Windows 10/11 (64-bit)
+• 4 GB de RAM mínimo (8 GB recomendado)
+• 500 MB de espacio en disco
+• ContPAQi Contabilidad instalado
+
+COMPONENTES INCLUIDOS
+---------------------
+
+Esta instalación incluye:
+
+1. ContPAQ-Win Desktop
+   Aplicación de escritorio para escanear y procesar facturas.
+
+2. Servicio de IA
+   Motor de reconocimiento de documentos con inteligencia artificial.
+
+3. Windows Bridge
+   Puente de comunicación con ContPAQi SDK.
+
+4. Tesseract OCR
+   Motor de reconocimiento óptico de caracteres.
+
+NOTAS IMPORTANTES
+-----------------
+
+• El instalador requiere permisos de administrador.
+• Los servicios se iniciarán automáticamente después de la instalación.
+• La primera ejecución puede tardar unos minutos mientras se cargan los
+  modelos de IA.
+
+SOPORTE
+-------
+
+Para obtener ayuda:
+• Documentación: https://github.com/contpaq-win/docs
+• Reportar problemas: https://github.com/contpaq-win/issues
+
+Haga clic en "Siguiente" para continuar con la instalación.
