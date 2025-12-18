@@ -1138,12 +1138,12 @@
   - [x] T020.2.5 Validate total (subtotal + iva = total)
   - [x] T020.2.6 Return validation errors/warnings
 
-- [ ] **T020.3** Implement form validation in desktop app
-  - [ ] T020.3.1 [P] Write test for form validation
-  - [ ] T020.3.2 Validate RFC on field blur
-  - [ ] T020.3.3 Validate totals on amount changes
-  - [ ] T020.3.4 Show inline validation errors in Spanish
-  - [ ] T020.3.5 Enable "Validar" button only when no errors
+- [x] **T020.3** Implement form validation in desktop app ✅ 2025-12-18
+  - [x] T020.3.1 [P] Write test for form validation
+  - [x] T020.3.2 Validate RFC on field blur
+  - [x] T020.3.3 Validate totals on amount changes
+  - [x] T020.3.4 Show inline validation errors in Spanish
+  - [x] T020.3.5 Enable "Validar" button only when no errors
 
 **Checkpoint**: Validation errors display correctly
 
