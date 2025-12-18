@@ -20,6 +20,8 @@ from .extraction import (
     ExtractionField,
     LineItemExtraction,
     InvoiceExtraction,
+    BatchResultItem,
+    BatchExtractionResponse,
 )
 
 __all__ = [
@@ -27,4 +29,6 @@ __all__ = [
     "ExtractionField",
     "LineItemExtraction",
     "InvoiceExtraction",
+    "BatchResultItem",
+    "BatchExtractionResponse",
 ]

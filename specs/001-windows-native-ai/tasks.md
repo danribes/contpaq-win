@@ -948,11 +948,11 @@
   - [x] T014.1.6 Calculate and return processing_time_ms
   - [x] T014.1.7 Handle errors with Spanish messages
 
-- [ ] **T014.2** [P] Implement batch extraction endpoint
-  - [ ] T014.2.1 [P] Write test `test_batch_extract_endpoint.py`
-  - [ ] T014.2.2 Create POST /extract/batch endpoint
-  - [ ] T014.2.3 Process files sequentially (avoid memory issues)
-  - [ ] T014.2.4 Return BatchExtractionResponse with per-file results
+- [x] **T014.2** [P] Implement batch extraction endpoint ✅ 2025-12-18
+  - [x] T014.2.1 [P] Write test `test_batch_extract_endpoint.py`
+  - [x] T014.2.2 Create POST /extract/batch endpoint
+  - [x] T014.2.3 Process files sequentially (avoid memory issues)
+  - [x] T014.2.4 Return BatchExtractionResponse with per-file results
 
 **Checkpoint**: API extracts invoice data from uploaded PDF
 

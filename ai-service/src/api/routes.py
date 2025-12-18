@@ -19,7 +19,14 @@ from ..services.extraction_service import (
     FileTooLargeError,
     MAX_FILE_SIZE,
 )
-from ..models.extraction import InvoiceExtraction
+from ..models.extraction import (
+    InvoiceExtraction,
+    BatchResultItem,
+    BatchExtractionResponse,
+)
+
+# Maximum number of files in a batch
+MAX_BATCH_FILES = 20
 
 logger = logging.getLogger(__name__)
 
@@ -363,3 +370,111 @@ async def extract_invoice(
             status_code=500,
             detail="Error interno del servidor durante la extracción",
         )
+
+
+@router.post("/extract/batch", response_model=BatchExtractionResponse)
+async def extract_batch(
+    files: List[UploadFile] = File(..., description="PDF files to extract invoice data from")
+) -> BatchExtractionResponse:
+    """
+    Extract invoice data from multiple uploaded PDF files.
+
+    This endpoint accepts multiple PDF files and processes them sequentially,
+    returning a BatchExtractionResponse with per-file results.
+
+    Files are processed one at a time to avoid memory issues. If one file
+    fails, processing continues with the remaining files.
+
+    Args:
+        files: List of PDF file uploads (multipart/form-data)
+
+    Returns:
+        BatchExtractionResponse: Results for all files with success/failure counts
+
+    Raises:
+        HTTPException 400: If any file is not a valid PDF
+        HTTPException 422: If too many files are provided
+    """
+    import time
+    start_time = time.time()
+
+    # Validate batch size
+    if len(files) > MAX_BATCH_FILES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Demasiados archivos. El máximo es {MAX_BATCH_FILES} archivos por lote.",
+        )
+
+    # Validate all files are PDFs before processing
+    for file in files:
+        content_type = file.content_type or ""
+        filename = file.filename or ""
+        if not content_type.startswith("application/pdf") and not filename.lower().endswith(".pdf"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"El archivo '{filename}' no es un PDF. Todos los archivos deben ser PDF.",
+            )
+
+    # Create extraction service
+    service = ExtractionService()
+
+    results: List[BatchResultItem] = []
+    successful = 0
+    failed = 0
+
+    # Process files sequentially
+    for file in files:
+        filename = file.filename or "document.pdf"
+
+        try:
+            # Read file content
+            content = await file.read()
+
+            # Check file size
+            if len(content) > MAX_FILE_SIZE:
+                results.append(BatchResultItem(
+                    filename=filename,
+                    success=False,
+                    error=f"El archivo excede el tamaño máximo de {MAX_FILE_SIZE // (1024 * 1024)}MB",
+                ))
+                failed += 1
+                continue
+
+            # Extract invoice data
+            extraction = service.extract(content, filename=filename)
+
+            results.append(BatchResultItem(
+                filename=filename,
+                success=True,
+                extraction=extraction,
+            ))
+            successful += 1
+
+        except InvalidPDFError as e:
+            logger.warning(f"Invalid PDF in batch '{filename}': {e}")
+            results.append(BatchResultItem(
+                filename=filename,
+                success=False,
+                error=str(e),
+            ))
+            failed += 1
+
+        except Exception as e:
+            logger.error(f"Extraction failed for '{filename}': {e}")
+            results.append(BatchResultItem(
+                filename=filename,
+                success=False,
+                error=f"Error en la extracción: {str(e)}",
+            ))
+            failed += 1
+
+    # Calculate total processing time
+    total_processing_time_ms = int((time.time() - start_time) * 1000)
+
+    return BatchExtractionResponse(
+        results=results,
+        total_files=len(files),
+        successful=successful,
+        failed=failed,
+        total_processing_time_ms=total_processing_time_ms,
+    )
