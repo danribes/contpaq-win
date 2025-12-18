@@ -152,10 +152,31 @@ jobs:
       - name: Build Desktop App
         shell: pwsh
         working-directory: desktop-app
+        env:
+          ELECTRON_MIRROR: https://npmmirror.com/mirrors/electron/
         run: |
           Write-Host "Installing npm dependencies..."
-          # Canvas may fail to build (optional dep) but npm will continue
-          npm ci
+          # Retry logic for npm ci (network issues with Electron download)
+          $maxRetries = 4
+          for ($i = 1; $i -le $maxRetries; $i++) {
+            Write-Host "npm ci attempt $i of $maxRetries..."
+            npm ci
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "npm ci succeeded"
+              break
+            }
+            if ($i -lt $maxRetries) {
+              $waitTime = [math]::Pow(2, $i)
+              Write-Host "npm ci failed (exit code $LASTEXITCODE), retrying in $waitTime seconds..."
+              Start-Sleep -Seconds $waitTime
+              # Clean node_modules before retry
+              if (Test-Path "node_modules") {
+                Remove-Item -Recurse -Force "node_modules" -ErrorAction SilentlyContinue
+              }
+            } else {
+              throw "npm ci failed after $maxRetries attempts"
+            }
+          }
 
           Write-Host "Building application..."
           npm run build
