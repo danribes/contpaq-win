@@ -1322,12 +1322,27 @@
 
 ### T025 - Post to ContPAQi UI Flow
 
-- [ ] **T025.1** Implement duplicate warning modal
-  - [ ] T025.1.1 [P] Write test for duplicate modal
-  - [ ] T025.1.2 Create modal component for duplicate warning
-  - [ ] T025.1.3 Show existing entry details
-  - [ ] T025.1.4 Provide "Continuar" and "Cancelar" options
-  - [ ] T025.1.5 Track user override decision
+- [x] **T025.1** Implement duplicate warning modal ✅ *Completed 2025-12-18*
+  - [x] T025.1.1 [P] Write test for duplicate modal ✅ *Completed 2025-12-18*
+    - Created: `desktop-app/src/renderer/components/DuplicateWarningModal.test.tsx`
+    - 31 Jest tests covering rendering, details, buttons, accessibility, loading
+    - Uses @testing-library/react with fireEvent
+  - [x] T025.1.2 Create modal component for duplicate warning ✅ *Completed 2025-12-18*
+    - Created: `desktop-app/src/renderer/components/DuplicateWarningModal.tsx`
+    - React functional component with Tailwind CSS styling
+    - Orange warning header with SVG icon
+  - [x] T025.1.3 Show existing entry details ✅ *Completed 2025-12-18*
+    - Displays: folio, date, vendor RFC, invoice number
+    - Spanish labels: "Folio existente", "Fecha de registro", etc.
+    - Handles null existingDate gracefully
+  - [x] T025.1.4 Provide "Continuar" and "Cancelar" options ✅ *Completed 2025-12-18*
+    - Gray cancel button, orange continue button
+    - Click overlay or Escape to cancel
+    - Loading state disables buttons with spinner
+  - [x] T025.1.5 Track user override decision ✅ *Completed 2025-12-18*
+    - onContinue(true) signals forceDuplicate
+    - Full accessibility: role="dialog", aria-modal, aria-labelledby
+    - Logs: `log_files/T025.1_*`, `log_tests/T025.1_*`, `log_learn/T025.1_*`
 
 - [ ] **T025.2** Implement vendor resolution flow
   - [ ] T025.2.1 [P] Write test for vendor resolution
