@@ -1094,18 +1094,18 @@
   - [x] T019.1.5 Mark field as "user_verified" after edit
   - [x] T019.1.6 Validate input format (RFC, date, amounts)
 
-- [ ] **T019.2** Create invoice form
-  - [ ] T019.2.1 [P] Write test for form rendering
-  - [ ] T019.2.2 Create `InvoiceForm.tsx` component
-  - [ ] T019.2.3 Render all header fields with FieldInput
-    - [ ] T019.2.3.1 RFC del Proveedor field
-    - [ ] T019.2.3.2 Nombre del Proveedor field
-    - [ ] T019.2.3.3 Número de Factura field
-    - [ ] T019.2.3.4 Fecha field
-    - [ ] T019.2.3.5 Subtotal field
-    - [ ] T019.2.3.6 IVA field
-    - [ ] T019.2.3.7 Total field
-  - [ ] T019.2.4 Sync field selection with PDF viewer bbox
+- [x] **T019.2** Create invoice form ✅ 2025-12-18
+  - [x] T019.2.1 [P] Write test for form rendering
+  - [x] T019.2.2 Create `InvoiceForm.tsx` component
+  - [x] T019.2.3 Render all header fields with FieldInput
+    - [x] T019.2.3.1 RFC del Proveedor field
+    - [x] T019.2.3.2 Nombre del Proveedor field
+    - [x] T019.2.3.3 Número de Factura field
+    - [x] T019.2.3.4 Fecha field
+    - [x] T019.2.3.5 Subtotal field
+    - [x] T019.2.3.6 IVA field
+    - [x] T019.2.3.7 Total field
+  - [x] T019.2.4 Sync field selection with PDF viewer bbox
 
 - [ ] **T019.3** Create line items table
   - [ ] T019.3.1 [P] Write test for line items display
