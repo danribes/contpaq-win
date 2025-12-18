@@ -68,11 +68,19 @@ ContPaq-proPDF uses a multi-process architecture:
 
 ## Installation
 
-> **Note**: ContPaq-proPDF is currently in development. Pre-built installers will be available on the [Releases](https://github.com/danribes/contpaq-win/releases) page once the first stable version is ready. For now, you can build and install locally following the instructions below.
+### Quick Install (Recommended)
 
-### Install from Source (Current Method)
+1. Go to the [Releases](https://github.com/danribes/contpaq-win/releases) page
+2. Download the latest `ContPaq-proPDF-X.X.X-Setup.exe`
+3. Run the installer as Administrator
+4. Follow the installation wizard
+5. Launch ContPaq-proPDF from the desktop shortcut or Start Menu
 
-Since pre-built releases are not yet available, follow these steps to build and install:
+> **Note**: Releases are built automatically via GitHub Actions when version tags are created.
+
+### Build from Source
+
+If you prefer to build locally or want to contribute:
 
 1. **Clone the repository** and ensure you have all [Development Prerequisites](#prerequisites)
 2. **Build the installer** by running from the repository root:
@@ -88,15 +96,6 @@ Since pre-built releases are not yet available, follow these steps to build and 
 5. **Launch ContPaq-proPDF** from the desktop shortcut or Start Menu
 
 For detailed build options, see [Building the Installer](#building-the-installer) below.
-
-### Quick Install (When Releases Available)
-
-Once stable releases are published:
-
-1. Download `ContPaq-proPDF-X.X.X-Setup.exe` from the [Releases](https://github.com/danribes/contpaq-win/releases) page
-2. Run the installer as Administrator
-3. Follow the installation wizard
-4. Launch ContPaq-proPDF from the desktop shortcut or Start Menu
 
 ### What the Installer Does
 
@@ -250,6 +249,33 @@ Options:
    ```
 
 The installer will be created at `installer/output/ContPaq-proPDF-X.X.X-Setup.exe`
+
+### Automated Builds (CI/CD)
+
+The repository includes a GitHub Actions workflow that automatically builds and publishes installers when you create a release tag.
+
+**To create a new release:**
+
+1. **Tag the release**:
+   ```bash
+   git tag v0.1.0
+   git push origin v0.1.0
+   ```
+
+2. **GitHub Actions will automatically**:
+   - Build all components (AI Service, Windows Bridge, Desktop App)
+   - Compile the Inno Setup installer
+   - Create a GitHub Release with the installer attached
+
+3. **Find your release** at the [Releases page](https://github.com/danribes/contpaq-win/releases)
+
+**Version naming conventions:**
+- `v1.0.0` - Stable release
+- `v1.0.0-beta.1` - Beta release (marked as pre-release)
+- `v1.0.0-alpha.1` - Alpha release (marked as pre-release)
+
+**Manual workflow trigger:**
+You can also trigger the build manually from the GitHub Actions tab without creating a tag.
 
 ## Project Structure
 
