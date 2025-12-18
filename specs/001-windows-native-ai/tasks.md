@@ -1107,13 +1107,13 @@
     - [x] T019.2.3.7 Total field
   - [x] T019.2.4 Sync field selection with PDF viewer bbox
 
-- [ ] **T019.3** Create line items table
-  - [ ] T019.3.1 [P] Write test for line items display
-  - [ ] T019.3.2 Create `LineItemsTable.tsx` component
-  - [ ] T019.3.3 Display editable table rows
-  - [ ] T019.3.4 Support row editing
-  - [ ] T019.3.5 Auto-calculate row amounts
-  - [ ] T019.3.6 Validate totals match
+- [x] **T019.3** Create line items table ✅ 2025-12-18
+  - [x] T019.3.1 [P] Write test for line items display
+  - [x] T019.3.2 Create `LineItemsTable.tsx` component
+  - [x] T019.3.3 Display editable table rows
+  - [x] T019.3.4 Support row editing
+  - [x] T019.3.5 Auto-calculate row amounts
+  - [x] T019.3.6 Validate totals match
 
 **Checkpoint**: All fields editable with confidence indicators
 
