@@ -33,3 +33,6 @@ mkdocs-material==9.5.3
 # Development Utilities
 ipython==8.20.0
 watchfiles==0.21.0  # For auto-reload during development
+
+# Packaging
+pyinstaller==6.3.0  # For creating standalone Windows executable
