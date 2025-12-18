@@ -1017,17 +1017,27 @@
   - Error message display support
   - 34 tests covering rendering, zoom, navigation, and styling
 
-- [ ] **T016.2** Implement bounding box overlay
-  - [ ] T016.2.1 [P] Write test for bbox overlay
-  - [ ] T016.2.2 Create `BoundingBoxOverlay.tsx` component
-  - [ ] T016.2.3 Render boxes at correct positions
-  - [ ] T016.2.4 Color boxes by confidence level
-    - [ ] T016.2.4.1 Green for ≥90%
-    - [ ] T016.2.4.2 Orange for 70-89%
-    - [ ] T016.2.4.3 Red for <70%
-  - [ ] T016.2.5 Highlight active field on hover/selection
+- [x] **T016.2** Implement bounding box overlay ✅ 2025-12-18
+  - [x] T016.2.1 [P] Write test for bbox overlay (38 tests)
+  - [x] T016.2.2 Create `BoundingBoxOverlay.tsx` component
+  - [x] T016.2.3 Render boxes at correct positions
+  - [x] T016.2.4 Color boxes by confidence level
+    - [x] T016.2.4.1 Green for ≥90%
+    - [x] T016.2.4.2 Orange for 70-89%
+    - [x] T016.2.4.3 Red for <70%
+  - [x] T016.2.5 Highlight active field on hover/selection
 
-**Checkpoint**: PDF displays with extraction highlights
+  **Implementation Details:**
+  - Created `BoundingBoxOverlay` component in `desktop-app/src/renderer/components/`
+  - Renders absolute-positioned boxes for fields with bbox property
+  - Scales coordinates with zoom: `x * scale`, `y * scale`, etc.
+  - Confidence colors: green (≥90%), orange (70-89%), red (<70%)
+  - Background opacity: `bg-{color}-500/20` for semi-transparent fill
+  - Ring highlight on hover/selection with smooth transitions
+  - Optional tooltip showing field name on hover
+  - 38 tests covering positioning, colors, interactions, and edge cases
+
+**Checkpoint**: PDF displays with extraction highlights ✅
 
 ---
 
