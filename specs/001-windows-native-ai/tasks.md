@@ -1615,11 +1615,21 @@
     - Shows when no invoices or filter has no results
     - Displays instructional message and action button
 
-- [ ] **T030.2** [P] Create settings page
-  - [ ] T030.2.1 Create `SettingsPage.tsx`
-  - [ ] T030.2.2 Company selection dropdown
-  - [ ] T030.2.3 Service status indicators
-  - [ ] T030.2.4 About/version information
+- [x] **T030.2** [P] Create settings page ✅ *Completed 2025-12-18*
+  - [x] T030.2.1 Create `SettingsPage.tsx` ✅ *Completed 2025-12-18*
+    - Created SettingsPage React component with Tailwind CSS
+    - Three main sections: Company, Services, About
+  - [x] T030.2.2 Company selection dropdown ✅ *Completed 2025-12-18*
+    - Custom dropdown with loading/error states
+    - Shows company name and RFC
+    - Uses bridge:get-companies and bridge:set-company IPC
+  - [x] T030.2.3 Service status indicators ✅ *Completed 2025-12-18*
+    - Reuses status color/text patterns from StatusBar
+    - Refresh button for manual status update
+  - [x] T030.2.4 About/version information ✅ *Completed 2025-12-18*
+    - Version, platform, architecture display
+    - Data directory path
+    - Help/documentation link
 
 **Checkpoint**: Navigation works correctly
 

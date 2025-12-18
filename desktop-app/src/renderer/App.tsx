@@ -9,17 +9,7 @@ import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { ProcessingPage } from './pages/ProcessingPage';
-
-const SettingsPage: React.FC = () => (
-  <div className="p-4">
-    <h1 className="text-2xl font-bold text-gray-800 mb-4">
-      Configuración
-    </h1>
-    <p className="text-gray-600">
-      Página de configuración (por implementar)
-    </p>
-  </div>
-);
+import { SettingsPage } from './pages/SettingsPage';
 
 const NotFoundPage: React.FC = () => (
   <div className="flex flex-col items-center justify-center min-h-[60vh]">
