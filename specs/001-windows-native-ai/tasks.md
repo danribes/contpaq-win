@@ -1429,13 +1429,25 @@
     - Build script includes validation step
     - Logs: `log_files/T026.1_*`, `log_tests/T026.1_*`, `log_learn/T026.1_*`
 
-- [ ] **T026.2** [P] Create Windows Service wrapper
-  - [ ] T026.2.1 Bundle NSSM executable
-  - [ ] T026.2.2 Create service registration script
-  - [ ] T026.2.3 Configure auto-restart on failure
-  - [ ] T026.2.4 Configure service dependencies
+- [x] **T026.2** [P] Create Windows Service wrapper ✅ *Completed 2025-12-18*
+  - [x] T026.2.1 Bundle NSSM executable ✅ *Completed 2025-12-18*
+    - Created: `ai-service/scripts/nssm/README.md` - Download instructions
+    - NSSM not bundled (licensing), downloaded by user
+    - Links to https://nssm.cc/download
+  - [x] T026.2.2 Create service registration script ✅ *Completed 2025-12-18*
+    - Created: `ai-service/scripts/install-service.ps1`
+    - Created: `ai-service/scripts/uninstall-service.ps1`
+    - PowerShell scripts with Administrator requirement
+    - Test: `tests/ai_service/test_T026_2_service_wrapper.py` (17 tests passed)
+  - [x] T026.2.3 Configure auto-restart on failure ✅ *Completed 2025-12-18*
+    - AppExit Default Restart
+    - RestartDelay: 5000ms, Throttle: 60000ms
+    - Log rotation at 10MB
+  - [x] T026.2.4 Configure service dependencies ✅ *Completed 2025-12-18*
+    - AI service is standalone (no dependencies)
+    - Logs: `log_files/T026.2_*`, `log_tests/T026.2_*`, `log_learn/T026.2_*`
 
-**Checkpoint**: Python service runs as Windows Service
+**Checkpoint**: Python service runs as Windows Service ✅ *Completed 2025-12-18*
 
 ---
 
