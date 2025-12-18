@@ -1272,11 +1272,21 @@
   - Uses record `with` expression for immutable request normalization
   - 24 new tests (51 total in EntriesControllerTests)
 
-- [ ] **T023.3** Implement entry service
-  - [ ] T023.3.1 Create `IEntryService.cs` interface
-  - [ ] T023.3.2 Create `EntryService.cs` implementation
-  - [ ] T023.3.3 Implement `CreateEntry()` method
-  - [ ] T023.3.4 Handle SDK exceptions with Spanish messages
+- [x] **T023.3** Implement entry service ✓ 2025-12-18
+  - [x] T023.3.1 Create `IEntryService.cs` interface (already existed)
+  - [x] T023.3.2 Create `EntryService.cs` implementation
+  - [x] T023.3.3 Implement `CreateEntry()` method
+  - [x] T023.3.4 Handle SDK exceptions with Spanish messages
+
+  **Implementation Details (T023.3)**:
+  - Created `EntryService.cs` implementing IEntryService
+  - Stub implementation with test data (thread-safe with locking)
+  - Folio format: POL-{year}-{counter:D4} (e.g., POL-2024-0001)
+  - CreateAsync stores entries for duplicate checking and retrieval
+  - CheckDuplicateAsync matches on RFC + InvoiceNumber (case-insensitive)
+  - GetByFolioAsync retrieves entries by folio
+  - Spanish messages for duplicate results
+  - 28 tests in EntryServiceTests.cs
 
 **Checkpoint**: Entries can be created in ContPAQi
 
