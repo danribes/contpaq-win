@@ -1232,12 +1232,21 @@
 
 ### T023 - Windows Bridge Entry Endpoints
 
-- [ ] **T023.1** Implement duplicate check
-  - [ ] T023.1.1 [P] Write test for duplicate check
-  - [ ] T023.1.2 Create `EntriesController.cs`
-  - [ ] T023.1.3 Implement POST /entries/check-duplicate
-  - [ ] T023.1.4 Query SDK for existing entry by RFC + invoice number
-  - [ ] T023.1.5 Return duplicate status
+- [x] **T023.1** Implement duplicate check ✓ 2025-12-18
+  - [x] T023.1.1 [P] Write test for duplicate check
+  - [x] T023.1.2 Create `EntriesController.cs`
+  - [x] T023.1.3 Implement POST /entries/check-duplicate
+  - [x] T023.1.4 Query SDK for existing entry by RFC + invoice number
+  - [x] T023.1.5 Return duplicate status
+
+  **Implementation Details (T023.1)**:
+  - Created `EntriesController.cs` with POST /api/entries/check-duplicate
+  - Uses existing IEntryService.CheckDuplicateAsync method
+  - Validates RFC (required, 12-13 alphanumeric chars), normalizes to uppercase
+  - Validates invoice number (required)
+  - Returns DuplicateCheckResult: isDuplicate, existingFolio, existingDate, message
+  - Error messages in Spanish
+  - 27 tests in EntriesControllerTests.cs
 
 - [ ] **T023.2** Implement entry creation
   - [ ] T023.2.1 [P] Write test for entry creation
