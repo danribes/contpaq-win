@@ -1086,13 +1086,13 @@
 
 ### T019 - Invoice Form Component
 
-- [ ] **T019.1** Create field input component
-  - [ ] T019.1.1 [P] Write test for field input
-  - [ ] T019.1.2 Create `FieldInput.tsx` component
-  - [ ] T019.1.3 Display field label, value, confidence
-  - [ ] T019.1.4 Enable inline editing on click
-  - [ ] T019.1.5 Mark field as "user_verified" after edit
-  - [ ] T019.1.6 Validate input format (RFC, date, amounts)
+- [x] **T019.1** Create field input component ✅ 2025-12-18
+  - [x] T019.1.1 [P] Write test for field input
+  - [x] T019.1.2 Create `FieldInput.tsx` component
+  - [x] T019.1.3 Display field label, value, confidence
+  - [x] T019.1.4 Enable inline editing on click
+  - [x] T019.1.5 Mark field as "user_verified" after edit
+  - [x] T019.1.6 Validate input format (RFC, date, amounts)
 
 - [ ] **T019.2** Create invoice form
   - [ ] T019.2.1 [P] Write test for form rendering
